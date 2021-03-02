@@ -11,6 +11,8 @@ func mainPage(c echo.Context) error {
 }
 
 func main() {
+	var users []user // слайс пользователей
+	var restourants []restourant // рестораны
 	e := echo.New()
 	//e.GET("/", func(c echo.Context) error {
 	//	return c.String(http.StatusOK, "Hello, World!")
