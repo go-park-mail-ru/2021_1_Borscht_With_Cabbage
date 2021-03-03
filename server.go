@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// загрузка главной страницы с ресторанами
+// тут будет загрузка главной страницы с ресторанами
 func mainPage(c echo.Context) error {
 	return c.String(http.StatusOK, "It will be the main page")
 }
