@@ -1,23 +1,20 @@
 package main
 
 import (
+	"backend/api/page"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
-// загрузка главной страницы с ресторанами
-func mainPage(c echo.Context) error {
-	return c.String(http.StatusOK, "It will be the main page")
-}
 
 func main() {
-	var users []user // слайс пользователей
-	var restourants []restourant // рестораны
+	//var users []user // слайс пользователей
+	//var restourants []restourant // рестораны
 	e := echo.New()
 	//e.GET("/", func(c echo.Context) error {
 	//	return c.String(http.StatusOK, "Hello, World!")
 	//})
-	e.GET("/", mainPage)
+	e.GET("/", page.MainPage)
+	e.GET("/vendor", page.GetVendor) // урл на получение json с растаранами
 	//e.GET("/:id", restaurantPage) // урл на получение странички ресторана номер id
 	//e.POST("/signup", createUser) // урл на регистрацию пользователя
 	//e.POST("/signin", logUser) // урл на авторизацию
