@@ -10,16 +10,21 @@ func mainPage(c echo.Context) error {
 	return c.String(http.StatusOK, "It will be the main page")
 }
 
-func main() {
-	users := make([]user, 0, 0)
-	restaurants := make([]restaurant, 0, 0)
-	e := echo.New()
+func router(e *echo.Echo) {
 	e.GET("/", mainPage)
-	// TODO: 
 	//e.GET("/:id", restaurantPage) // урл на получение странички ресторана номер id
 	//e.POST("/signup", createUser) // урл на регистрацию пользователя
 	//e.POST("/signin", logUser) // урл на авторизацию
 	//e.POST("/edituser", updateUser) // обновить пользователя после редактирования профиля
+
+}
+
+func main() {
+	users := make([]user, 0, 0)
+	restaurants := make([]restaurant, 0, 0)
+
+	e := echo.New()
+	router(e)
 
 	e.Logger.Fatal(e.Start(":5000"))
 }
