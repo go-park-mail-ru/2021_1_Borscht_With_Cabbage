@@ -1,69 +1,68 @@
 package page
 
 import (
+	"backend/api"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"backend/api"
+	"strconv"
 )
 
-var restourants []api.Restourant
-
-type restourantJSON struct {
+type restaurantResponse struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
 	DeliveryCost int    `json:"deliveryCost"`
 }
 
-func initRestourants() {
-	restourants = restourants[0:0]
+func initRestaurants() []api.Restaurant {
+	restaurants := make([]api.Restaurant, 0, 10)
 
 	for i := 0; i < 10; i++ {
-		res := api.Restourant{}
-		res.SetCost(10)
-		res.SetName("My rest")
-		res.SetPK(i)
+		res := api.Restaurant{}
+		res.DeliveryCost = 10
+		res.Name = "My rest"
+		res.ID = i
 
-		restourants = append(restourants, res)
+		restaurants = append(restaurants, res)
 	}
+
+	return restaurants
 }
 
 // загрузка главной страницы с ресторанами
 func MainPage(c echo.Context) error {
+	// TODO загрузка аватарки
 	return c.String(http.StatusOK, "It will be the main page")
 }
 
 // загрузка списка рестаранов
 func GetVendor(c echo.Context) error {
-	var quotaVendor struct{
-		Limit  int `json:"limit"`
-		Offset int `json:"offset"`
+	Limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
+	Offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
+
+	if errLimit != nil || errOffset != nil {
+		return c.JSON(http.StatusOK, struct{
+			Error string `json:"error"`
+		}{
+			Error: "400",
+		})
 	}
 
-	err := echo.QueryParamsBinder(c).
-		Int("limit", &quotaVendor.Limit).
-		Int("offset", &quotaVendor.Offset).
-		BindError()
-
-	if err != nil {
-		return err
-	}
-
-	result := getRestaurant(quotaVendor.Limit, quotaVendor.Offset)
+	result := getRestaurant(Limit, Offset)
 	return c.JSON(http.StatusOK, result)
 }
 
 // в будущем здесь будет поход в базу данных
-func getRestaurant(limit, offset int) []restourantJSON {
-	initRestourants()
+func getRestaurant(limit, offset int) []restaurantResponse {
+	var result []restaurantResponse
 
-	var result []restourantJSON
+	restaurants := initRestaurants()
 
-	for _, val := range restourants {
-		if val.GetPK() >= offset && val.GetPK() < offset + limit {
-			restaurant := restourantJSON {
-				ID: val.GetPK(),
-				Name: val.GetName(),
-				DeliveryCost: val.GetCost(),
+	for _, val := range restaurants {
+		if val.ID >= offset && val.ID < offset + limit {
+			restaurant := restaurantResponse{
+				ID: val.ID,
+				Name: val.Name,
+				DeliveryCost: val.DeliveryCost,
 			}
 			result = append(result, restaurant)
 		}
