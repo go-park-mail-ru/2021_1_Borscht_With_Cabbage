@@ -76,7 +76,6 @@ func LogUser(c echo.Context) error {
 	if err := ParseUsers(); err != nil {
 		return err
 	}
-	fmt.Println("Users before log: ", Users)
 	newUser := new(UserAuth)
 	if err := c.Bind(newUser); err != nil {
 		return err
@@ -122,7 +121,7 @@ func CreateUser(c echo.Context) error {
 		return err
 	}
 
-	fmt.Println("Users after reg new: ", Users)
+	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
 	return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
 }
 
