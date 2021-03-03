@@ -23,19 +23,19 @@ func (info user) GetNumber() string {
 	return info.number
 }
 
-func (info user) SetName(name string) {
+func (info *user) SetName(name string) {
 	info.name = name
 }
 
-func (info user) SetEmail(email string) {
+func (info *user) SetEmail(email string) {
 	info.email = email
 }
 
-func (info user) SetPassword(password string) { // what for? ok let it be...
+func (info *user) SetPassword(password string) { // what for? ok let it be...
 	info.password = password
 }
 
-func (info user) SetNumber(number string) {
+func (info *user) SetNumber(number string) {
 	info.number = number
 }
 
@@ -58,15 +58,15 @@ func (info dish) GetDescription() string {
 	return info.description
 }
 
-func (info dish) SetName(name string) {
+func (info *dish) SetName(name string) {
 	info.name = name
 }
 
-func (info dish) SetCost(cost int) {
+func (info *dish) SetCost(cost int) {
 	info.cost = cost
 }
 
-func (info dish) SetDescription(description string) {
+func (info *dish) SetDescription(description string) {
 	info.description = description
 }
 
@@ -89,15 +89,15 @@ func (info restourant) GetCost() int {
 	return info.deliveryCost
 }
 
-func (info restourant) SetName(name string) {
+func (info *restourant) SetName(name string) {
 	info.name = name
 }
 
-func (info restourant) SetDishes(dishes []dish) {
+func (info *restourant) SetDishes(dishes []dish) {
 	info.dishes = dishes
 }
 
-func (info restourant) SetCost(cost int) {
+func (info *restourant) SetCost(cost int) {
 	info.deliveryCost = cost
 }
 
