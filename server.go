@@ -1,6 +1,8 @@
 package main
 
 import (
+	"backend/api"
+	"backend/api/auth"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -12,17 +14,14 @@ func mainPage(c echo.Context) error {
 
 func router(e *echo.Echo) {
 	e.GET("/", mainPage)
-	//e.GET("/:id", restaurantPage) // урл на получение странички ресторана номер id
-	//e.POST("/signup", createUser) // урл на регистрацию пользователя
-	//e.POST("/signin", logUser) // урл на авторизацию
-	//e.POST("/edituser", updateUser) // обновить пользователя после редактирования профиля
-
+	e.POST("/signup", auth.CreateUser) // урл на регистрацию пользователя
+	e.POST("/signin", auth.LogUser)    // урл на авторизацию
 }
 
-func main() {
-	users := make([]user, 0, 0)
-	restaurants := make([]restaurant, 0, 0)
+var Users []api.User
+var restaurants []api.Restaurant
 
+func main() {
 	e := echo.New()
 	router(e)
 
