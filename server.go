@@ -12,7 +12,7 @@ func mainPage(c echo.Context) error {
 
 func main() {
 	users := make([]user, 0, 0)
-	restourants := make([]restourant, 0, 0)
+	restaurants := make([]restaurant, 0, 0)
 	e := echo.New()
 	e.GET("/", mainPage)
 	// TODO: 

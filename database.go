@@ -13,7 +13,7 @@ type dish struct {
 	description string
 }
 
-type restourant struct {
+type restaurant struct {
 	name string
 	dishes []dish
 	deliveryCost int
