@@ -14,10 +14,8 @@ func main() {
 	var users []user // слайс пользователей
 	var restourants []restourant // рестораны
 	e := echo.New()
-	//e.GET("/", func(c echo.Context) error {
-	//	return c.String(http.StatusOK, "Hello, World!")
-	//})
 	e.GET("/", mainPage)
+	// TODO: 
 	//e.GET("/:id", restaurantPage) // урл на получение странички ресторана номер id
 	//e.POST("/signup", createUser) // урл на регистрацию пользователя
 	//e.POST("/signin", logUser) // урл на авторизацию
