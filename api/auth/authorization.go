@@ -10,6 +10,8 @@ import (
 	"os"
 )
 
+var sessionLen = 15
+
 type UserAuth struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -83,7 +85,11 @@ func LogUser(c echo.Context) error {
 
 	for _, user := range Users {
 		if (user.Name == newUser.Login || user.Number == newUser.Login) && user.Password == newUser.Password {
-			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
+			session, err := createSession(user.Number)
+			if err != nil {
+				return err
+			}
+			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
 			// чтобы после авторизации пользователь перешел на главную
 			return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
 		}
@@ -113,7 +119,6 @@ func CreateUser(c echo.Context) error {
 		Password: newUser.Password,
 		Number:   newUser.Number,
 	}
-	Users = append(Users, userToRegister)
 
 	// записываем нового в файлик
 	err := writeNewUser(userToRegister)
@@ -121,7 +126,12 @@ func CreateUser(c echo.Context) error {
 		return err
 	}
 
+	session, err := createSession(userToRegister.Number)
+	if err != nil {
+		return err
+	}
 	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
+	// и созданную выше сессию в том числе
 	return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
 }
 

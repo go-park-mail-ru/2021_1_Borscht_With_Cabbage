@@ -19,3 +19,7 @@ type Restaurant struct {
 	deliveryCost int
 }
 
+type Session struct {
+	Session string
+	Number  string
+}
