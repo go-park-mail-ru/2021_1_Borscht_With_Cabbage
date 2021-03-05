@@ -1,3 +1,0 @@
-{"Name":"Dasha","Email":"dasha.labzunova@mail.ru","Password":"1111","Number":"89161166085"}
-{"Name":"Pasha","Email":"pasha.labzunov@mail.ru","Password":"1111","Number":"89161166086"}
-{"Name":"Sasha","Email":"","Password":"1111","Number":"89150329845"}

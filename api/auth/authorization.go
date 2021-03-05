@@ -2,12 +2,9 @@ package auth
 
 import (
 	"backend/api"
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 )
 
 var sessionLen = 15
@@ -24,60 +21,11 @@ type UserReg struct {
 }
 
 var Users []api.User
-
-// данные о пользователях записаны в файлике, тут он парсится
-func ParseUsers() error {
-	users := make([]api.User, 0, 0)
-	f, err := os.Open("users.txt")
-	if err != nil {
-		fmt.Println("error: ", err)
-		return err
-	}
-	defer f.Close()
-	buf := bufio.NewScanner(f)
-	for {
-		if !buf.Scan() {
-			break
-		}
-		userJson := []byte(buf.Text())
-
-		user := &api.User{}
-		err := json.Unmarshal(userJson, user)
-		if err != nil {
-			fmt.Println("error: ", err)
-			return err
-		}
-		users = append(users, *user)
-	}
-	Users = users
-	return nil
-}
-
-// записываем нового юзера в файлик при регистрации
-func writeNewUser(userToRegister api.User) error {
-	var userToWrite interface{} = userToRegister
-	result, err := json.Marshal(userToWrite)
-	if err != nil {
-		return err
-	}
-	f, err := os.OpenFile("users.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		fmt.Println("error: ", err)
-		return err
-	}
-	_, err = f.Write(result)
-	if err != nil {
-		fmt.Println("error: ", err)
-		return err
-	}
-	return nil
-}
+var Sessions []api.Session
 
 // handler авторизации
 func LogUser(c echo.Context) error {
-	if err := ParseUsers(); err != nil {
-		return err
-	}
+	fmt.Println("users b4 log: ", Users)
 	newUser := new(UserAuth)
 	if err := c.Bind(newUser); err != nil {
 		return err
@@ -85,10 +33,12 @@ func LogUser(c echo.Context) error {
 
 	for _, user := range Users {
 		if (user.Name == newUser.Login || user.Number == newUser.Login) && user.Password == newUser.Password {
-			session, err := createSession(user.Number)
+			session, err := createSession()
 			if err != nil {
 				return err
 			}
+			sessionToRead := api.Session{Session: session, Number: user.Number}
+			Sessions = append(Sessions, sessionToRead)
 			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
 			// чтобы после авторизации пользователь перешел на главную
 			return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
@@ -99,9 +49,6 @@ func LogUser(c echo.Context) error {
 
 // handler регистрации
 func CreateUser(c echo.Context) error {
-	if err := ParseUsers(); err != nil {
-		return err
-	}
 	newUser := new(UserReg)
 	if err := c.Bind(newUser); err != nil {
 		return err
@@ -120,18 +67,18 @@ func CreateUser(c echo.Context) error {
 		Number:   newUser.Number,
 	}
 
-	// записываем нового в файлик
-	err := writeNewUser(userToRegister)
-	if err != nil {
-		return err
-	}
+	// записываем нового
+	Users = append(Users, userToRegister)
 
-	session, err := createSession(userToRegister.Number)
+	session, err := createSession()
 	if err != nil {
 		return err
 	}
+	sessionToRead := api.Session{Session: session, Number: newUser.Number}
+	Sessions = append(Sessions, sessionToRead)
+
+	fmt.Println("users after reg: ", Users)
 	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
 	// и созданную выше сессию в том числе
 	return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
 }
-
