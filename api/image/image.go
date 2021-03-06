@@ -61,11 +61,7 @@ func UploadAvatar(c echo.Context) error {
 		return getErrorJson(c, err)
 	}
 
-	return c.JSON(http.StatusOK, struct{
-		Filename string `json:"filename"`
-	}{
-		Filename: filename,
-	})
+	return DownloadAvatar(c)
 }
 
 var user api.User
