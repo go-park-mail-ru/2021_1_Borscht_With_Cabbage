@@ -6,19 +6,17 @@ import (
 )
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func CheckSession(sessionToCheck string) string {
-	for _, session := range api.Sessions {
-		if session.Session == sessionToCheck {
-			return session.Number
-		}
+func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bool) {
+	number, isItExists := (*context.Sessions)["route"]
+	if !isItExists {
+		return "", false
 	}
-
-	return ""
+	return number, true
 }
 
 // создание сессии для пользователя и привязка ее к пользователю(сейчас - по номеру телефону, в бд будет primary key)
 // возвращает саму сессию чтобы вернуть ее на фронт
-func createSession() (string, error) {
+func createSession(context *api.CustomContext) string {
 	session := ""
 
 	for {
@@ -30,11 +28,11 @@ func createSession() (string, error) {
 		}
 		session = string(sessionMaking)
 
-		isItExists := CheckSession(session) // далее в цикле - проверка на уникальность
-		if isItExists == "" { // не получили привязанного к сессии пользователя, следовательно, не существует
+		_, isItExists := CheckSession(session, context) // далее в цикле - проверка на уникальность
+		if isItExists == false {                        // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}
 
-	return session, nil
+	return session
 }
