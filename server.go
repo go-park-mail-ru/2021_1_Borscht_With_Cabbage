@@ -1,33 +1,34 @@
 package main
 
 import (
+	"backend/api"
+	"backend/api/auth"
 	"backend/api/image"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
-// тут будет загрузка главной страницы с ресторанами
-func mainPage(c echo.Context) error {
-	return c.String(http.StatusOK, "It will be the main page")
-}
-
 func router(e *echo.Echo) {
-	e.GET("/", mainPage)
-	//e.GET("/:id", restaurantPage) // урл на получение странички ресторана номер id
-	//e.POST("/signup", createUser) // урл на регистрацию пользователя
-	//e.POST("/signin", logUser) // урл на авторизацию
-	//e.POST("/edituser", updateUser) // обновить пользователя после редактирования профиля
+
+	e.POST("/signin", auth.LoginUser)
+	e.POST("/signup", auth.CreateUser)
 	e.POST("/avatar", image.UploadAvatar)
 	e.GET("/avatar", image.DownloadAvatar)
 }
 
 func main() {
-	//users := make([]user, 0, 0)
-	//restaurants := make([]restaurant, 0, 0)
-
 	e := echo.New()
-	router(e)
 
+	Users := make([]api.User, 0)
+	Sessions := make(map[string]string, 0)
+	Restaurants := make(map[string]api.Restaurant, 0)
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := &api.CustomContext{Context: c, Users: &Users, Restaurants: &Restaurants, Sessions: &Sessions}
+			return next(cc)
+		}
+	})
+
+	router(e)
 	e.Logger.Fatal(e.Start(":5000"))
 }
-
