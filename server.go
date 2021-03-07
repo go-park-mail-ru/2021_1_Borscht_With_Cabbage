@@ -3,12 +3,15 @@ package main
 import (
 	"backend/api"
 	"backend/api/auth"
+	"backend/api/image"
 	"github.com/labstack/echo/v4"
 )
 
 func router(e *echo.Echo) {
 	e.POST("/signin", auth.LoginUser)
 	e.POST("/signup", auth.CreateUser)
+	e.POST("/avatar", image.UploadAvatar)
+	e.GET("/avatar", image.DownloadAvatar)
 }
 
 func main() {
