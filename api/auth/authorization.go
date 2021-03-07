@@ -19,9 +19,6 @@ type UserReg struct {
 	Password string `json:"password"`
 }
 
-var Users []api.User
-var Sessions []api.Session
-
 // handler авторизации
 func LogUser(c echo.Context) error {
 	newUser := new(UserAuth)
@@ -29,7 +26,7 @@ func LogUser(c echo.Context) error {
 		return err
 	}
 
-	for _, user := range Users {
+	for _, user := range api.Users {
 		if (user.Name == newUser.Login || user.Number == newUser.Login) && user.Password == newUser.Password {
 			session, err := createSession()
 			if err != nil {
@@ -37,7 +34,7 @@ func LogUser(c echo.Context) error {
 			}
 
 			sessionToRead := api.Session{Session: session, Number: user.Number}
-			Sessions = append(Sessions, sessionToRead)
+			api.Sessions = append(api.Sessions, sessionToRead)
 			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
 			// чтобы после авторизации пользователь перешел на главную
 			return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
@@ -53,7 +50,7 @@ func CreateUser(c echo.Context) error {
 		return err
 	}
 
-	for _, user := range Users {
+	for _, user := range api.Users {
 		if (user.Number == newUser.Number) && user.Password == newUser.Password {
 			return c.String(http.StatusUnauthorized, "user with this number already exists") // такой юзер уже есть
 		}
@@ -67,14 +64,14 @@ func CreateUser(c echo.Context) error {
 	}
 
 	// записываем нового
-	Users = append(Users, userToRegister)
+	api.Users = append(api.Users, userToRegister)
 
 	session, err := createSession()
 	if err != nil {
 		return err
 	}
 	sessionToRead := api.Session{Session: session, Number: newUser.Number}
-	Sessions = append(Sessions, sessionToRead)
+	api.Sessions = append(api.Sessions, sessionToRead)
 
 	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
 	// и созданную выше сессию в том числе
