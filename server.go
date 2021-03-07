@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/api"
 	"backend/api/auth"
 	"backend/api/restaurant"
 	"github.com/labstack/echo/v4"
@@ -20,6 +21,7 @@ func router(e *echo.Echo) {
 }
 
 func main() {
+	api.InitData()
 	e := echo.New()
 	router(e)
 
