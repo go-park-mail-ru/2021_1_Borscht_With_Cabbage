@@ -2,7 +2,6 @@ package auth
 
 import (
 	"backend/api"
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -25,7 +24,6 @@ var Sessions []api.Session
 
 // handler авторизации
 func LogUser(c echo.Context) error {
-	fmt.Println("users b4 log: ", Users)
 	newUser := new(UserAuth)
 	if err := c.Bind(newUser); err != nil {
 		return err
@@ -37,6 +35,7 @@ func LogUser(c echo.Context) error {
 			if err != nil {
 				return err
 			}
+
 			sessionToRead := api.Session{Session: session, Number: user.Number}
 			Sessions = append(Sessions, sessionToRead)
 			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
@@ -77,7 +76,6 @@ func CreateUser(c echo.Context) error {
 	sessionToRead := api.Session{Session: session, Number: newUser.Number}
 	Sessions = append(Sessions, sessionToRead)
 
-	fmt.Println("users after reg: ", Users)
 	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
 	// и созданную выше сессию в том числе
 	return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")

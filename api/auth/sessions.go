@@ -12,6 +12,7 @@ func checkSession(sessionToCheck string) (bool, error) {
 			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
@@ -19,13 +20,16 @@ func checkSession(sessionToCheck string) (bool, error) {
 // возвращает саму сессию чтобы вернуть ее на фронт
 func createSession() (string, error) {
 	session := ""
+
 	for {
 		var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		sessionMaking := make([]rune, sessionLen)
+
 		for i := range sessionMaking {
 			sessionMaking[i] = letterRunes[rand.Intn(len(letterRunes))]
 		}
 		session = string(sessionMaking)
+
 		isItExists, err := checkSession(session) // далее в цикле - проверка на уникальность
 		if err != nil {
 			return "", err
