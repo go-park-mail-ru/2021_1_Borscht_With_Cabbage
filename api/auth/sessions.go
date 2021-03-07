@@ -6,12 +6,12 @@ import (
 )
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func CheckSession(sessionToCheck string, context *api.CustomContext) (bool, string) {
+func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bool) {
 	session, isItExists := (*context.Sessions)["route"]
 	if !isItExists {
-		return false, ""
+		return "", false
 	}
-	return true, session
+	return session, true
 }
 
 // создание сессии для пользователя и привязка ее к пользователю(сейчас - по номеру телефону, в бд будет primary key)
@@ -28,7 +28,7 @@ func createSession(context *api.CustomContext) string {
 		}
 		session = string(sessionMaking)
 
-		isItExists, _ := CheckSession(session, context) // далее в цикле - проверка на уникальность
+		_, isItExists := CheckSession(session, context) // далее в цикле - проверка на уникальность
 		if isItExists == false {                        // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
