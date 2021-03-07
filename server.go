@@ -8,7 +8,6 @@ import (
 )
 
 func router(e *echo.Echo) {
-
 	e.POST("/signin", auth.LoginUser)
 	e.POST("/signup", auth.CreateUser)
 	e.POST("/avatar", image.UploadAvatar)

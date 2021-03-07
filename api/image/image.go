@@ -2,18 +2,19 @@ package image
 
 import (
 	"backend/api"
+	"backend/api/auth"
 	"github.com/labstack/echo/v4"
 	"hash/fnv"
 	"io"
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 func DownloadAvatar(c echo.Context) error {
-	user, err := getUser(c)
+	user, err := auth.GetUser(c.(*api.CustomContext))
 	if err != nil {
 		return getErrorJson(c, err)
 	}
@@ -36,14 +37,14 @@ func UploadAvatar(c echo.Context) error {
 	defer src.Close()
 
 	// парсим расширение
-	expansion := strings.Split(file.Header["Content-Type"][0], "/")[1]
+	expansion := filepath.Ext(file.Filename)
 
 	uid, err := getUniqId(file.Filename)
 	if err != nil {
 		return getErrorJson(c, err)
 	}
 
-	filename := uid + "." + expansion
+	filename := uid + expansion
 	err = setAvatarUser(c, filename)
 	if err != nil {
 		return getErrorJson(c, err)
@@ -64,16 +65,19 @@ func UploadAvatar(c echo.Context) error {
 	return DownloadAvatar(c)
 }
 
-var user api.User
-
-func getUser(c echo.Context) (api.User, error) {
-	// TODO по сессии находим пользователя
-	return user, nil
-}
-
 func setAvatarUser(c echo.Context, avatar string) error {
-	// TODO проверка сессии
-	user.Avatar = avatar
+	cc := c.(*api.CustomContext)
+	currentUser, err := auth.GetUser(cc)
+	if err != nil {
+		return err
+	}
+
+	for i, user := range *cc.Users {
+		if user == currentUser {
+			user.Avatar = avatar
+			(*cc.Users)[i] = user
+		}
+	}
 
 	return nil
 }
@@ -82,13 +86,14 @@ func getUniqId(filename string) (string, error) {
 	// создаем рандомную последовательность чтобы точно названия не повторялись
 	hashingSalt := strconv.Itoa(rand.Int() % 1000)
 
-	h := fnv.New32a()
-	_, err := h.Write([]byte(filename + hashingSalt))
+	// создаем хеш от названия файла
+	hash := fnv.New32a()
+	_, err := hash.Write([]byte(filename + hashingSalt))
 	if err != nil {
 		return "", err
 	}
 
-	return strconv.Itoa(int(h.Sum32())), nil
+	return strconv.Itoa(int(hash.Sum32())), nil
 }
 
 func getErrorJson(c echo.Context, err error) error {
