@@ -5,15 +5,14 @@ import (
 )
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-// true - такая сессия существует, false - нет
-func checkSession(sessionToCheck string) (bool, error) {
+func CheckSession(sessionToCheck string) string {
 	for _, session := range Sessions {
 		if session.Session == sessionToCheck {
-			return true, nil
+			return session.Number
 		}
 	}
 
-	return false, nil
+	return ""
 }
 
 // создание сессии для пользователя и привязка ее к пользователю(сейчас - по номеру телефону, в бд будет primary key)
@@ -30,11 +29,8 @@ func createSession() (string, error) {
 		}
 		session = string(sessionMaking)
 
-		isItExists, err := checkSession(session) // далее в цикле - проверка на уникальность
-		if err != nil {
-			return "", err
-		}
-		if !isItExists {
+		isItExists := CheckSession(session) // далее в цикле - проверка на уникальность
+		if isItExists == "" { // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}
