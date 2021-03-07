@@ -8,7 +8,7 @@ import (
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bool) {
-	number, isItExists := (*context.Sessions)["route"]
+	number, isItExists := (*context.Sessions)[sessionToCheck]
 	if !isItExists {
 		return "", false
 	}
