@@ -3,6 +3,7 @@ package main
 import (
 	"backend/api"
 	"backend/api/auth"
+	"backend/api/restaurant"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -16,6 +17,7 @@ func router(e *echo.Echo) {
 	e.GET("/", mainPage)
 	e.POST("/signup", auth.CreateUser) // урл на регистрацию пользователя
 	e.POST("/signin", auth.LogUser)    // урл на авторизацию
+	e.GET("/:id", restaurant.RestaurantPage)    // урл на страницу ресторана
 }
 
 var Users []api.User

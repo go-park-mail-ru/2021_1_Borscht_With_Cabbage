@@ -1,25 +1,27 @@
 package api
 
 type User struct {
-	Name     string
-	Email    string
-	Password string
-	Number   string
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Number   string `json:"number"`
 }
 
 type Dish struct {
-	name        string
-	cost        int
-	description string
+	Name        string `json:"name"`
+	Price       int `json:"price"`
+	Description string `json:"description"`
+	Weight string `json:"weight"`
 }
 
 type Restaurant struct {
-	name         string
-	dishes       []Dish
-	deliveryCost int
+	ID           int `json:"id"`
+	Name         string `json:"title"`
+	Dishes       []Dish
+	DeliveryCost int `json:"deliveryCost"`
 }
 
 type Session struct {
-	Session string
-	Number  string
+	Session string `json:"session"`
+	Number  string `json:"number"`
 }
