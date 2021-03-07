@@ -1,7 +1,6 @@
 package main
 
 import (
-	"backend/api"
 	"backend/api/auth"
 	"backend/api/restaurant"
 	"github.com/labstack/echo/v4"
@@ -19,9 +18,6 @@ func router(e *echo.Echo) {
 	e.POST("/signin", auth.LogUser)    // урл на авторизацию
 	e.GET("/:id", restaurant.RestaurantPage)    // урл на страницу ресторана
 }
-
-var Users []api.User
-var restaurants []api.Restaurant
 
 func main() {
 	e := echo.New()

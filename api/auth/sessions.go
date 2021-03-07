@@ -1,12 +1,13 @@
 package auth
 
 import (
+	"backend/api"
 	"math/rand"
 )
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func CheckSession(sessionToCheck string) string {
-	for _, session := range Sessions {
+	for _, session := range api.Sessions {
 		if session.Session == sessionToCheck {
 			return session.Number
 		}
