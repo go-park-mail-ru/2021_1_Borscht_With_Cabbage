@@ -2,6 +2,7 @@ package auth
 
 import (
 	"backend/api"
+	"errors"
 	"math/rand"
 )
 
@@ -35,4 +36,25 @@ func createSession(context *api.CustomContext) string {
 	}
 
 	return session
+}
+
+func GetUser(context *api.CustomContext) (api.User, error) {
+	sessionError := errors.New("session error")
+	session, err := context.Cookie("session")
+	if err != nil {
+		return api.User{}, sessionError
+	}
+
+	phone, ok := CheckSession(session.Value, context)
+	if !ok {
+		return api.User{}, sessionError
+	}
+
+	for _, user := range *context.Users {
+		if user.Phone == phone {
+			return user, nil
+		}
+	}
+
+	return api.User{}, errors.New("user not found")
 }
