@@ -7,11 +7,11 @@ import (
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bool) {
-	session, isItExists := (*context.Sessions)["route"]
+	number, isItExists := (*context.Sessions)["route"]
 	if !isItExists {
 		return "", false
 	}
-	return session, true
+	return number, true
 }
 
 // создание сессии для пользователя и привязка ее к пользователю(сейчас - по номеру телефону, в бд будет primary key)
