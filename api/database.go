@@ -17,7 +17,7 @@ type Dish struct {
 type Restaurant struct {
 	ID           int `json:"id"`
 	Name         string `json:"title"`
-	Dishes       []Dish
+	Dishes       []Dish `json:"foods"`
 	DeliveryCost int `json:"deliveryCost"`
 }
 
