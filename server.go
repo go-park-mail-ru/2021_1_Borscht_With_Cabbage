@@ -1,23 +1,35 @@
 package main
 
 import (
+	"backend/api"
+	"backend/api/auth"
+	"backend/api/image"
 	"backend/api/page"
 	"github.com/labstack/echo/v4"
 )
 
-func router(e *echo.Echo)  {
-	e.GET("/", page.MainPage)
-	e.GET("/vendor", page.GetVendor) // урл на получение json с растаранами
-	//e.GET("/:id", restaurantPage) // урл на получение странички ресторана номер id
-	//e.POST("/signup", createUser) // урл на регистрацию пользователя
-	//e.POST("/signin", logUser) // урл на авторизацию
-	//e.POST("/edituser", updateUser) // обновить пользователя после редактирования профиля
+func router(e *echo.Echo) {
+	e.POST("/signin", auth.LoginUser)
+	e.POST("/signup", auth.CreateUser)
+	e.POST("/avatar", image.UploadAvatar)
+	e.GET("/avatar", image.DownloadAvatar)
+	e.GET("/vendor", page.GetVendor)
 }
 
 func main() {
 	e := echo.New()
-	router(e)
 
+	Users := make([]api.User, 0)
+	Sessions := make(map[string]string, 0)
+	Restaurants := make(map[string]api.Restaurant, 0)
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := &api.CustomContext{Context: c, Users: &Users, Restaurants: &Restaurants, Sessions: &Sessions}
+			return next(cc)
+		}
+	})
+
+	router(e)
 	e.Logger.Fatal(e.Start(":5000"))
 }
-
