@@ -21,7 +21,7 @@ func DownloadAvatar(c echo.Context) error {
 
 	filename := user.Avatar
 
-	return getErrorJson(c, c.File("static/avatar/" + filename))
+	return getErrorJson(c, c.File("static/avatar/"+filename))
 }
 
 func UploadAvatar(c echo.Context) error {
@@ -101,7 +101,7 @@ func getErrorJson(c echo.Context, err error) error {
 		return nil
 	}
 
-	return c.JSON(http.StatusOK, struct{
+	return c.JSON(http.StatusOK, struct {
 		Error string `json:"error"`
 	}{
 		Error: err.Error(),

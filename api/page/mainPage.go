@@ -28,19 +28,13 @@ func initRestaurants() []api.Restaurant {
 	return restaurants
 }
 
-// загрузка главной страницы с ресторанами
-func MainPage(c echo.Context) error {
-	// TODO загрузка аватарки
-	return c.String(http.StatusOK, "It will be the main page")
-}
-
 // загрузка списка рестаранов
 func GetVendor(c echo.Context) error {
 	Limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	Offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
 
 	if errLimit != nil || errOffset != nil {
-		return c.JSON(http.StatusOK, struct{
+		return c.JSON(http.StatusOK, struct {
 			Error string `json:"error"`
 		}{
 			Error: "400",
@@ -58,10 +52,10 @@ func getRestaurant(limit, offset int) []restaurantResponse {
 	restaurants := initRestaurants()
 
 	for _, val := range restaurants {
-		if val.ID >= offset && val.ID < offset + limit {
+		if val.ID >= offset && val.ID < offset+limit {
 			restaurant := restaurantResponse{
-				ID: val.ID,
-				Name: val.Name,
+				ID:           val.ID,
+				Name:         val.Name,
 				DeliveryCost: val.DeliveryCost,
 			}
 			result = append(result, restaurant)

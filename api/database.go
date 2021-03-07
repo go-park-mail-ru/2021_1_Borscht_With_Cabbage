@@ -14,7 +14,7 @@ type User struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Phone    string `json:"number"`
-	Avatar 	 string `json:"avatar"`
+	Avatar   string `json:"avatar"`
 }
 
 type Dish struct {
