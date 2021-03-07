@@ -20,21 +20,18 @@ type UserReg struct {
 }
 
 // handler авторизации
-func LogUser(c echo.Context) error {
+func LoginUser(c echo.Context) error {
+	cc := c.(*api.CustomContext)
 	newUser := new(UserAuth)
 	if err := c.Bind(newUser); err != nil {
-		return err
+		return c.String(http.StatusUnauthorized, "error with request data")
 	}
 
-	for _, user := range api.Users {
-		if (user.Name == newUser.Login || user.Number == newUser.Login) && user.Password == newUser.Password {
-			session, err := createSession()
-			if err != nil {
-				return err
-			}
+	for _, user := range *cc.Users {
+		if (user.Name == newUser.Login || user.Phone == newUser.Login) && user.Password == newUser.Password {
+			session := createSession(cc)
 
-			sessionToRead := api.Session{Session: session, Number: user.Number}
-			api.Sessions = append(api.Sessions, sessionToRead)
+			(*cc.Sessions)[session] = user.Phone
 			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
 			// чтобы после авторизации пользователь перешел на главную
 			return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
@@ -45,13 +42,14 @@ func LogUser(c echo.Context) error {
 
 // handler регистрации
 func CreateUser(c echo.Context) error {
+	cc := c.(*api.CustomContext)
 	newUser := new(UserReg)
 	if err := c.Bind(newUser); err != nil {
-		return err
+		return c.String(http.StatusUnauthorized, "error with request data")
 	}
 
-	for _, user := range api.Users {
-		if (user.Number == newUser.Number) && user.Password == newUser.Password {
+	for _, user := range *cc.Users {
+		if (user.Phone == newUser.Number) && user.Password == newUser.Password {
 			return c.String(http.StatusUnauthorized, "user with this number already exists") // такой юзер уже есть
 		}
 	}
@@ -60,18 +58,14 @@ func CreateUser(c echo.Context) error {
 		Name:     newUser.Name,
 		Email:    "",
 		Password: newUser.Password,
-		Number:   newUser.Number,
+		Phone:    newUser.Number,
 	}
 
 	// записываем нового
-	api.Users = append(api.Users, userToRegister)
+	*cc.Users = append(*cc.Users, userToRegister)
 
-	session, err := createSession()
-	if err != nil {
-		return err
-	}
-	sessionToRead := api.Session{Session: session, Number: newUser.Number}
-	api.Sessions = append(api.Sessions, sessionToRead)
+	session := createSession(cc)
+	(*cc.Sessions)[session] = newUser.Number
 
 	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
 	// и созданную выше сессию в том числе
