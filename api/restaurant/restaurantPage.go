@@ -5,24 +5,21 @@ import (
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"strconv"
 )
 
-func RestaurantPage(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
+func GetRestaurantPage(c echo.Context) error {
+	cc := c.(*api.CustomContext)
+
+	id := c.Param("id")
+
+	restaurant, isItExists := (*cc.Restaurants)[id]
+	if !isItExists {
+		return c.String(http.StatusBadRequest, "error with request data")
+	}
+
+	restaurantToOutput, err := json.Marshal(restaurant)
 	if err != nil {
-		return err
+		return c.String(http.StatusNotImplemented, "error while marshalling result")
 	}
-
-	for _, restaurant := range api.Restaurants {
-		if restaurant.ID == id {
-			restaurant, err := json.Marshal(restaurant)
-			if err != nil {
-				return err
-			}
-			return c.String(http.StatusOK, string(restaurant))
-		}
-	}
-
-	return c.String(http.StatusNotImplemented, "restaurant not found")
+	return c.String(http.StatusOK, string(restaurantToOutput))
 }
