@@ -2,7 +2,6 @@ package auth
 
 import (
 	"backend/api"
-	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -43,12 +42,7 @@ func LoginUser(c echo.Context) error {
 			SetResponseCookie(c, session)
 
 			response := successResponse{user.Name, user.Avatar}
-			responseToWrite, err := json.Marshal(response)
-			if err != nil {
-				return c.String(http.StatusUnauthorized, "error with request data")
-			}
-
-			return c.String(http.StatusOK, string(responseToWrite))
+			return c.JSON(http.StatusOK, response)
 		}
 	}
 
@@ -87,10 +81,5 @@ func CreateUser(c echo.Context) error {
 	SetResponseCookie(c, session)
 
 	response := successResponse{userToRegister.Name, ""}
-	responseToWrite, err := json.Marshal(response)
-	if err != nil {
-		return c.String(http.StatusUnauthorized, "error with request data")
-	}
-
-	return c.String(http.StatusOK, string(responseToWrite))
+	return c.JSON(http.StatusOK, response)
 }

@@ -12,7 +12,7 @@ import (
 func SetResponseCookie(c echo.Context, session string) {
 	sessionCookie := new(http.Cookie)
 	sessionCookie.Expires = time.Now().Add(24 * time.Hour)
-	sessionCookie.Name = "session"
+	sessionCookie.Name = "borscht_session"
 	sessionCookie.Value = session
 	sessionCookie.HttpOnly = true
 	c.SetCookie(sessionCookie)
@@ -52,7 +52,7 @@ func createSession(context *api.CustomContext) string {
 
 func GetUser(context *api.CustomContext) (api.User, error) {
 	sessionError := errors.New("session error")
-	session, err := context.Cookie("session")
+	session, err := context.Cookie("borscht_session")
 	if err != nil {
 		return api.User{}, sessionError
 	}

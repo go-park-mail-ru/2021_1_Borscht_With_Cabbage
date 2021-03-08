@@ -51,12 +51,12 @@ func GetRestaurant(limit, offset int) []RestaurantResponse {
 
 	restaurants := initRestaurants()
 
-	for _, val := range restaurants {
-		if val.ID >= offset && val.ID < offset+limit {
+	for _, restaurant := range restaurants {
+		if restaurant.ID >= offset && restaurant.ID < offset+limit {
 			restaurant := RestaurantResponse{
-				ID:           val.ID,
-				Name:         val.Name,
-				DeliveryCost: val.DeliveryCost,
+				ID:           restaurant.ID,
+				Name:         restaurant.Name,
+				DeliveryCost: restaurant.DeliveryCost,
 			}
 			result = append(result, restaurant)
 		}

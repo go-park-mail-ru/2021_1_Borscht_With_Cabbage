@@ -3,7 +3,6 @@ package profile
 import (
 	"backend/api"
 	"backend/api/auth"
-	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -23,11 +22,7 @@ func GetUserData(c echo.Context) error {
 		return c.String(http.StatusUnauthorized, "user not found")
 	}
 
-	userData, err := json.Marshal(user)
-	if err != nil {
-		return cc.String(http.StatusUnauthorized, "error with request data")
-	}
-	return c.String(http.StatusOK, string(userData))
+	return c.JSON(http.StatusOK, user)
 }
 
 // сохранить изменения в профиле
@@ -40,7 +35,7 @@ func EditProfile(c echo.Context) error {
 	}
 
 	// по куке находим, что за юзер
-	session, err := cc.Cookie("session")
+	session, err := cc.Cookie("borscht_session")
 	if err != nil {
 		return c.String(http.StatusUnauthorized, "no session found")
 	}
