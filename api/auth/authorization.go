@@ -23,7 +23,6 @@ type UserReg struct {
 type successResponse struct {
 	Name        string `json:"name"`
 	Avatar      string `json:"avatar"`
-	// Restaurants []page.RestaurantResponse
 }
 
 // handler авторизации
