@@ -4,6 +4,7 @@ import (
 	"backend/api"
 	"backend/api/auth"
 	"backend/api/image"
+	"backend/api/page"
 	"backend/api/profile"
 	"backend/api/restaurant"
 	"github.com/labstack/echo/v4"
@@ -16,6 +17,7 @@ func router(e *echo.Echo) {
 	e.GET("/avatar", image.DownloadAvatar)
 	e.GET("/:id", restaurant.GetRestaurantPage)
 	e.GET("/user", profile.GetUserData)
+	e.GET("/vendor", page.GetVendor)
 }
 
 func main() {
