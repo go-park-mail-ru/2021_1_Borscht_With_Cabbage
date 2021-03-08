@@ -20,12 +20,12 @@ func GetUserData(c echo.Context) error {
 
 	user, err := auth.GetUser(cc)
 	if err != nil {
-		return err
+		return c.String(http.StatusUnauthorized, "user not found")
 	}
 
 	userData, err := json.Marshal(user)
 	if err != nil {
-		return err
+		return cc.String(http.StatusUnauthorized, "error with request data")
 	}
 	return c.String(http.StatusOK, string(userData))
 }

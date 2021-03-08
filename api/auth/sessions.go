@@ -3,8 +3,20 @@ package auth
 import (
 	"backend/api"
 	"errors"
+	"github.com/labstack/echo/v4"
 	"math/rand"
+	"net/http"
+	"time"
 )
+
+func SetResponseCookie(c echo.Context, session string) {
+	sessionCookie := new(http.Cookie)
+	sessionCookie.Expires = time.Now().Add(24 * time.Hour)
+	sessionCookie.Name = "session"
+	sessionCookie.Value = session
+	sessionCookie.HttpOnly = true
+	c.SetCookie(sessionCookie)
+}
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bool) {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-type restaurantResponse struct {
+type RestaurantResponse struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
 	DeliveryCost int    `json:"deliveryCost"`
@@ -28,7 +28,7 @@ func initRestaurants() []api.Restaurant {
 	return restaurants
 }
 
-// загрузка списка рестаранов
+// загрузка списка ресторанов
 func GetVendor(c echo.Context) error {
 	Limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	Offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
@@ -41,19 +41,19 @@ func GetVendor(c echo.Context) error {
 		})
 	}
 
-	result := getRestaurant(Limit, Offset)
+	result := GetRestaurant(Limit, Offset)
 	return c.JSON(http.StatusOK, result)
 }
 
 // в будущем здесь будет поход в базу данных
-func getRestaurant(limit, offset int) []restaurantResponse {
-	var result []restaurantResponse
+func GetRestaurant(limit, offset int) []RestaurantResponse {
+	var result []RestaurantResponse
 
 	restaurants := initRestaurants()
 
 	for _, val := range restaurants {
 		if val.ID >= offset && val.ID < offset+limit {
-			restaurant := restaurantResponse{
+			restaurant := RestaurantResponse{
 				ID:           val.ID,
 				Name:         val.Name,
 				DeliveryCost: val.DeliveryCost,
