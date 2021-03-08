@@ -19,6 +19,11 @@ type UserReg struct {
 	Password string `json:"password"`
 }
 
+type successResponse struct {
+	Name        string `json:"name"`
+	Avatar      string `json:"avatar"`
+}
+
 // handler авторизации
 func LoginUser(c echo.Context) error {
 	cc := c.(*api.CustomContext)
@@ -32,11 +37,15 @@ func LoginUser(c echo.Context) error {
 			session := createSession(cc)
 
 			(*cc.Sessions)[session] = user.Phone
-			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
-			// чтобы после авторизации пользователь перешел на главную
-			return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
+
+			// далее - чтобы после авторизации пользователь перешел на главную
+			SetResponseCookie(c, session)
+
+			response := successResponse{user.Name, user.Avatar}
+			return c.JSON(http.StatusOK, response)
 		}
 	}
+
 	return c.String(http.StatusUnauthorized, "")
 }
 
@@ -67,7 +76,10 @@ func CreateUser(c echo.Context) error {
 	session := createSession(cc)
 	(*cc.Sessions)[session] = newUser.Number
 
-	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
-	// и созданную выше сессию в том числе
-	return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
+
+	// далее - чтобы после авторизации пользователь перешел на главную
+	SetResponseCookie(c, session)
+
+	response := successResponse{userToRegister.Name, ""}
+	return c.JSON(http.StatusOK, response)
 }
