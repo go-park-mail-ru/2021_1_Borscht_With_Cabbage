@@ -1,32 +1,34 @@
 package models
 
 import (
-"github.com/labstack/echo/v4"
-"net/http"
+	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 type ServerError struct {
-	err  error
-	body infoError
+	Description  error
+	Code int `json:"code"`
+	Message string `json:"message"`
 }
 
-type infoError struct {
-	Code        string `json:"code"`
-	Description string `json:"description"`
-}
-
-func NewError(err error, code string) ServerError {
-	info := infoError{
-		Code:        code,
-		Description: err.Error(),
-	}
-
+func AuthorizationErr() ServerError {
 	return ServerError{
-		err:  err,
-		body: info,
+		Code: http.StatusUnauthorized,
+		Message: "not authorized",
 	}
+}
+
+func RegistrationErr() ServerError {
+	return ServerError{
+		Code: http.StatusUnauthorized,
+		Message: "not auth",
+	}
+}
+
+func (err* ServerError) AddError(desc error) {
+	err.Description = desc
 }
 
 func (err ServerError) Response(c echo.Context) error {
-	return c.JSON(http.StatusOK, err.body)
+	return c.JSON(http.StatusOK, err)
 }
