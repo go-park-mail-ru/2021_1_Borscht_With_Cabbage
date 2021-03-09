@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/labstack/echo/v4"
+	"math/rand"
 	"strconv"
 )
 
@@ -24,7 +25,7 @@ type Dish struct {
 	Name        string `json:"name"`
 	Price       int    `json:"price"`
 	Description string `json:"description"`
-	Weight      string `json:"weight"`
+	Weight      int `json:"weight"`
 }
 
 type Restaurant struct {
@@ -44,6 +45,19 @@ type Session struct {
 }
 
 var restaurantCount = 10
+var dishCostRange = 1000
+var dishWeightRange = 700
+
+var dishNames = [...]string {"Макарошки с пюрешкой", "Цезарь", "Куриные котлетки", "Ольвьешечка",
+	"Макарошки с котлеткой", "Ролл Калифорния", "Хлеб", "Пiво светлое", "Пiво темное"}
+func createDish() Dish {
+	dish := Dish{}
+	dish.Name = dishNames[rand.Intn(len(dishNames))]
+	dish.Price = rand.Intn(dishCostRange)
+	dish.Weight = rand.Intn(dishWeightRange)
+	dish.Description = "delicious"
+	return dish
+}
 
 func InitData(cc CustomContext) {
 	for i := 0; i < restaurantCount; i++ {
@@ -55,6 +69,10 @@ func InitData(cc CustomContext) {
 		res.AvgCheck = i * 150
 		res.Description = "yum"
 		res.DeliveryTime = i * 15
+
+		for i := 0; i < 5; i++ {
+			res.Dishes = append(res.Dishes, createDish())
+		}
 
 		(*cc.Restaurants)[strconv.Itoa(i)] = res
 	}
