@@ -8,6 +8,7 @@ import (
 	"backend/api/profile"
 	"backend/api/restaurant"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func router(e *echo.Echo) {
@@ -24,6 +25,7 @@ func router(e *echo.Echo) {
 
 func main() {
 	e := echo.New()
+	e.Use(middleware.CORS())
 
 	Users := make([]api.User, 0)
 	Sessions := make(map[string]string, 0)

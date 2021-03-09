@@ -41,8 +41,6 @@ type Session struct {
 var restaurantCount = 10
 
 func InitData(cc CustomContext) {
-	//cc := c.(*CustomContext)
-
 	for i := 0; i < restaurantCount; i++ {
 		res := Restaurant{}
 		res.DeliveryCost = restaurantCount * i

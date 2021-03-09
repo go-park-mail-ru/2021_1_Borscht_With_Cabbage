@@ -13,13 +13,14 @@ type UserAuth struct {
 
 type UserReg struct {
 	Number   string `json:"number"`
+	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
 type successResponse struct {
-	Name        string `json:"name"`
-	Avatar      string `json:"avatar"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
 }
 
 // handler авторизации
@@ -63,7 +64,7 @@ func CreateUser(c echo.Context) error {
 
 	userToRegister := api.User{
 		Name:     newUser.Name,
-		Email:    "",
+		Email:    newUser.Email,
 		Password: newUser.Password,
 		Phone:    newUser.Number,
 	}
@@ -73,7 +74,6 @@ func CreateUser(c echo.Context) error {
 
 	session := CreateSession(cc)
 	(*cc.Sessions)[session] = newUser.Number
-
 
 	// далее - чтобы после авторизации пользователь перешел на главную
 	SetResponseCookie(c, session)
