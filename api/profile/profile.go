@@ -3,6 +3,8 @@ package profile
 import (
 	"backend/api"
 	"backend/api/auth"
+	"backend/api/image"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -34,6 +36,11 @@ func EditProfile(c echo.Context) error {
 		return cc.String(http.StatusUnauthorized, "error with request data")
 	}
 
+	fmt.Println(profileEdits)
+
+	err := image.UploadAvatar(c)
+
+
 	// по куке находим, что за юзер
 	session, err := cc.Cookie("borscht_session")
 	if err != nil {
@@ -44,7 +51,7 @@ func EditProfile(c echo.Context) error {
 		return c.String(http.StatusUnauthorized, "user not found")
 	}
 
-	for _, user := range *cc.Users {
+	for i, user := range *cc.Users {
 		if user.Email == profileEdits.Email && user.Phone != number { // если у кого-то другого уже есть такой email
 			return c.String(http.StatusNotImplemented, "user with this email already exists")
 		}
@@ -57,6 +64,9 @@ func EditProfile(c echo.Context) error {
 			user.Email = profileEdits.Email
 			user.Name = profileEdits.Name
 		}
+		(*cc.Users)[i] = user
+
+		return c.JSON(http.StatusOK, "")
 	}
 
 	return c.String(http.StatusUnauthorized, "user not found")

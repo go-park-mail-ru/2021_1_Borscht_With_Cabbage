@@ -45,7 +45,7 @@ func LoginUser(c echo.Context) error {
 		}
 	}
 
-	return c.String(http.StatusUnauthorized, "")
+	return c.JSON(http.StatusOK, "")
 }
 
 // handler регистрации

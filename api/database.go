@@ -83,7 +83,7 @@ func InitData(cc CustomContext) {
 		(*cc.Restaurants)[strconv.Itoa(i)] = res
 	}
 
-	user := User{"Oleg", "oleg@mail.ru", "111111", "88005553535", ""}
+	user := User{"Oleg", "oleg@mail.ru", "111111", "88005553535", "Олег крутой"}
 	session := "olegssession"
 	(*cc.Sessions)[session] = user.Phone
 	*cc.Users = append(*cc.Users, user)
