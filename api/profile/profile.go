@@ -32,13 +32,22 @@ func EditProfile(c echo.Context) error {
 	cc := c.(*api.CustomContext)
 
 	profileEdits := new(UserData)
-	if err := cc.Bind(profileEdits); err != nil {
-		return cc.String(http.StatusUnauthorized, "error with request data")
+	//if err := cc.Bind(profileEdits); err != nil {
+	//	return cc.String(http.StatusUnauthorized, "error with request data")
+	//}
+	formParams, err := c.FormParams()
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
 	}
+
+	profileEdits.Name = formParams.Get("name")
+	profileEdits.Phone = formParams.Get("number")
+	profileEdits.Email = formParams.Get("email")
 
 	fmt.Println(profileEdits)
 
-	err := image.UploadAvatar(c)
+	err = image.UploadAvatar(c)
 
 
 	// по куке находим, что за юзер
