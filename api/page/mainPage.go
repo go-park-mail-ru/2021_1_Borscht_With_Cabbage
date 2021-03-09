@@ -13,21 +13,6 @@ type RestaurantResponse struct {
 	DeliveryCost int    `json:"deliveryCost"`
 }
 
-func initRestaurants() []api.Restaurant {
-	restaurants := make([]api.Restaurant, 0, 10)
-
-	for i := 0; i < 10; i++ {
-		res := api.Restaurant{}
-		res.DeliveryCost = 10
-		res.Name = "My rest"
-		res.ID = i
-
-		restaurants = append(restaurants, res)
-	}
-
-	return restaurants
-}
-
 // загрузка списка ресторанов
 func GetVendor(c echo.Context) error {
 	Limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
@@ -41,17 +26,16 @@ func GetVendor(c echo.Context) error {
 		})
 	}
 
-	result := GetRestaurant(Limit, Offset)
+	result := GetRestaurant(Limit, Offset, c)
 	return c.JSON(http.StatusOK, result)
 }
 
 // в будущем здесь будет поход в базу данных
-func GetRestaurant(limit, offset int) []RestaurantResponse {
+func GetRestaurant(limit, offset int, c echo.Context) []RestaurantResponse {
+	cc := c.(*api.CustomContext)
 	var result []RestaurantResponse
 
-	restaurants := initRestaurants()
-
-	for _, rest := range restaurants {
+	for _, rest := range *cc.Restaurants {
 		if rest.ID >= offset && rest.ID < offset+limit {
 			restaurant := RestaurantResponse{
 				ID:           rest.ID,

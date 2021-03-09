@@ -6,8 +6,6 @@ import (
 	"net/http"
 )
 
-var sessionLen = 15
-
 type UserAuth struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -34,7 +32,7 @@ func LoginUser(c echo.Context) error {
 
 	for _, user := range *cc.Users {
 		if (user.Name == newUser.Login || user.Phone == newUser.Login) && user.Password == newUser.Password {
-			session := createSession(cc)
+			session := CreateSession(cc)
 
 			(*cc.Sessions)[session] = user.Phone
 
@@ -73,7 +71,7 @@ func CreateUser(c echo.Context) error {
 	// записываем нового
 	*cc.Users = append(*cc.Users, userToRegister)
 
-	session := createSession(cc)
+	session := CreateSession(cc)
 	(*cc.Sessions)[session] = newUser.Number
 
 
@@ -82,4 +80,15 @@ func CreateUser(c echo.Context) error {
 
 	response := successResponse{userToRegister.Name, ""}
 	return c.JSON(http.StatusOK, response)
+}
+
+func CheckAuth(c echo.Context) error {
+	cc := c.(*api.CustomContext)
+
+	user, err := GetUser(cc)
+	if err != nil {
+		return c.String(http.StatusUnauthorized, "user not found")
+	}
+
+	return c.JSON(http.StatusOK, user)
 }

@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var sessionLen = 15
+
 func SetResponseCookie(c echo.Context, session string) {
 	sessionCookie := new(http.Cookie)
 	sessionCookie.Expires = time.Now().Add(24 * time.Hour)
@@ -29,7 +31,7 @@ func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bo
 
 // создание сессии для пользователя и привязка ее к пользователю(сейчас - по номеру телефону, в бд будет primary key)
 // возвращает саму сессию чтобы вернуть ее на фронт
-func createSession(context *api.CustomContext) string {
+func CreateSession(context *api.CustomContext) string {
 	session := ""
 
 	for {

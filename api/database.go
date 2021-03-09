@@ -1,6 +1,8 @@
 package api
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+)
 
 type CustomContext struct {
 	echo.Context
@@ -34,4 +36,24 @@ type Restaurant struct {
 type Session struct {
 	Session string `json:"session"`
 	Number  string `json:"number"`
+}
+
+var restaurantCount = 10
+
+func InitData(cc CustomContext) {
+	//cc := c.(*CustomContext)
+
+	for i := 0; i < restaurantCount; i++ {
+		res := Restaurant{}
+		res.DeliveryCost = restaurantCount * i
+		res.Name = "Restaurant #" + string(res.ID)
+		res.ID = i
+
+		(*cc.Restaurants)[string(res.ID)] = res
+	}
+
+	user := User{"Oleg", "oleg@mail.ru", "1111", "88005553535", ""}
+	session := "olegssession"
+	(*cc.Sessions)[session] = user.Phone
+	*cc.Users = append(*cc.Users, user)
 }

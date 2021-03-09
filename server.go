@@ -19,6 +19,7 @@ func router(e *echo.Echo) {
 	e.GET("/user", profile.GetUserData)
 	e.PUT("/user", profile.EditProfile)
 	e.GET("/vendor", page.GetVendor)
+	e.GET("/auth", auth.CheckAuth)
 }
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &api.CustomContext{Context: c, Users: &Users, Restaurants: &Restaurants, Sessions: &Sessions}
+			api.InitData(*cc)
 			return next(cc)
 		}
 	})
