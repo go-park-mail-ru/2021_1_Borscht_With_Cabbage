@@ -26,10 +26,11 @@ func router(e *echo.Echo) {
 
 func main() {
 	e := echo.New()
-	
+
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://89.208.197.150"},
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowCredentials: true,
 	}))
 
 	Users := make([]api.User, 0)
