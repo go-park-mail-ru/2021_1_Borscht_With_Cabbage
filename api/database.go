@@ -22,10 +22,12 @@ type User struct {
 }
 
 type Dish struct {
+	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Price       int    `json:"price"`
 	Description string `json:"description"`
-	Weight      int `json:"weight"`
+	Weight      int    `json:"weight"`
+	Image       string `json:"image"`
 }
 
 type Restaurant struct {
@@ -48,14 +50,16 @@ var restaurantCount = 10
 var dishCostRange = 1000
 var dishWeightRange = 700
 
-var dishNames = [...]string {"Макарошки с пюрешкой", "Цезарь", "Куриные котлетки", "Ольвьешечка",
+var dishNames = [...]string{"Макарошки с пюрешкой", "Цезарь", "Куриные котлетки", "Ольвьешечка",
 	"Макарошки с котлеткой", "Ролл Калифорния", "Хлеб", "Пiво светлое", "Пiво темное"}
+
 func createDish() Dish {
 	dish := Dish{}
 	dish.Name = dishNames[rand.Intn(len(dishNames))]
 	dish.Price = rand.Intn(dishCostRange)
 	dish.Weight = rand.Intn(dishWeightRange)
 	dish.Description = "delicious"
+	dish.Image = "static/food.jpg"
 	return dish
 }
 
@@ -70,8 +74,10 @@ func InitData(cc CustomContext) {
 		res.Description = "yum"
 		res.DeliveryTime = i * 15
 
-		for i := 0; i < 5; i++ {
-			res.Dishes = append(res.Dishes, createDish())
+		for i := 0; i < rand.Intn(10); i++ {
+			dish := createDish()
+			dish.ID = i
+			res.Dishes = append(res.Dishes, dish)
 		}
 
 		(*cc.Restaurants)[strconv.Itoa(i)] = res
