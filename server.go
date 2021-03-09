@@ -20,7 +20,7 @@ func router(e *echo.Echo) {
 	e.GET("/:id", restaurant.GetRestaurantPage)
 	e.GET("/user", profile.GetUserData)
 	e.PUT("/user", profile.EditProfile)
-	e.GET("/vendor", page.GetVendor)
+	e.GET("/", page.GetVendor)
 	e.GET("/auth", auth.CheckAuth)
 }
 
@@ -28,7 +28,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://89.208.197.150"},
+		AllowOrigins: []string{"http://127.0.0.1:3000"},
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))

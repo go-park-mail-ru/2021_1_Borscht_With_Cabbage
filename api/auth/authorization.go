@@ -32,7 +32,7 @@ func LoginUser(c echo.Context) error {
 	}
 
 	for _, user := range *cc.Users {
-		if (user.Name == newUser.Login || user.Phone == newUser.Login) && user.Password == newUser.Password {
+		if (user.Email == newUser.Login || user.Phone == newUser.Login) && user.Password == newUser.Password {
 			session := CreateSession(cc)
 
 			(*cc.Sessions)[session] = user.Phone
