@@ -6,8 +6,6 @@ import (
 	"net/http"
 )
 
-var sessionLen = 15
-
 type UserAuth struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -15,8 +13,14 @@ type UserAuth struct {
 
 type UserReg struct {
 	Number   string `json:"number"`
+	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
+}
+
+type successResponse struct {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
 }
 
 // handler авторизации
@@ -28,16 +32,20 @@ func LoginUser(c echo.Context) error {
 	}
 
 	for _, user := range *cc.Users {
-		if (user.Name == newUser.Login || user.Phone == newUser.Login) && user.Password == newUser.Password {
-			session := createSession(cc)
+		if (user.Email == newUser.Login || user.Phone == newUser.Login) && user.Password == newUser.Password {
+			session := CreateSession(cc)
 
 			(*cc.Sessions)[session] = user.Phone
-			// TODO тут должно быть обращение к функции, которая отдает json для главной страницы, и созданную выше сессию в том числе
-			// чтобы после авторизации пользователь перешел на главную
-			return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
+
+			// далее - чтобы после авторизации пользователь перешел на главную
+			SetResponseCookie(c, session)
+
+			response := successResponse{user.Name, user.Avatar}
+			return c.JSON(http.StatusOK, response)
 		}
 	}
-	return c.String(http.StatusUnauthorized, "")
+
+	return c.JSON(http.StatusOK, "")
 }
 
 // handler регистрации
@@ -56,7 +64,7 @@ func CreateUser(c echo.Context) error {
 
 	userToRegister := api.User{
 		Name:     newUser.Name,
-		Email:    "",
+		Email:    newUser.Email,
 		Password: newUser.Password,
 		Phone:    newUser.Number,
 	}
@@ -64,10 +72,23 @@ func CreateUser(c echo.Context) error {
 	// записываем нового
 	*cc.Users = append(*cc.Users, userToRegister)
 
-	session := createSession(cc)
+	session := CreateSession(cc)
 	(*cc.Sessions)[session] = newUser.Number
 
-	// TODO тут должно быть обращение к функции, которая отдает json для главной страницы,
-	// и созданную выше сессию в том числе
-	return c.String(http.StatusOK, "вместо этого текста тут json для формирования главной")
+	// далее - чтобы после авторизации пользователь перешел на главную
+	SetResponseCookie(c, session)
+
+	response := successResponse{userToRegister.Name, ""}
+	return c.JSON(http.StatusOK, response)
+}
+
+func CheckAuth(c echo.Context) error {
+	cc := c.(*api.CustomContext)
+
+	user, err := GetUser(cc)
+	if err != nil {
+		return c.String(http.StatusUnauthorized, "user not found")
+	}
+
+	return c.JSON(http.StatusOK, user)
 }

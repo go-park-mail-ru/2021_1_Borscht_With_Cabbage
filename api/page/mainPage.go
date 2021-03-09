@@ -7,7 +7,18 @@ import (
 	"strconv"
 )
 
-// загрузка списка рестаранов
+
+type RestaurantResponse struct {
+	ID           int     `json:"id"`
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Rating       float64 `json:"rating"`
+	DeliveryTime int     `json:"time"`
+	AvgCheck     int     `json:"cost"`
+	DeliveryCost int     `json:"deliveryCost"`
+}
+
+// загрузка списка ресторанов
 func GetVendor(c echo.Context) error {
 	Limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	Offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
@@ -20,19 +31,28 @@ func GetVendor(c echo.Context) error {
 		})
 	}
 
-	cc := c.(*api.CustomContext)
 
-	result := getRestaurant(Limit, Offset, cc)
+	result := GetRestaurant(Limit, Offset, c)
 	return c.JSON(http.StatusOK, result)
 }
 
 // в будущем здесь будет поход в базу данных
-func getRestaurant(limit, offset int, context *api.CustomContext) []api.Restaurant {
-	var result []api.Restaurant
 
-	for _, restaurant := range *context.Restaurants {
-		if restaurant.ID >= offset && restaurant.ID < offset+limit {
+func GetRestaurant(limit, offset int, c echo.Context) []RestaurantResponse {
+	cc := c.(*api.CustomContext)
+	var result []RestaurantResponse
 
+	for _, rest := range *cc.Restaurants {
+		if rest.ID >= offset && rest.ID < offset+limit {
+			restaurant := RestaurantResponse{
+				ID:           rest.ID,
+				Name:         rest.Name,
+				Rating:       rest.Rating,
+				DeliveryCost: rest.DeliveryCost,
+				AvgCheck:     rest.AvgCheck,
+				Description:  rest.Description,
+				DeliveryTime: rest.DeliveryTime,
+			}
 			result = append(result, restaurant)
 		}
 	}
