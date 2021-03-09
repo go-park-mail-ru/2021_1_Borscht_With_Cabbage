@@ -9,6 +9,7 @@ import (
 	"backend/api/restaurant"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
 )
 
 func router(e *echo.Echo) {
@@ -25,7 +26,11 @@ func router(e *echo.Echo) {
 
 func main() {
 	e := echo.New()
-	e.Use(middleware.CORS())
+	
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://89.208.197.150"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+	}))
 
 	Users := make([]api.User, 0)
 	Sessions := make(map[string]string, 0)
