@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/labstack/echo/v4"
+	"strconv"
 )
 
 type CustomContext struct {
@@ -27,10 +28,14 @@ type Dish struct {
 }
 
 type Restaurant struct {
-	ID           int    `json:"id"`
-	Name         string `json:"title"`
-	Dishes       []Dish `json:"foods"`
-	DeliveryCost int `json:"deliveryCost"`
+	ID           int     `json:"id"`
+	AvgCheck     int     `json:"cost"`
+	Name         string  `json:"title"`
+	DeliveryTime int     `json:"time"`
+	Description  string  `json:"description"`
+	Dishes       []Dish  `json:"foods"`
+	DeliveryCost int     `json:"deliveryCost"`
+	Rating       float64 `json:"rating"`
 }
 
 type Session struct {
@@ -44,13 +49,17 @@ func InitData(cc CustomContext) {
 	for i := 0; i < restaurantCount; i++ {
 		res := Restaurant{}
 		res.DeliveryCost = restaurantCount * i
-		res.Name = "Restaurant #" + string(res.ID)
+		res.Name = "Restaurant #" + strconv.Itoa(i)
 		res.ID = i
+		res.Rating = float64(i % 5)
+		res.AvgCheck = i * 150
+		res.Description = "yum"
+		res.DeliveryTime = i * 15
 
-		(*cc.Restaurants)[string(res.ID)] = res
+		(*cc.Restaurants)[strconv.Itoa(i)] = res
 	}
 
-	user := User{"Oleg", "oleg@mail.ru", "1111", "88005553535", ""}
+	user := User{"Oleg", "oleg@mail.ru", "111111", "88005553535", ""}
 	session := "olegssession"
 	(*cc.Sessions)[session] = user.Phone
 	*cc.Users = append(*cc.Users, user)

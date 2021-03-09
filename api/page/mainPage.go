@@ -8,9 +8,13 @@ import (
 )
 
 type RestaurantResponse struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	DeliveryCost int    `json:"deliveryCost"`
+	ID           int     `json:"id"`
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Rating       float64 `json:"rating"`
+	DeliveryTime int     `json:"time"`
+	AvgCheck     int     `json:"cost"`
+	DeliveryCost int     `json:"deliveryCost"`
 }
 
 // загрузка списка ресторанов
@@ -40,7 +44,11 @@ func GetRestaurant(limit, offset int, c echo.Context) []RestaurantResponse {
 			restaurant := RestaurantResponse{
 				ID:           rest.ID,
 				Name:         rest.Name,
+				Rating:       rest.Rating,
 				DeliveryCost: rest.DeliveryCost,
+				AvgCheck:     rest.AvgCheck,
+				Description:  rest.Description,
+				DeliveryTime: rest.DeliveryTime,
 			}
 			result = append(result, restaurant)
 		}

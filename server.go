@@ -21,6 +21,7 @@ func router(e *echo.Echo) {
 	e.GET("/user", profile.GetUserData)
 	e.PUT("/user", profile.EditProfile)
 	e.GET("/", page.GetVendor)
+	e.GET("/restaurants", page.GetVendor)
 	e.GET("/auth", auth.CheckAuth)
 }
 
