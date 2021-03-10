@@ -13,7 +13,7 @@ type UserAuth struct {
 }
 
 type UserReg struct {
-	Number   string `json:"number"`
+	Phone   string `json:"phone"`
 	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
@@ -80,7 +80,7 @@ func CreateUser(c echo.Context) error {
 	}
 
 	for _, user := range *cc.Users {
-		if (user.Phone == newUser.Number) && user.Password == newUser.Password {
+		if (user.Phone == newUser.Phone) && user.Password == newUser.Password {
 			return c.String(http.StatusUnauthorized, "user with this number already exists") // такой юзер уже есть
 		}
 	}
@@ -89,14 +89,14 @@ func CreateUser(c echo.Context) error {
 		Name:     newUser.Name,
 		Email:    newUser.Email,
 		Password: newUser.Password,
-		Phone:    newUser.Number,
+		Phone:    newUser.Phone,
 	}
 
 	// записываем нового
 	*cc.Users = append(*cc.Users, userToRegister)
 
 	session := CreateSession(cc)
-	(*cc.Sessions)[session] = newUser.Number
+	(*cc.Sessions)[session] = newUser.Phone
 
 	// далее - чтобы после авторизации пользователь перешел на главную
 	SetResponseCookie(c, session)
