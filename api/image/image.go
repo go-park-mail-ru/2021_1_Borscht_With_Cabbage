@@ -3,7 +3,6 @@ package image
 import (
 	"backend/api"
 	"backend/api/auth"
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"hash/fnv"
 	"io"
@@ -16,12 +15,16 @@ import (
 
 func DownloadAvatar(c echo.Context) error {
 	//user, err := auth.GetUser(c.(*api.CustomContext))
+	//fmt.Println("hi")
 	//if err != nil {
+	//	fmt.Println("err")
 	//	return getErrorJson(c, err)
 	//}
-
+	//
+	//fmt.Println(user)
+	//
 	//filename := user.Avatar
-
+	//
 	//return getErrorJson(c, c.File("static/avatar/"+filename))
 	return getErrorJson(c, c.File("static/avatar/stas.jpg"))
 }
@@ -29,7 +32,6 @@ func DownloadAvatar(c echo.Context) error {
 func UploadAvatar(c echo.Context, ) error {
 	// Читаем файл из пришедшего запроса
 	file, err := c.FormFile("avatar")
-	fmt.Println(file)
 	if err != nil {
 		return getErrorJson(c, err)
 	}

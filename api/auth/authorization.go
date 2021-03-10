@@ -2,6 +2,7 @@ package auth
 
 import (
 	"backend/api"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -21,6 +22,28 @@ type UserReg struct {
 type successResponse struct {
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
+}
+
+func LogoutUser(c echo.Context) error {
+	cc := c.(*api.CustomContext)
+	cook, err := cc.Cookie("borscht_session")
+	if err != nil {
+		return c.String(http.StatusOK, "error with request data")
+	}
+
+	fmt.Println(*cc.Sessions)
+	session := cook.Value
+
+	_, ok := (*cc.Sessions)[session]
+	if ok {
+		delete(*cc.Sessions, session)
+	}
+
+	fmt.Println(*cc.Sessions)
+
+	DeleteResponseCookie(c)
+
+	return c.JSON(http.StatusOK, "")
 }
 
 // handler авторизации

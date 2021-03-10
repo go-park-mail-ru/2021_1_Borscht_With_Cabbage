@@ -23,6 +23,7 @@ func router(e *echo.Echo) {
 	e.GET("/", page.GetVendor)
 	e.GET("/restaurants", page.GetVendor)
 	e.GET("/auth", auth.CheckAuth)
+	e.GET("/logout", auth.LogoutUser)
 }
 
 func main() {

@@ -38,7 +38,7 @@ func EditProfile(c echo.Context) error {
 	formParams, err := c.FormParams()
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return c.JSON(http.StatusOK, err)
 	}
 
 	profileEdits.Name = formParams.Get("name")
