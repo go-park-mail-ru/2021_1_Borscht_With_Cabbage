@@ -13,6 +13,7 @@ type UserData struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Phone string `json:"number"`
+	Avatar string `json:"avatar"`
 }
 
 // отдать данные о юзере, чтобы загрузить профиль
@@ -47,8 +48,9 @@ func EditProfile(c echo.Context) error {
 
 	fmt.Println(profileEdits)
 
-	err = image.UploadAvatar(c)
+	srcFile, err := image.UploadAvatar(c)
 
+	profileEdits.Avatar = srcFile
 
 	// по куке находим, что за юзер
 	session, err := cc.Cookie("borscht_session")
@@ -75,7 +77,7 @@ func EditProfile(c echo.Context) error {
 		}
 		(*cc.Users)[i] = user
 
-		return c.JSON(http.StatusOK, "")
+		return c.JSON(http.StatusOK, profileEdits)
 	}
 
 	return c.String(http.StatusUnauthorized, "user not found")
