@@ -6,6 +6,12 @@ import (
 	"strconv"
 )
 
+const (
+	Host = "http://127.0.0.1"
+	Repository = Host + ":5000/"
+	DefaultAvatar = Repository + "static/avatar/stas.jpg"
+)
+
 type CustomContext struct {
 	echo.Context
 	Users       *[]User
@@ -84,6 +90,7 @@ func InitData(cc CustomContext) {
 	}
 
 	user := User{"Oleg", "oleg@mail.ru", "111111", "88005553535", "Олег крутой"}
+	user.Avatar = DefaultAvatar
 	session := "olegssession"
 	(*cc.Sessions)[session] = user.Phone
 	*cc.Users = append(*cc.Users, user)

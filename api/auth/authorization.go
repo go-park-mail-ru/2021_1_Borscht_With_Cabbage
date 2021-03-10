@@ -90,6 +90,7 @@ func CreateUser(c echo.Context) error {
 		Email:    newUser.Email,
 		Password: newUser.Password,
 		Phone:    newUser.Phone,
+		Avatar:   api.DefaultAvatar,
 	}
 
 	// записываем нового

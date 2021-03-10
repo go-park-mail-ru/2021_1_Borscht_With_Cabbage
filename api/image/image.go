@@ -15,7 +15,6 @@ import (
 
 const (
 	HeadAvatar = "static/avatar/"
-	Repository = "http://89.208.197.150:5000/"
 )
 
 func DownloadAvatar(c echo.Context) error {
@@ -63,7 +62,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 	}
 	defer dst.Close()
 
-	filename = Repository + filename
+	filename = api.Repository + filename
 	err = setAvatarUser(c, filename)
 	if err != nil {
 		return "", err
