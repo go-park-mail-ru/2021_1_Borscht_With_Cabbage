@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	Host = "http://127.0.0.1"
+	Host = "http://89.208.197.150"
 	Repository = Host + ":5000/"
 	DefaultAvatar = Repository + "static/avatar/stas.jpg"
 )
