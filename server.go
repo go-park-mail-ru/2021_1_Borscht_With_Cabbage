@@ -14,7 +14,6 @@ import (
 func router(e *echo.Echo) {
 	e.POST("/signin", auth.LoginUser)
 	e.POST("/signup", auth.CreateUser)
-	//e.GET("/static/avatar", image.DownloadAvatar)
 	e.GET("/:id", restaurant.GetRestaurantPage)
 	e.GET("/user", profile.GetUserData)
 	e.PUT("/user", profile.EditProfile)

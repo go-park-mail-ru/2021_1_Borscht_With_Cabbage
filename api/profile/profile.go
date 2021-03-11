@@ -33,9 +33,6 @@ func EditProfile(c echo.Context) error {
 	cc := c.(*api.CustomContext)
 
 	profileEdits := new(UserData)
-	//if err := cc.Bind(profileEdits); err != nil {
-	//	return cc.String(http.StatusUnauthorized, "error with request data")
-	//}
 	formParams, err := c.FormParams()
 	if err != nil {
 		fmt.Println(err.Error())

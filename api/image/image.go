@@ -17,22 +17,6 @@ const (
 	HeadAvatar = "static/avatar/"
 )
 
-func DownloadAvatar(c echo.Context) error {
-	//user, err := auth.GetUser(c.(*api.CustomContext))
-	//fmt.Println("hi")
-	//if err != nil {
-	//	fmt.Println("err")
-	//	return getErrorJson(c, err)
-	//}
-	//
-	//fmt.Println(user)
-	//
-	//filename := user.Avatar
-	//
-	//return getErrorJson(c, c.File("static/avatar/"+filename))
-	return getErrorJson(c, c.File("static/avatar/stas.jpg"))
-}
-
 func UploadAvatar(c echo.Context) (string, error) {
 	// Читаем файл из пришедшего запроса
 	file, err := c.FormFile("avatar")
@@ -48,7 +32,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 	// парсим расширение
 	expansion := filepath.Ext(file.Filename)
 
-	uid, err := getUniqId(file.Filename)
+	uid, err := getUniqFileId(file.Filename)
 	if err != nil {
 		return "", err
 	}
@@ -93,7 +77,7 @@ func setAvatarUser(c echo.Context, avatar string) error {
 	return nil
 }
 
-func getUniqId(filename string) (string, error) {
+func getUniqFileId(filename string) (string, error) {
 	// создаем рандомную последовательность чтобы точно названия не повторялись
 	hashingSalt := strconv.Itoa(rand.Int() % 1000)
 
