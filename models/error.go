@@ -19,14 +19,6 @@ func InternalError(err error) InfoError {
 	}
 }
 
-func NewError(err error, code int) InfoError {
-	return InfoError{
-		Code:        code,
-		Message: "why y`re need this function???",
-		Description: err.Error(),
-	}
-}
-
 func UnAuthError(err error) InfoError {
 	return InfoError{
 		Code:        http.StatusUnauthorized,
