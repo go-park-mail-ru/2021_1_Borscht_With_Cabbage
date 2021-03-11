@@ -13,26 +13,35 @@ import (
 	"strconv"
 )
 
+const (
+	HeadAvatar = "static/avatar/"
+)
+
 func DownloadAvatar(c echo.Context) error {
-	user, err := auth.GetUser(c.(*api.CustomContext))
-	if err != nil {
-		return getErrorJson(c, err)
-	}
-
-	filename := user.Avatar
-
-	return getErrorJson(c, c.File("static/avatar/"+filename))
+	//user, err := auth.GetUser(c.(*api.CustomContext))
+	//fmt.Println("hi")
+	//if err != nil {
+	//	fmt.Println("err")
+	//	return getErrorJson(c, err)
+	//}
+	//
+	//fmt.Println(user)
+	//
+	//filename := user.Avatar
+	//
+	//return getErrorJson(c, c.File("static/avatar/"+filename))
+	return getErrorJson(c, c.File("static/avatar/stas.jpg"))
 }
 
-func UploadAvatar(c echo.Context) error {
+func UploadAvatar(c echo.Context) (string, error) {
 	// Читаем файл из пришедшего запроса
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		return getErrorJson(c, err)
+		return "", err
 	}
 	src, err := file.Open()
 	if err != nil {
-		return getErrorJson(c, err)
+		return "", err
 	}
 	defer src.Close()
 
@@ -41,28 +50,30 @@ func UploadAvatar(c echo.Context) error {
 
 	uid, err := getUniqId(file.Filename)
 	if err != nil {
-		return getErrorJson(c, err)
+		return "", err
 	}
 
-	filename := uid + expansion
-	err = setAvatarUser(c, filename)
-	if err != nil {
-		return getErrorJson(c, err)
-	}
+	filename := HeadAvatar + uid + expansion
 
 	// создаем файл у себя
-	dst, err := os.Create("static/avatar/" + filename)
+	dst, err := os.Create(filename)
 	if err != nil {
-		return getErrorJson(c, err)
+		return "", err
 	}
 	defer dst.Close()
 
-	// копируем один в другой
-	if _, err = io.Copy(dst, src); err != nil {
-		return getErrorJson(c, err)
+	filename = api.Repository + filename
+	err = setAvatarUser(c, filename)
+	if err != nil {
+		return "", err
 	}
 
-	return DownloadAvatar(c)
+	// копируем один в другой
+	if _, err = io.Copy(dst, src); err != nil {
+		return "", err
+	}
+
+	return filename, nil
 }
 
 func setAvatarUser(c echo.Context, avatar string) error {

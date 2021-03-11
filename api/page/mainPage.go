@@ -7,28 +7,18 @@ import (
 	"strconv"
 )
 
-type restaurantResponse struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	DeliveryCost int    `json:"deliveryCost"`
+
+type RestaurantResponse struct {
+	ID           int     `json:"id"`
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Rating       float64 `json:"rating"`
+	DeliveryTime int     `json:"time"`
+	AvgCheck     int     `json:"cost"`
+	DeliveryCost int     `json:"deliveryCost"`
 }
 
-func initRestaurants() []api.Restaurant {
-	restaurants := make([]api.Restaurant, 0, 10)
-
-	for i := 0; i < 10; i++ {
-		res := api.Restaurant{}
-		res.DeliveryCost = 10
-		res.Name = "My rest"
-		res.ID = i
-
-		restaurants = append(restaurants, res)
-	}
-
-	return restaurants
-}
-
-// загрузка списка рестаранов
+// загрузка списка ресторанов
 func GetVendor(c echo.Context) error {
 	Limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	Offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
@@ -41,22 +31,27 @@ func GetVendor(c echo.Context) error {
 		})
 	}
 
-	result := getRestaurant(Limit, Offset)
+
+	result := GetRestaurant(Limit, Offset, c)
 	return c.JSON(http.StatusOK, result)
 }
 
 // в будущем здесь будет поход в базу данных
-func getRestaurant(limit, offset int) []restaurantResponse {
-	var result []restaurantResponse
 
-	restaurants := initRestaurants()
+func GetRestaurant(limit, offset int, c echo.Context) []RestaurantResponse {
+	cc := c.(*api.CustomContext)
+	var result []RestaurantResponse
 
-	for _, val := range restaurants {
-		if val.ID >= offset && val.ID < offset+limit {
-			restaurant := restaurantResponse{
-				ID:           val.ID,
-				Name:         val.Name,
-				DeliveryCost: val.DeliveryCost,
+	for _, rest := range *cc.Restaurants {
+		if rest.ID >= offset && rest.ID < offset+limit {
+			restaurant := RestaurantResponse{
+				ID:           rest.ID,
+				Name:         rest.Name,
+				Rating:       rest.Rating,
+				DeliveryCost: rest.DeliveryCost,
+				AvgCheck:     rest.AvgCheck,
+				Description:  rest.Description,
+				DeliveryTime: rest.DeliveryTime,
 			}
 			result = append(result, restaurant)
 		}
