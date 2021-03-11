@@ -4,6 +4,7 @@ import (
 	"backend/api"
 	"backend/api/auth"
 	"backend/api/image"
+	"backend/models"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -22,7 +23,7 @@ func GetUserData(c echo.Context) error {
 
 	user, err := auth.GetUser(cc)
 	if err != nil {
-		return c.String(http.StatusUnauthorized, "user not found")
+		return (*models.AuthorizationErr(err)).Response(c)
 	}
 
 	return c.JSON(http.StatusOK, user)

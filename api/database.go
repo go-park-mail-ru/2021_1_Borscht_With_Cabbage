@@ -19,6 +19,10 @@ type CustomContext struct {
 	Sessions    *map[string]string     // [session]user's phone number
 }
 
+func (cc CustomContext) customJson(data interface{}) error {
+	return cc.JSON()
+}
+
 type User struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
