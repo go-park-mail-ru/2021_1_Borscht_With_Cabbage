@@ -71,13 +71,18 @@ func EditProfile(c echo.Context) error {
 		}
 
 		if user.Phone == number {
-			user.Phone = profileEdits.Phone
-			user.Email = profileEdits.Email
-			user.Name = profileEdits.Name
-		}
-		(*cc.Users)[i] = user
+			(*cc.Users)[i].Phone = profileEdits.Phone
+			(*cc.Users)[i].Email = profileEdits.Email
+			(*cc.Users)[i].Name = profileEdits.Name
 
-		return c.JSON(http.StatusOK, profileEdits)
+			for j, numSession := range *cc.Sessions {
+				if numSession == number {
+					(*cc.Sessions)[j] = profileEdits.Phone
+				}
+			}
+
+			return c.JSON(http.StatusOK, profileEdits)
+		}
 	}
 
 	return c.String(http.StatusUnauthorized, "user not found")
