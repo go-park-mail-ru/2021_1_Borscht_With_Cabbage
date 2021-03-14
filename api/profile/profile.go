@@ -10,10 +10,13 @@ import (
 )
 
 type UserData struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Phone string `json:"number"`
-	Avatar string `json:"avatar"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	Phone          string `json:"number"`
+	Password       string `json:"password"`
+	PasswordRepeat string `json:"password_repeat"`
+	PasswordOld    string `json:"password_current"`
+	Avatar         string `json:"avatar"`
 }
 
 // отдать данные о юзере, чтобы загрузить профиль
@@ -42,7 +45,9 @@ func EditProfile(c echo.Context) error {
 	profileEdits.Name = formParams.Get("name")
 	profileEdits.Phone = formParams.Get("number")
 	profileEdits.Email = formParams.Get("email")
-
+	profileEdits.Password = formParams.Get("password")
+	profileEdits.PasswordRepeat = formParams.Get("password_repeat")
+	profileEdits.PasswordOld = formParams.Get("password_current")
 	fmt.Println(profileEdits)
 
 	srcFile, err := image.UploadAvatar(c)
@@ -68,6 +73,17 @@ func EditProfile(c echo.Context) error {
 		}
 
 		if user.Phone == number {
+			if profileEdits.Password != "" {
+				if profileEdits.PasswordOld != user.Password {
+					fmt.Println(profileEdits.PasswordOld, " ", user.Password)
+					return c.JSON(http.StatusBadRequest, "invalid old password")
+				}
+				if profileEdits.Password != profileEdits.PasswordRepeat {
+					return c.JSON(http.StatusBadRequest, "passwords don't match")
+				}
+				(*cc.Users)[i].Password = profileEdits.Password
+			}
+
 			(*cc.Users)[i].Phone = profileEdits.Phone
 			(*cc.Users)[i].Email = profileEdits.Email
 			(*cc.Users)[i].Name = profileEdits.Name
@@ -78,6 +94,7 @@ func EditProfile(c echo.Context) error {
 				}
 			}
 
+			fmt.Println(*cc.Users)
 			return c.JSON(http.StatusOK, profileEdits)
 		}
 	}
