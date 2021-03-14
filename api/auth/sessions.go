@@ -10,21 +10,23 @@ import (
 )
 
 func SetResponseCookie(c echo.Context, session string) {
-	sessionCookie := new(http.Cookie)
-	sessionCookie.Expires = time.Now().Add(24 * time.Hour)
-	sessionCookie.Name = api.SessionCookie
-	sessionCookie.Value = session
-	sessionCookie.HttpOnly = true
-	c.SetCookie(sessionCookie)
+	sessionCookie := http.Cookie {
+		Expires: time.Now().Add(24 * time.Hour),
+		Name: api.SessionCookie,
+		Value: session,
+		HttpOnly: true,
+	}
+	c.SetCookie(&sessionCookie)
 }
 
 func DeleteResponseCookie(c echo.Context) {
-	sessionCookie := new(http.Cookie)
-	sessionCookie.Expires = time.Now().Add(-24 * time.Hour)
-	sessionCookie.Name = api.SessionCookie
-	sessionCookie.Value = ""
-	sessionCookie.HttpOnly = true
-	c.SetCookie(sessionCookie)
+	sessionCookie := http.Cookie {
+		Expires: time.Now().Add(-24 * time.Hour),
+		Name: api.SessionCookie,
+		Value: "session",
+		HttpOnly: true,
+	}
+	c.SetCookie(&sessionCookie)
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
