@@ -14,7 +14,6 @@ type UserData struct {
 	Email          string `json:"email"`
 	Phone          string `json:"number"`
 	Password       string `json:"password"`
-	PasswordRepeat string `json:"password_repeat"`
 	PasswordOld    string `json:"password_current"`
 	Avatar         string `json:"avatar"`
 }
@@ -46,7 +45,6 @@ func EditProfile(c echo.Context) error {
 	profileEdits.Phone = formParams.Get("number")
 	profileEdits.Email = formParams.Get("email")
 	profileEdits.Password = formParams.Get("password")
-	profileEdits.PasswordRepeat = formParams.Get("password_repeat")
 	profileEdits.PasswordOld = formParams.Get("password_current")
 	fmt.Println(profileEdits)
 
@@ -77,9 +75,6 @@ func EditProfile(c echo.Context) error {
 				if profileEdits.PasswordOld != user.Password {
 					fmt.Println(profileEdits.PasswordOld, " ", user.Password)
 					return c.JSON(http.StatusBadRequest, "invalid old password")
-				}
-				if profileEdits.Password != profileEdits.PasswordRepeat {
-					return c.JSON(http.StatusBadRequest, "passwords don't match")
 				}
 				(*cc.Users)[i].Password = profileEdits.Password
 			}
