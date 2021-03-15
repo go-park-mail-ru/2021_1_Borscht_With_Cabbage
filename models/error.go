@@ -1,71 +1,49 @@
-package models
+package errors
 
 import (
-	"github.com/labstack/echo/v4"
-	"go/types"
 	"net/http"
 )
 
-type ServerError struct {
-	error
-	Code int `json:"code"`
-	Message string `json:"message"`
+type CustomError struct {
+	SendError
 	Description string
 }
 
-type Error *ServerError
-
-func BadRequest(err error) Error {
-	serverError := ServerError{
-		Code: http.StatusBadRequest,
-		Message: "Bad request",
-		Description: err.Error(),
-	}
-
-	return &serverError
+type SendError struct {
+	Code int `json:"code"`
+	Message string `json:"message"`
 }
 
-func FailServer(err error) Error {
-	serverError := ServerError{
-		Code: http.StatusInternalServerError,
-		Message: "Server error",
-		Description: err.Error(),
-	}
-
-	return &serverError
+func (err *CustomError) Error() string {
+	return err.Description
 }
 
-func addData(data interface{}) interface{} {
-	t := {
+func BadRequest(err error) *CustomError {
+	cErr := CustomError{}
 
-	}
+	cErr.Code = http.StatusBadRequest
+	cErr.Message = "Bad request"
+	cErr.Description = err.Error()
+
+	return &cErr
 }
 
-func NotError(c echo.Context, data interface{}) error {
-	t := ServerError{
+func FailServer(err error) *CustomError {
+	cErr := CustomError{}
 
-	}
-	return c.JSON(http.StatusOK, data, t)
+	cErr.Code = http.StatusInternalServerError
+	cErr.Message = "Server error"
+	cErr.Description = err.Error()
 
+	return &cErr
 }
 
-func AuthorizationErr(err error) Error {
-	serverError := ServerError{
-		Code: http.StatusUnauthorized,
-		Message: "Not authorized",
-		Description: err.Error(),
-	}
+func Authorization(err error) *CustomError {
+	cErr := CustomError{}
 
-	return &serverError
-}
+	cErr.Code = http.StatusUnauthorized
+	cErr.Message = "Not authorized"
+	cErr.Description = err.Error()
 
-func RegistrationErr() ServerError {
-	return ServerError{
-		Code: http.StatusUnauthorized,
-		Message: "not auth",
-	}
-}
-
-func (err ServerError) Response(c echo.Context) error {
-	return c.JSON(http.StatusOK, err)
+	return &cErr
 }

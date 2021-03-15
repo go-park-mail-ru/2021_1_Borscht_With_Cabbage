@@ -1,8 +1,11 @@
 package api
 
 import (
+	errors "backend/models"
 	"github.com/labstack/echo/v4"
 	"math/rand"
+	"net/http"
+	"reflect"
 	"strconv"
 )
 
@@ -19,9 +22,26 @@ type CustomContext struct {
 	Sessions    *map[string]string     // [session]user's phone number
 }
 
-func (cc CustomContext) customJson(data interface{}) error {
-	return cc.JSON()
+type message struct {
+	Code int `json:"code"`
+	Data interface{} `json:"data"`
 }
+
+func (c *CustomContext) SendOK(data interface{}) error {
+	return c.JSON(http.StatusOK, message{200, data})
+}
+
+func (c *CustomContext) SendERR(err error) error {
+	// проверяем можно ли преобразовать в кастомную ошибку
+	if reflect.TypeOf(err) == reflect.TypeOf(&errors.CustomError{}) {
+		customErr := err.(*errors.CustomError).SendError
+		return c.JSON(http.StatusOK, customErr)
+	}
+
+	customErr := errors.FailServer(err).SendError
+	return c.JSON(http.StatusOK, customErr)
+}
+
 
 type User struct {
 	Name     string `json:"name"`

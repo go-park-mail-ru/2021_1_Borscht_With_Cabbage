@@ -3,7 +3,7 @@ package image
 import (
 	"backend/api"
 	"backend/api/auth"
-	"backend/models"
+	errors "backend/models"
 	"github.com/labstack/echo/v4"
 	"hash/fnv"
 	"io"
@@ -17,15 +17,15 @@ const (
 	HeadAvatar = "static/avatar/"
 )
 
-func UploadAvatar(c echo.Context) (string, models.ServerError) {
+func UploadAvatar(c echo.Context) (string, error) {
 	// Читаем файл из пришедшего запроса
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		return "", models.BadRequest(err)
+		return "", errors.BadRequest(err)
 	}
 	src, err := file.Open()
 	if err != nil {
-		return "", models.FailServer(err)
+		return "", errors.FailServer(err)
 	}
 	defer src.Close()
 
@@ -42,7 +42,7 @@ func UploadAvatar(c echo.Context) (string, models.ServerError) {
 	// создаем файл у себя
 	dst, err := os.Create(filename)
 	if err != nil {
-		return "", models.FailServer(err)
+		return "", errors.FailServer(err)
 	}
 	defer dst.Close()
 
@@ -54,17 +54,17 @@ func UploadAvatar(c echo.Context) (string, models.ServerError) {
 
 	// копируем один в другой
 	if _, err = io.Copy(dst, src); err != nil {
-		return "", models.FailServer(err)
+		return "", errors.FailServer(err)
 	}
 
 	return filename, nil
 }
 
-func setAvatarUser(c echo.Context, avatar string) models.Error {
+func setAvatarUser(c echo.Context, avatar string) error {
 	cc := c.(*api.CustomContext)
 	currentUser, err := auth.GetUser(cc)
 	if err != nil {
-		return models.AuthorizationErr(err)
+		return errors.Authorization(err)
 	}
 
 	for i, user := range *cc.Users {
@@ -77,7 +77,7 @@ func setAvatarUser(c echo.Context, avatar string) models.Error {
 	return nil
 }
 
-func getUniqId(filename string) (string, models.Error) {
+func getUniqId(filename string) (string, error) {
 	// создаем рандомную последовательность чтобы точно названия не повторялись
 	hashingSalt := strconv.Itoa(rand.Int() % 1000)
 
@@ -85,7 +85,7 @@ func getUniqId(filename string) (string, models.Error) {
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(filename + hashingSalt))
 	if err != nil {
-		return "", models.FailServer(err)
+		return "", errors.FailServer(err)
 	}
 
 	return strconv.Itoa(int(hash.Sum32())), nil
