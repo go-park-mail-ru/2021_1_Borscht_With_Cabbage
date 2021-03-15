@@ -10,6 +10,7 @@ const (
 	Host = "http://89.208.197.150"
 	Repository = Host + ":5000/"
 	DefaultAvatar = Repository + "static/avatar/stas.jpg"
+	SessionCookie = "borscht_session"
 )
 
 type CustomContext struct {

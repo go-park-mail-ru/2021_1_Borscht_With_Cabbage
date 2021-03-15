@@ -28,7 +28,7 @@ func main() {
 	e.Static("/static/avatar", "static/avatar")
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{api.Host + ":3000"},
+		AllowOrigins:     []string{api.Host + ":3000", "http://127.0.0.1:3000"},
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))
