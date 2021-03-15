@@ -10,9 +10,9 @@ import (
 )
 
 type UserData struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Phone string `json:"number"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Phone  string `json:"number"`
 	Avatar string `json:"avatar"`
 }
 

@@ -7,7 +7,6 @@ import (
 	"strconv"
 )
 
-
 type RestaurantResponse struct {
 	ID           int     `json:"id"`
 	Name         string  `json:"name"`
@@ -30,7 +29,6 @@ func GetVendor(c echo.Context) error {
 			Error: "400",
 		})
 	}
-
 
 	result := GetRestaurant(Limit, Offset, c)
 	return c.JSON(http.StatusOK, result)

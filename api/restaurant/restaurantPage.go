@@ -18,4 +18,3 @@ func GetRestaurantPage(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, restaurant)
 }
-

@@ -13,7 +13,7 @@ type UserAuth struct {
 }
 
 type UserReg struct {
-	Phone   string `json:"phone"`
+	Phone    string `json:"phone"`
 	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"password"`

@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	Host = "http://89.208.197.150"
-	Repository = Host + ":5000/"
+	Host          = "http://89.208.197.150"
+	Repository    = Host + ":5000/"
 	DefaultAvatar = Repository + "static/avatar/stas.jpg"
 )
 
@@ -54,7 +54,7 @@ type Session struct {
 
 var (
 	restaurantCount = 10
-	dishCostRange = 1000
+	dishCostRange   = 1000
 	dishWeightRange = 700
 )
 
