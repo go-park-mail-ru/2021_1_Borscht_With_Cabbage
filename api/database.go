@@ -37,7 +37,7 @@ func (c *CustomContext) SendERR(err error) error {
 		return c.JSON(http.StatusOK, customErr.SendError)
 	}
 
-	customErr := errors.FailServer(err)
+	customErr := errors.FailServer(err.Error())
 	return c.JSON(http.StatusOK, customErr.SendError)
 }
 
