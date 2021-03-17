@@ -13,6 +13,7 @@ const (
 	Host = "http://89.208.197.150"
 	Repository = Host + ":5000/"
 	DefaultAvatar = Repository + "static/avatar/stas.jpg"
+	SessionCookie = "borscht_session"
 )
 
 type CustomContext struct {
@@ -76,9 +77,11 @@ type Session struct {
 	Number  string `json:"number"`
 }
 
-var restaurantCount = 10
-var dishCostRange = 1000
-var dishWeightRange = 700
+var (
+	restaurantCount = 10
+	dishCostRange = 1000
+	dishWeightRange = 700
+)
 
 var dishNames = [...]string{"Макарошки с пюрешкой", "Цезарь", "Куриные котлетки", "Ольвьешечка",
 	"Макарошки с котлеткой", "Ролл Калифорния", "Хлеб", "Пiво светлое", "Пiво темное"}
@@ -112,10 +115,4 @@ func InitData(cc CustomContext) {
 
 		(*cc.Restaurants)[strconv.Itoa(i)] = res
 	}
-
-	user := User{"Oleg", "oleg@mail.ru", "111111", "88005553535", "Олег крутой"}
-	user.Avatar = DefaultAvatar
-	session := "olegssession"
-	(*cc.Sessions)[session] = user.Phone
-	*cc.Users = append(*cc.Users, user)
 }

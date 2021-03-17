@@ -14,7 +14,6 @@ import (
 func router(e *echo.Echo) {
 	e.POST("/signin", auth.LoginUser)
 	e.POST("/signup", auth.CreateUser)
-	//e.GET("/static/avatar", image.DownloadAvatar)
 	e.GET("/:id", restaurant.GetRestaurantPage)
 	e.GET("/user", profile.GetUserData)
 	e.PUT("/user", profile.EditProfile)
@@ -29,7 +28,7 @@ func main() {
 	e.Static("/static/avatar", "static/avatar")
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{api.Host + ":3000"},
+		AllowOrigins:     []string{api.Host + ":3000", "http://127.0.0.1:3000"},
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))

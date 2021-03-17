@@ -35,6 +35,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 	uid, localErr := getUniqId(file.Filename)
 	if localErr != nil {
 		return "", localErr
+
 	}
 
 	filename := HeadAvatar + uid + expansion

@@ -13,7 +13,7 @@ type UserAuth struct {
 }
 
 type UserReg struct {
-	Phone   string `json:"phone"`
+	Phone    string `json:"phone"`
 	Email    string `json:"email"`
 	Name     string `json:"name"`
 	Password string `json:"password"`
@@ -26,7 +26,7 @@ type successResponse struct {
 
 func LogoutUser(c echo.Context) error {
 	cc := c.(*api.CustomContext)
-	cook, err := cc.Cookie("borscht_session")
+	cook, err := cc.Cookie(api.SessionCookie)
 	if err != nil {
 		return c.String(http.StatusOK, "error with request data")
 	}
