@@ -2,7 +2,7 @@ package auth
 
 import (
 	"backend/api"
-	"errors"
+	"backend/models"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -55,7 +55,8 @@ func CreateSession(context *api.CustomContext) string {
 }
 
 func GetUser(context *api.CustomContext) (api.User, error) {
-	sessionError := errors.New("session error")
+	sessionError := errors.Authorization("not authorization")
+	sessionError.Description = "session error"
 	session, err := context.Cookie(api.SessionCookie)
 	if err != nil {
 		return api.User{}, sessionError
@@ -72,5 +73,5 @@ func GetUser(context *api.CustomContext) (api.User, error) {
 		}
 	}
 
-	return api.User{}, errors.New("user not found")
+	return api.User{}, errors.Authorization("user not found")
 }

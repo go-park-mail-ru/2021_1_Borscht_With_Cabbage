@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"math/rand"
 	"net/http"
-	"reflect"
 	"strconv"
 )
 
@@ -34,13 +33,12 @@ func (c *CustomContext) SendOK(data interface{}) error {
 
 func (c *CustomContext) SendERR(err error) error {
 	// проверяем можно ли преобразовать в кастомную ошибку
-	if reflect.TypeOf(err) == reflect.TypeOf(&errors.CustomError{}) {
-		customErr := err.(*errors.CustomError).SendError
-		return c.JSON(http.StatusOK, customErr)
+	if customErr, ok := err.(*errors.CustomError); ok {
+		return c.JSON(http.StatusOK, customErr.SendError)
 	}
 
-	customErr := errors.FailServer(err).SendError
-	return c.JSON(http.StatusOK, customErr)
+	customErr := errors.FailServer(err)
+	return c.JSON(http.StatusOK, customErr.SendError)
 }
 
 

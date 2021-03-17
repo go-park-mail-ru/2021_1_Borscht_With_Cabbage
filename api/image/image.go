@@ -3,7 +3,7 @@ package image
 import (
 	"backend/api"
 	"backend/api/auth"
-	errors "backend/models"
+	"backend/models"
 	"github.com/labstack/echo/v4"
 	"hash/fnv"
 	"io"
@@ -21,11 +21,11 @@ func UploadAvatar(c echo.Context) (string, error) {
 	// Читаем файл из пришедшего запроса
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		return "", errors.BadRequest(err)
+		return "", errors.BadRequest(err.Error())
 	}
 	src, err := file.Open()
 	if err != nil {
-		return "", errors.FailServer(err)
+		return "", errors.FailServer(err.Error())
 	}
 	defer src.Close()
 
@@ -43,7 +43,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 	// создаем файл у себя
 	dst, err := os.Create(filename)
 	if err != nil {
-		return "", errors.FailServer(err)
+		return "", errors.FailServer(err.Error())
 	}
 	defer dst.Close()
 
@@ -55,7 +55,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 
 	// копируем один в другой
 	if _, err = io.Copy(dst, src); err != nil {
-		return "", errors.FailServer(err)
+		return "", errors.FailServer(err.Error())
 	}
 
 	return filename, nil
@@ -65,7 +65,7 @@ func setAvatarUser(c echo.Context, avatar string) error {
 	cc := c.(*api.CustomContext)
 	currentUser, err := auth.GetUser(cc)
 	if err != nil {
-		return errors.Authorization(err)
+		return errors.Authorization(err.Error())
 	}
 
 	for i, user := range *cc.Users {
@@ -86,7 +86,7 @@ func getUniqId(filename string) (string, error) {
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(filename + hashingSalt))
 	if err != nil {
-		return "", errors.FailServer(err)
+		return "", errors.FailServer(err.Error())
 	}
 
 	return strconv.Itoa(int(hash.Sum32())), nil

@@ -4,6 +4,7 @@ import (
 	"backend/api"
 	"backend/api/auth"
 	"backend/api/image"
+	"backend/models"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -27,7 +28,7 @@ func GetUserData(c echo.Context) error {
 		return cc.SendERR(err)
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return cc.SendOK(user)
 }
 
 // сохранить изменения в профиле
@@ -37,8 +38,7 @@ func EditProfile(c echo.Context) error {
 	profileEdits := new(UserData)
 	formParams, err := c.FormParams()
 	if err != nil {
-		fmt.Println(err.Error())
-		return c.JSON(http.StatusOK, err)
+		return errors.Create(http.StatusBadRequest, "invalid data form")
 	}
 
 	profileEdits.Name = formParams.Get("name")
@@ -55,26 +55,26 @@ func EditProfile(c echo.Context) error {
 	// по куке находим, что за юзер
 	session, err := cc.Cookie("borscht_session")
 	if err != nil {
-		return c.String(http.StatusUnauthorized, "no session found")
+		return cc.SendERR(errors.Authorization("user not found"))
 	}
 	number, isItExists := auth.CheckSession(session.Value, cc)
 	if isItExists == false {
-		return c.String(http.StatusUnauthorized, "user not found")
+		return cc.SendERR(errors.Authorization("user not found"))
 	}
 
 	for i, user := range *cc.Users {
 		if user.Email == profileEdits.Email && user.Phone != number { // если у кого-то другого уже есть такой email
-			return c.String(http.StatusNotImplemented, "user with this email already exists")
+			return cc.SendERR(errors.Create(http.StatusBadRequest, "user with this email already exists"))
 		}
 		if user.Phone == profileEdits.Phone && user.Phone != number { // если у кого-то другого уже есть такой телефон
-			return c.String(http.StatusNotImplemented, "user with this phone number already exists")
+			return cc.SendERR(errors.Create(http.StatusBadRequest, "user with this number already exists"))
 		}
 
 		if user.Phone == number {
 			if profileEdits.Password != "" {
 				if profileEdits.PasswordOld != user.Password {
 					fmt.Println(profileEdits.PasswordOld, " ", user.Password)
-					return c.JSON(http.StatusBadRequest, "invalid old password")
+					return cc.SendERR(errors.Create(http.StatusBadRequest, "invalid old password"))
 				}
 				(*cc.Users)[i].Password = profileEdits.Password
 			}
@@ -90,9 +90,9 @@ func EditProfile(c echo.Context) error {
 			}
 
 			fmt.Println(*cc.Users)
-			return c.JSON(http.StatusOK, profileEdits)
+			return cc.SendOK(profileEdits)
 		}
 	}
 
-	return c.String(http.StatusUnauthorized, "user not found")
+	return cc.SendERR(errors.Authorization("user not found"))
 }

@@ -18,32 +18,42 @@ func (err *CustomError) Error() string {
 	return err.Description
 }
 
-func BadRequest(err error) *CustomError {
-	cErr := CustomError{}
-
-	cErr.Code = http.StatusBadRequest
-	cErr.Message = "Bad request"
-	cErr.Description = err.Error()
-
-	return &cErr
+func Create(code int, mess string) *CustomError {
+	return &CustomError{
+		SendError: SendError{
+			Code: code,
+			Message: mess,
+		},
+		Description: mess,
+	}
 }
 
-func FailServer(err error) *CustomError {
-	cErr := CustomError{}
-
-	cErr.Code = http.StatusInternalServerError
-	cErr.Message = "Server error"
-	cErr.Description = err.Error()
-
-	return &cErr
+func BadRequest(desc string) *CustomError {
+	return &CustomError{
+		SendError: SendError{
+			Code: http.StatusBadRequest,
+			Message: "bad request",
+		},
+		Description: desc,
+	}
 }
 
-func Authorization(err error) *CustomError {
-	cErr := CustomError{}
+func FailServer(desc string) *CustomError {
+	return &CustomError{
+		SendError: SendError{
+			Code: http.StatusInternalServerError,
+			Message: "server error",
+		},
+		Description: desc,
+	}
+}
 
-	cErr.Code = http.StatusUnauthorized
-	cErr.Message = "Not authorized"
-	cErr.Description = err.Error()
-
-	return &cErr
+func Authorization(desc string) *CustomError {
+	return &CustomError{
+		SendError: SendError{
+			Code: http.StatusUnauthorized,
+			Message: "not authorized",
+		},
+		Description: desc,
+	}
 }
