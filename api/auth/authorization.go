@@ -2,6 +2,7 @@ package auth
 
 import (
 	"backend/api/domain"
+	errors "backend/models"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -28,7 +29,8 @@ func LogoutUser(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 	cook, err := cc.Cookie(domain.SessionCookie)
 	if err != nil {
-		return c.String(http.StatusOK, "error with request data")
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
 	}
 
 	fmt.Println(*cc.Sessions)
@@ -43,7 +45,7 @@ func LogoutUser(c echo.Context) error {
 
 	DeleteResponseCookie(c)
 
-	return c.JSON(http.StatusOK, "")
+	return cc.SendOK("")
 }
 
 // handler авторизации
@@ -51,7 +53,8 @@ func LoginUser(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 	newUser := new(UserAuth)
 	if err := c.Bind(newUser); err != nil {
-		return c.String(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
 	}
 
 	for _, user := range *cc.Users {
@@ -64,11 +67,11 @@ func LoginUser(c echo.Context) error {
 			SetResponseCookie(c, session)
 
 			response := successResponse{user.Name, user.Avatar}
-			return c.JSON(http.StatusOK, response)
+			return cc.SendOK(response)
 		}
 	}
 
-	return c.JSON(http.StatusOK, "")
+	return cc.SendOK("")
 }
 
 // handler регистрации
@@ -76,12 +79,14 @@ func CreateUser(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 	newUser := new(UserReg)
 	if err := c.Bind(newUser); err != nil {
-		return c.String(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
 	}
 
 	for _, user := range *cc.Users {
 		if (user.Phone == newUser.Phone) && user.Password == newUser.Password {
-			return c.String(http.StatusUnauthorized, "user with this number already exists") // такой юзер уже есть
+			sendErr := errors.Create(http.StatusUnauthorized, "user with this number already exists")
+			return cc.SendERR(sendErr) // такой юзер уже есть
 		}
 	}
 
@@ -103,7 +108,7 @@ func CreateUser(c echo.Context) error {
 	SetResponseCookie(c, session)
 
 	response := successResponse{userToRegister.Name, ""}
-	return c.JSON(http.StatusOK, response)
+	return cc.SendOK(response)
 }
 
 func CheckAuth(c echo.Context) error {
@@ -111,8 +116,9 @@ func CheckAuth(c echo.Context) error {
 
 	user, err := GetUser(cc)
 	if err != nil {
-		return c.String(http.StatusUnauthorized, "user not found")
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return cc.SendOK(user)
 }
