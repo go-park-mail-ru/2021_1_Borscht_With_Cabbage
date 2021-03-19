@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"backend/api"
+	"backend/api/domain"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -11,9 +11,9 @@ import (
 
 func SetResponseCookie(c echo.Context, session string) {
 	sessionCookie := http.Cookie {
-		Expires: time.Now().Add(24 * time.Hour),
-		Name: api.SessionCookie,
-		Value: session,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Name:     domain.SessionCookie,
+		Value:    session,
 		HttpOnly: true,
 	}
 	c.SetCookie(&sessionCookie)
@@ -21,16 +21,16 @@ func SetResponseCookie(c echo.Context, session string) {
 
 func DeleteResponseCookie(c echo.Context) {
 	sessionCookie := http.Cookie {
-		Expires: time.Now().Add(-24 * time.Hour),
-		Name: api.SessionCookie,
-		Value: "session",
+		Expires:  time.Now().Add(-24 * time.Hour),
+		Name:     domain.SessionCookie,
+		Value:    "session",
 		HttpOnly: true,
 	}
 	c.SetCookie(&sessionCookie)
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bool) {
+func CheckSession(sessionToCheck string, context *domain.CustomContext) (string, bool) {
 	number, isItExists := (*context.Sessions)[sessionToCheck]
 	if !isItExists {
 		return "", false
@@ -39,7 +39,7 @@ func CheckSession(sessionToCheck string, context *api.CustomContext) (string, bo
 }
 
 // создание уникальной сессии
-func CreateSession(context *api.CustomContext) string {
+func CreateSession(context *domain.CustomContext) string {
 	session := ""
 
 	for {
@@ -54,16 +54,16 @@ func CreateSession(context *api.CustomContext) string {
 	return session
 }
 
-func GetUser(context *api.CustomContext) (api.User, error) {
+func GetUser(context *domain.CustomContext) (domain.User, error) {
 	sessionError := errors.New("session error")
-	session, err := context.Cookie(api.SessionCookie)
+	session, err := context.Cookie(domain.SessionCookie)
 	if err != nil {
-		return api.User{}, sessionError
+		return domain.User{}, sessionError
 	}
 
 	phone, ok := CheckSession(session.Value, context)
 	if !ok {
-		return api.User{}, sessionError
+		return domain.User{}, sessionError
 	}
 
 	for _, user := range *context.Users {
@@ -72,5 +72,5 @@ func GetUser(context *api.CustomContext) (api.User, error) {
 		}
 	}
 
-	return api.User{}, errors.New("user not found")
+	return domain.User{}, errors.New("user not found")
 }

@@ -1,7 +1,7 @@
 package page
 
 import (
-	"backend/api"
+	"backend/api/domain"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -39,7 +39,7 @@ func GetVendor(c echo.Context) error {
 // в будущем здесь будет поход в базу данных
 
 func GetRestaurant(limit, offset int, c echo.Context) []RestaurantResponse {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 	var result []RestaurantResponse
 
 	for _, rest := range *cc.Restaurants {

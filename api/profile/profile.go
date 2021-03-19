@@ -1,9 +1,9 @@
 package profile
 
 import (
-	"backend/api"
 	"backend/api/auth"
 	"backend/api/image"
+	"backend/api/domain"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -20,7 +20,7 @@ type UserData struct {
 
 // отдать данные о юзере, чтобы загрузить профиль
 func GetUserData(c echo.Context) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 
 	user, err := auth.GetUser(cc)
 	if err != nil {
@@ -32,7 +32,7 @@ func GetUserData(c echo.Context) error {
 
 // сохранить изменения в профиле
 func EditProfile(c echo.Context) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 
 	profileEdits := new(UserData)
 	formParams, err := c.FormParams()

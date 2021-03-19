@@ -1,8 +1,8 @@
 package image
 
 import (
-	"backend/api"
 	"backend/api/auth"
+	"backend/api/domain"
 	"github.com/labstack/echo/v4"
 	"hash/fnv"
 	"io"
@@ -46,7 +46,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 	}
 	defer dst.Close()
 
-	filename = api.Repository + filename
+	filename = domain.Repository + filename
 	err = setAvatarUser(c, filename)
 	if err != nil {
 		return "", err
@@ -61,7 +61,7 @@ func UploadAvatar(c echo.Context) (string, error) {
 }
 
 func setAvatarUser(c echo.Context, avatar string) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 	currentUser, err := auth.GetUser(cc)
 	if err != nil {
 		return err

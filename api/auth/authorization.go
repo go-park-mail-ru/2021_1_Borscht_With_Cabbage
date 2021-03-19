@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"backend/api"
+	"backend/api/domain"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -25,8 +25,8 @@ type successResponse struct {
 }
 
 func LogoutUser(c echo.Context) error {
-	cc := c.(*api.CustomContext)
-	cook, err := cc.Cookie(api.SessionCookie)
+	cc := c.(*domain.CustomContext)
+	cook, err := cc.Cookie(domain.SessionCookie)
 	if err != nil {
 		return c.String(http.StatusOK, "error with request data")
 	}
@@ -48,7 +48,7 @@ func LogoutUser(c echo.Context) error {
 
 // handler авторизации
 func LoginUser(c echo.Context) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 	newUser := new(UserAuth)
 	if err := c.Bind(newUser); err != nil {
 		return c.String(http.StatusUnauthorized, "error with request data")
@@ -73,7 +73,7 @@ func LoginUser(c echo.Context) error {
 
 // handler регистрации
 func CreateUser(c echo.Context) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 	newUser := new(UserReg)
 	if err := c.Bind(newUser); err != nil {
 		return c.String(http.StatusUnauthorized, "error with request data")
@@ -85,12 +85,12 @@ func CreateUser(c echo.Context) error {
 		}
 	}
 
-	userToRegister := api.User{
+	userToRegister := domain.User{
 		Name:     newUser.Name,
 		Email:    newUser.Email,
 		Password: newUser.Password,
 		Phone:    newUser.Phone,
-		Avatar:   api.DefaultAvatar,
+		Avatar:   domain.DefaultAvatar,
 	}
 
 	// записываем нового
@@ -107,7 +107,7 @@ func CreateUser(c echo.Context) error {
 }
 
 func CheckAuth(c echo.Context) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 
 	user, err := GetUser(cc)
 	if err != nil {

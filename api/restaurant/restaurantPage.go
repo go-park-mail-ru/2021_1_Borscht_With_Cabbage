@@ -1,13 +1,13 @@
 package restaurant
 
 import (
-	"backend/api"
+	"backend/api/domain"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
 func GetRestaurantPage(c echo.Context) error {
-	cc := c.(*api.CustomContext)
+	cc := c.(*domain.CustomContext)
 
 	id := c.Param("id")
 

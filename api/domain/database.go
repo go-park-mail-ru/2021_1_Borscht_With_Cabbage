@@ -1,4 +1,4 @@
-package api
+package domain
 
 import (
 	"github.com/labstack/echo/v4"
@@ -20,14 +20,6 @@ type CustomContext struct {
 	Sessions    *map[string]string     // [session]user's phone number
 }
 
-type User struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Phone    string `json:"number"`
-	Avatar   string `json:"avatar"`
-}
-
 type Dish struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -35,22 +27,6 @@ type Dish struct {
 	Description string `json:"description"`
 	Weight      int    `json:"weight"`
 	Image       string `json:"image"`
-}
-
-type Restaurant struct {
-	ID           int     `json:"id"`
-	AvgCheck     int     `json:"cost"`
-	Name         string  `json:"title"`
-	DeliveryTime int     `json:"time"`
-	Description  string  `json:"description"`
-	Dishes       []Dish  `json:"foods"`
-	DeliveryCost int     `json:"deliveryCost"`
-	Rating       float64 `json:"rating"`
-}
-
-type Session struct {
-	Session string `json:"session"`
-	Number  string `json:"number"`
 }
 
 var (
