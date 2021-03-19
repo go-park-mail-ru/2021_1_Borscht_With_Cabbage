@@ -4,6 +4,7 @@ import (
 	"backend/api/auth"
 	"backend/api/domain"
 	"backend/api/profile"
+	errors "backend/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -56,7 +57,8 @@ func (h *UserHandler) Create(c echo.Context) error {
 
 	newUser := new(UserReg)
 	if err := c.Bind(newUser); err != nil {
-		return c.String(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
 	}
 
 	userToRegister := domain.User{
@@ -68,16 +70,16 @@ func (h *UserHandler) Create(c echo.Context) error {
 	}
 
 	if err := h.UserUcase.Create(cc, userToRegister); err != nil {
-		return err
+		return cc.SendERR(err)
 	}
 
 	session, err := h.SessionUcase.Create(cc, newUser.Phone)
 	if err != nil {
-		return err
+		return cc.SendERR(err)
 	}
 
 	setResponseCookie(c, session)
 
 	response := successResponse{userToRegister.Name, ""}
-	return c.JSON(http.StatusOK, response)
+	return cc.SendOK(response)
 }

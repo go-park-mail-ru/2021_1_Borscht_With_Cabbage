@@ -1,26 +1,23 @@
 package app
 
 import (
-	"backend/api/auth"
-	"backend/api/page"
-	"backend/api/profile"
-	"backend/api/restaurant"
 	"backend/api/domain"
+	"backend/api/page"
+	"backend/api/restaurant"
+	_sessionRepo "backend/api/session/repository"
+	_sessionUcase "backend/api/session/usecase"
+	_userDelivery "backend/api/user/delivery/http"
+	_userRepo "backend/api/user/repository"
+	_userUcase "backend/api/user/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 )
 
 func router(e *echo.Echo) {
-	e.POST("/signin", auth.LoginUser)
-	e.POST("/signup", auth.CreateUser)
 	e.GET("/:id", restaurant.GetRestaurantPage)
-	e.GET("/user", profile.GetUserData)
-	e.PUT("/user", profile.EditProfile)
 	e.GET("/", page.GetVendor)
 	e.GET("/restaurants", page.GetVendor)
-	e.GET("/auth", auth.CheckAuth)
-	e.GET("/logout", auth.LogoutUser)
 }
 
 func main() {
@@ -44,6 +41,13 @@ func main() {
 			return next(cc)
 		}
 	})
+
+	userRepo := _userRepo.NewUserRepo()
+	sessionRepo := _sessionRepo.NewSessionRepo()
+	userUcase := _userUcase.NewUserUsecase(userRepo)
+	sessionUcase := _sessionUcase.NewSessionUsecase(sessionRepo)
+
+	_userDelivery.NewUserHandler(e, userUcase, sessionUcase)
 
 	router(e)
 	e.Logger.Fatal(e.Start(":5000"))

@@ -17,28 +17,24 @@ func NewSessionUsecase(repo domain.SessionRepo) domain.SessionUsecase {
 
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (u *sessionUsecase) Check(sessionToCheck string, context *domain.CustomContext) (string, bool) {
-	number, isItExists := (*context.Sessions)[sessionToCheck]
-	if !isItExists {
-		return "", false
-	}
-	return number, true
+func (s *sessionUsecase) Check(session string, ctx *domain.CustomContext) (string, bool) {
+	return s.sessionRepo.Check(session, ctx)
 }
 
 // создание уникальной сессии
-func (u *sessionUsecase) Create(ctx *domain.CustomContext, uid string) (string, error) {
+func (s *sessionUsecase) Create(ctx *domain.CustomContext, uid string) (string, error) {
 	session := ""
 
 	for {
 		session = uuid.New().String()
 
-		_, isItExists := u.Check(session, ctx) // далее в цикле - проверка на уникальность
+		_, isItExists := s.Check(session, ctx) // далее в цикле - проверка на уникальность
 		if isItExists == false {               // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}
 
-	err := u.sessionRepo.Create(ctx, session, uid)
+	err := s.sessionRepo.Create(ctx, session, uid)
 	if err != nil {
 		return "", err
 	}

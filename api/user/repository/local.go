@@ -2,20 +2,21 @@ package repository
 
 import (
 	"backend/api/domain"
+	errors "backend/models"
 	"net/http"
 )
 
 type userRepo struct {
 }
 
-func NewUserRepo(repo domain.UserRepo) domain.UserRepo {
+func NewUserRepo() domain.UserRepo {
 	return &userRepo{}
 }
 
 func (u *userRepo) Create(ctx *domain.CustomContext, newUser domain.User) error {
 	for _, user := range *ctx.Users {
 		if (user.Phone == newUser.Phone) && user.Password == newUser.Password {
-			return ctx.String(http.StatusUnauthorized, "user with this number already exists") // такой юзер уже есть
+			return errors.Create(http.StatusUnauthorized, "user with this number already exists") // такой юзер уже есть
 		}
 	}
 
