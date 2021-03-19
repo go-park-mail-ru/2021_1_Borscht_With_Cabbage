@@ -1,10 +1,10 @@
 package http
 
 import (
-	"backend/api/auth"
 	"backend/api/domain"
-	"backend/api/profile"
+	"backend/api/image"
 	errors "backend/models"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -24,9 +24,9 @@ func NewUserHandler(e *echo.Echo, uus domain.UserUsecase, sus domain.SessionUsec
 
 	e.POST("/signin", handler.LoginUser)
 	e.POST("/signup", handler.Create)
-	e.GET("/user", profile.GetUserData)
-	e.PUT("/user", profile.EditProfile)
-	e.GET("/auth", auth.CheckAuth)
+	e.GET("/user", handler.GetUserData)
+	e.PUT("/user", handler.EditProfile)
+	e.GET("/auth", handler.CheckAuth)
 	//e.GET("/logout", auth.LogoutUser)
 }
 
@@ -106,4 +106,82 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 
 	response := successResponse{user.Name, user.Avatar}
 	return cc.SendOK(response)
+}
+
+func (h *UserHandler) GetUserData(c echo.Context) error {
+	cc := c.(*domain.CustomContext)
+
+	user, err := h.getUser(cc)
+	if err != nil {
+		return cc.SendERR(err)
+	}
+
+	return cc.SendOK(user)
+}
+
+// получаем пользователя
+func (h *UserHandler) getUser(ctx *domain.CustomContext) (domain.User, error) {
+	sessionError := errors.Authorization("not authorization")
+	sessionError.Description = "session error"
+	session, err := ctx.Cookie(domain.SessionCookie)
+
+	if err != nil {
+		return domain.User{}, sessionError
+	}
+
+	phone, ok := h.SessionUcase.Check(session.Value, ctx)
+	if !ok {
+		return domain.User{}, sessionError
+	}
+
+	return h.UserUcase.GetByNumber(ctx, phone)
+}
+
+func (h *UserHandler) EditProfile(c echo.Context) error {
+	cc := c.(*domain.CustomContext)
+
+	profileEdits := new(domain.UserData)
+	formParams, err := c.FormParams()
+	if err != nil {
+		return errors.Create(http.StatusBadRequest, "invalid data form")
+	}
+
+	profileEdits.Name = formParams.Get("name")
+	profileEdits.Phone = formParams.Get("number")
+	profileEdits.Email = formParams.Get("email")
+	profileEdits.Password = formParams.Get("password")
+	profileEdits.PasswordOld = formParams.Get("password_current")
+	fmt.Println(profileEdits)
+
+	srcFile, err := image.UploadAvatar(c)
+
+	profileEdits.Avatar = srcFile
+
+	user, err := h.getUser(cc)
+	if err != nil {
+		return cc.SendERR(err)
+	}
+
+	err = h.UserUcase.Update(cc, *profileEdits, user)
+	if err != nil {
+		return cc.SendERR(err)
+	}
+	err = h.SessionUcase.UpdateValue(cc, profileEdits.Phone, user.Phone)
+	if err != nil {
+		return cc.SendERR(err)
+	}
+
+	return cc.SendOK(profileEdits)
+}
+
+func (h *UserHandler) CheckAuth(c echo.Context) error {
+	cc := c.(*domain.CustomContext)
+
+	user, err := h.getUser(cc)
+	if err != nil {
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
+	}
+
+	return cc.SendOK(user)
 }

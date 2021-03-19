@@ -29,3 +29,13 @@ func (repo *sessionRepo) Create(ctx *domain.CustomContext, session, uid string) 
 
 	return nil
 }
+
+func (repo *sessionRepo) UpdateValue(ctx *domain.CustomContext, newValue, oldValue string) error {
+	for j, numSession := range *ctx.Sessions {
+		if numSession == oldValue {
+			(*ctx.Sessions)[j] = newValue
+		}
+	}
+
+	return nil
+}

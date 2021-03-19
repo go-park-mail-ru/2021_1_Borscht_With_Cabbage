@@ -24,3 +24,13 @@ func (u *userUsecase) Create(ctx *domain.CustomContext, newUser domain.User) err
 func (u *userUsecase) GetByLogin(ctx *domain.CustomContext, user domain.UserAuth) (domain.User, error) {
 	return u.userRepository.GetByLogin(ctx, user)
 }
+
+func (u *userUsecase) GetByNumber(ctx *domain.CustomContext, number string) (domain.User, error) {
+	return u.userRepository.GetByNumber(ctx, number)
+}
+
+func (u *userUsecase) Update(ctx *domain.CustomContext, newUser domain.UserData, oldUser domain.User) error {
+	// TODO валидация
+
+	return u.userRepository.Update(ctx, newUser, oldUser)
+}

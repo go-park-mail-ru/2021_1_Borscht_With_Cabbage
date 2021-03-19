@@ -41,3 +41,7 @@ func (s *sessionUsecase) Create(ctx *domain.CustomContext, uid string) (string, 
 
 	return session, nil
 }
+
+func (s *sessionUsecase) UpdateValue(ctx *domain.CustomContext, newValue, oldValue string) error {
+	return s.sessionRepo.UpdateValue(ctx, newValue, oldValue)
+}
