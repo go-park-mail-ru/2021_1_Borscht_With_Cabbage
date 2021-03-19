@@ -24,3 +24,13 @@ func (u *userRepo) Create(ctx *domain.CustomContext, newUser domain.User) error 
 	*ctx.Users = append(*ctx.Users, newUser)
 	return nil
 }
+
+func (u *userRepo) GetByLogin(ctx *domain.CustomContext, check domain.UserAuth) (domain.User, error) {
+	for _, user := range *ctx.Users {
+		if (user.Email == check.Login || user.Phone == check.Login) && user.Password == check.Password {
+			return user, nil
+		}
+	}
+
+	return domain.User{}, errors.Authorization("not user bd")
+}

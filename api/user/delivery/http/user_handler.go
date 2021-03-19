@@ -22,12 +22,12 @@ func NewUserHandler(e *echo.Echo, uus domain.UserUsecase, sus domain.SessionUsec
 		SessionUcase: sus,
 	}
 
-	e.POST("/signin", auth.LoginUser)
+	e.POST("/signin", handler.LoginUser)
 	e.POST("/signup", handler.Create)
 	e.GET("/user", profile.GetUserData)
 	e.PUT("/user", profile.EditProfile)
 	e.GET("/auth", auth.CheckAuth)
-	e.GET("/logout", auth.LogoutUser)
+	//e.GET("/logout", auth.LogoutUser)
 }
 
 type UserReg struct {
@@ -81,5 +81,29 @@ func (h *UserHandler) Create(c echo.Context) error {
 	setResponseCookie(c, session)
 
 	response := successResponse{userToRegister.Name, ""}
+	return cc.SendOK(response)
+}
+
+func (h *UserHandler) LoginUser(c echo.Context) error {
+	cc := c.(*domain.CustomContext)
+	newUser := new(domain.UserAuth)
+	if err := c.Bind(newUser); err != nil {
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
+	}
+
+	user, err := h.UserUcase.GetByLogin(cc, *newUser)
+	if err != nil {
+		return cc.SendERR(err)
+	}
+
+	session, err := h.SessionUcase.Create(cc, user.Phone)
+	if err != nil {
+		return cc.SendERR(err)
+	}
+
+	setResponseCookie(c, session)
+
+	response := successResponse{user.Name, user.Avatar}
 	return cc.SendOK(response)
 }

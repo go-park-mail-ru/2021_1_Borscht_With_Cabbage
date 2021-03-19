@@ -8,10 +8,17 @@ type User struct {
 	Avatar   string `json:"avatar"`
 }
 
+type UserAuth struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
 type UserUsecase interface {
 	Create(ctx *CustomContext, user User) error
+	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
 }
 
 type UserRepo interface {
 	Create(ctx *CustomContext, user User) error
+	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
 }

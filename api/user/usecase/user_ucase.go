@@ -20,3 +20,7 @@ func (u *userUsecase) Create(ctx *domain.CustomContext, newUser domain.User) err
 
 	return u.userRepository.Create(ctx, newUser)
 }
+
+func (u *userUsecase) GetByLogin(ctx *domain.CustomContext, user domain.UserAuth) (domain.User, error) {
+	return u.userRepository.GetByLogin(ctx, user)
+}
