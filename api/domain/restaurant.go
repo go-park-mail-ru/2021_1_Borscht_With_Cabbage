@@ -11,6 +11,22 @@ type Restaurant struct {
 	Rating       float64 `json:"rating"`
 }
 
-type RestaurantUsecase interface {
+type RestaurantResponse struct {
+	ID           int     `json:"id"`
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Rating       float64 `json:"rating"`
+	DeliveryTime int     `json:"time"`
+	AvgCheck     int     `json:"cost"`
+	DeliveryCost int     `json:"deliveryCost"`
+}
 
+type RestaurantUsecase interface {
+	GetSlice(ctx *CustomContext, limit, offset int) ([]RestaurantResponse, error)
+	GetById(ctx *CustomContext, id string) (Restaurant, bool)
+}
+
+type RestaurantRepo interface {
+	GetSlice(ctx *CustomContext, limit, offset int) ([]RestaurantResponse, error)
+	GetById(ctx *CustomContext, id string) (Restaurant, bool)
 }

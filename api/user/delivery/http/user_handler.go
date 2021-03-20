@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// TODO мидлвар на сессии
+// TODO архитектура загрузки фоток
 type UserHandler struct {
 	UserUcase domain.UserUsecase
 	SessionUcase domain.SessionUsecase
@@ -30,18 +32,6 @@ func NewUserHandler(e *echo.Echo, uus domain.UserUsecase, sus domain.SessionUsec
 	//e.GET("/logout", auth.LogoutUser)
 }
 
-type UserReg struct {
-	Phone    string `json:"phone"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
-}
-
-type successResponse struct {
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
-}
-
 func setResponseCookie(c echo.Context, session string) {
 	sessionCookie := http.Cookie {
 		Expires:  time.Now().Add(24 * time.Hour),
@@ -55,7 +45,7 @@ func setResponseCookie(c echo.Context, session string) {
 func (h *UserHandler) Create(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
-	newUser := new(UserReg)
+	newUser := new(domain.UserReg)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
 		return cc.SendERR(sendErr)
@@ -80,7 +70,7 @@ func (h *UserHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := successResponse{userToRegister.Name, ""}
+	response := domain.SuccessResponse{Name: userToRegister.Name}
 	return cc.SendOK(response)
 }
 
@@ -104,7 +94,7 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := successResponse{user.Name, user.Avatar}
+	response := domain.SuccessResponse{Name: user.Name, Avatar: user.Avatar}
 	return cc.SendOK(response)
 }
 
@@ -140,6 +130,7 @@ func (h *UserHandler) getUser(ctx *domain.CustomContext) (domain.User, error) {
 func (h *UserHandler) EditProfile(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
+	// TODO убрать часть логики в usecase
 	profileEdits := new(domain.UserData)
 	formParams, err := c.FormParams()
 	if err != nil {

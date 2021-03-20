@@ -4,6 +4,9 @@ import (
 	"backend/api/domain"
 	"backend/api/page"
 	"backend/api/restaurant"
+	_restaurantDelivery "backend/api/restaurant/delivery/http"
+	_restaurantRepo "backend/api/restaurant/repository"
+	_restaurantUsecase"backend/api/restaurant/usecase"
 	_sessionRepo "backend/api/session/repository"
 	_sessionUcase "backend/api/session/usecase"
 	_userDelivery "backend/api/user/delivery/http"
@@ -44,10 +47,14 @@ func main() {
 
 	userRepo := _userRepo.NewUserRepo()
 	sessionRepo := _sessionRepo.NewSessionRepo()
+	restaurantRepo := _restaurantRepo.NewRestaurantRepo()
 	userUcase := _userUcase.NewUserUsecase(userRepo)
 	sessionUcase := _sessionUcase.NewSessionUsecase(sessionRepo)
+	restaurantUsecase := _restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+
 
 	_userDelivery.NewUserHandler(e, userUcase, sessionUcase)
+	_restaurantDelivery.NewRestaurantHandler(e, restaurantUsecase)
 
 	router(e)
 	e.Logger.Fatal(e.Start(":5000"))

@@ -22,6 +22,18 @@ type UserData struct {
 	Avatar         string `json:"avatar"`
 }
 
+type UserReg struct {
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+type SuccessResponse struct {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
 type UserUsecase interface {
 	Create(ctx *CustomContext, user User) error
 	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
