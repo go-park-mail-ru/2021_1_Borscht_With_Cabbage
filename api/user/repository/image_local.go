@@ -2,7 +2,7 @@ package repository
 
 import (
 	"backend/api/domain/user"
-	errors "backend/models"
+	errors "backend/utils"
 	"io"
 	"mime/multipart"
 	"os"

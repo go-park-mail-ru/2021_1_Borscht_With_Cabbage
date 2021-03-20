@@ -2,7 +2,7 @@ package domain
 
 import (
 	"backend/api/domain/user"
-	errors "backend/models"
+	errors "backend/utils"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )

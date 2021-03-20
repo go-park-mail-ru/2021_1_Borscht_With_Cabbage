@@ -4,7 +4,7 @@ import (
 	"backend/api/domain"
 	"backend/api/domain/user"
 	"backend/api/user/delivery/http/middleware"
-	errors "backend/models"
+	errors "backend/utils"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"

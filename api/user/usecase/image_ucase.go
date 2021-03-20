@@ -3,7 +3,7 @@ package usecase
 import (
 	"backend/api/domain"
 	"backend/api/domain/user"
-	errors "backend/models"
+	errors "backend/utils"
 	"hash/fnv"
 	"math/rand"
 	"mime/multipart"

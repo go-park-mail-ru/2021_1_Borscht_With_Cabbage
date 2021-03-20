@@ -2,7 +2,7 @@ package http
 
 import (
 	"backend/api/domain"
-	errors "backend/models"
+	errors "backend/utils"
 	"github.com/labstack/echo/v4"
 	"strconv"
 )
