@@ -2,8 +2,6 @@ package main
 
 import (
 	"backend/api/domain"
-	"backend/api/page"
-	"backend/api/restaurant"
 	_restaurantDelivery "backend/api/restaurant/delivery/http"
 	_restaurantRepo "backend/api/restaurant/repository"
 	_restaurantUsecase"backend/api/restaurant/usecase"
@@ -16,12 +14,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 )
-
-func router(e *echo.Echo) {
-	e.GET("/:id", restaurant.GetRestaurantPage)
-	e.GET("/", page.GetVendor)
-	e.GET("/restaurants", page.GetVendor)
-}
 
 func main() {
 	e := echo.New()
@@ -56,6 +48,5 @@ func main() {
 	_userDelivery.NewUserHandler(e, userUcase, sessionUcase)
 	_restaurantDelivery.NewRestaurantHandler(e, restaurantUsecase)
 
-	router(e)
 	e.Logger.Fatal(e.Start(":5000"))
 }
