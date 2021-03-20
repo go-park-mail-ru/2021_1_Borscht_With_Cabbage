@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"backend/api/domain"
+	"backend/api/domain/user"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthMiddleware struct {
 	SessionUcase domain.SessionUsecase
-	UserUcase domain.UserUsecase
+	UserUcase    user.UserUsecase
 }
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -34,7 +35,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitMiddleware(uus domain.UserUsecase, sus domain.SessionUsecase) *AuthMiddleware {
+func InitMiddleware(uus user.UserUsecase, sus domain.SessionUsecase) *AuthMiddleware {
 	return &AuthMiddleware{
 		SessionUcase: sus,
 		UserUcase: uus,

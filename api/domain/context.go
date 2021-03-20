@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"backend/api/domain/user"
 	errors "backend/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -8,8 +9,8 @@ import (
 
 type CustomContext struct {
 	echo.Context
-	User        *User
-	Users       *[]User
+	User        *user.User
+	Users       *[]user.User
 	Restaurants *map[string]Restaurant // [id]RestaurantStruct
 	Sessions    *map[string]string     // [session]user's phone number
 }

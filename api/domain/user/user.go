@@ -1,4 +1,6 @@
-package domain
+package user
+
+import "backend/api/domain"
 
 type User struct {
 	Name     string `json:"name"`
@@ -35,15 +37,15 @@ type SuccessResponse struct {
 }
 
 type UserUsecase interface {
-	Create(ctx *CustomContext, user User) error
-	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
-	GetByNumber(ctx *CustomContext, number string) (User, error)
-	Update(ctx *CustomContext, newUser UserData) error
+	Create(ctx *domain.CustomContext, user User) error
+	GetByLogin(ctx *domain.CustomContext, user UserAuth) (User, error)
+	GetByNumber(ctx *domain.CustomContext, number string) (User, error)
+	Update(ctx *domain.CustomContext, newUser UserData) error
 }
 
 type UserRepo interface {
-	Create(ctx *CustomContext, user User) error
-	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
-	GetByNumber(ctx *CustomContext, number string) (User, error)
-	Update(ctx *CustomContext, newUser UserData) error
+	Create(ctx *domain.CustomContext, user User) error
+	GetByLogin(ctx *domain.CustomContext, user UserAuth) (User, error)
+	GetByNumber(ctx *domain.CustomContext, number string) (User, error)
+	Update(ctx *domain.CustomContext, newUser UserData) error
 }

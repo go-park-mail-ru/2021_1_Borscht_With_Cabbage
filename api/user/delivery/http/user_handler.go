@@ -2,7 +2,7 @@ package http
 
 import (
 	"backend/api/domain"
-	"backend/api/image"
+	"backend/api/domain/user"
 	"backend/api/user/delivery/http/middleware"
 	errors "backend/models"
 	"fmt"
@@ -11,17 +11,21 @@ import (
 	"time"
 )
 
-// TODO архитектура загрузки фоток
 type UserHandler struct {
-	UserUcase domain.UserUsecase
+	UserUcase    user.UserUsecase
 	SessionUcase domain.SessionUsecase
+	ImageUcase user.ImageUsecase
 }
 
 // NewArticleHandler will initialize the articles/ resources endpoint
-func NewUserHandler(e *echo.Echo, uus domain.UserUsecase, sus domain.SessionUsecase) {
+func NewUserHandler(e *echo.Echo,
+					uus user.UserUsecase,
+					sus domain.SessionUsecase,
+					iuc user.ImageUsecase) {
 	handler := &UserHandler{
 		UserUcase: uus,
 		SessionUcase: sus,
+		ImageUcase: iuc,
 	}
 
 	initMiddleware := middleware.InitMiddleware(uus, sus)
@@ -32,7 +36,7 @@ func NewUserHandler(e *echo.Echo, uus domain.UserUsecase, sus domain.SessionUsec
 	e.GET("/user", handler.GetUserData)
 	e.PUT("/user", handler.EditProfile)
 	e.GET("/auth", handler.CheckAuth)
-	//e.GET("/logout", auth.LogoutUser)
+	e.GET("/logout", handler.LogoutUser)
 }
 
 func setResponseCookie(c echo.Context, session string) {
@@ -45,16 +49,26 @@ func setResponseCookie(c echo.Context, session string) {
 	c.SetCookie(&sessionCookie)
 }
 
+func deleteResponseCookie(c echo.Context) {
+	sessionCookie := http.Cookie {
+		Expires:  time.Now().Add(-24 * time.Hour),
+		Name:     domain.SessionCookie,
+		Value:    "session",
+		HttpOnly: true,
+	}
+	c.SetCookie(&sessionCookie)
+}
+
 func (h *UserHandler) Create(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
-	newUser := new(domain.UserReg)
+	newUser := new(user.UserReg)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
 		return cc.SendERR(sendErr)
 	}
 
-	userToRegister := domain.User{
+	userToRegister := user.User{
 		Name:     newUser.Name,
 		Email:    newUser.Email,
 		Password: newUser.Password,
@@ -73,31 +87,31 @@ func (h *UserHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := domain.SuccessResponse{Name: userToRegister.Name}
+	response := user.SuccessResponse{Name: userToRegister.Name}
 	return cc.SendOK(response)
 }
 
 func (h *UserHandler) LoginUser(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
-	newUser := new(domain.UserAuth)
+	newUser := new(user.UserAuth)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
 		return cc.SendERR(sendErr)
 	}
 
-	user, err := h.UserUcase.GetByLogin(cc, *newUser)
+	oldUser, err := h.UserUcase.GetByLogin(cc, *newUser)
 	if err != nil {
 		return cc.SendERR(err)
 	}
 
-	session, err := h.SessionUcase.Create(cc, user.Phone)
+	session, err := h.SessionUcase.Create(cc, oldUser.Phone)
 	if err != nil {
 		return cc.SendERR(err)
 	}
 
 	setResponseCookie(c, session)
 
-	response := domain.SuccessResponse{Name: user.Name, Avatar: user.Avatar}
+	response := user.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
 	return cc.SendOK(response)
 }
 
@@ -116,7 +130,7 @@ func (h *UserHandler) EditProfile(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
 	// TODO убрать часть логики в usecase
-	profileEdits := new(domain.UserData)
+	profileEdits := new(user.UserData)
 	formParams, err := c.FormParams()
 	if err != nil {
 		return errors.Create(http.StatusBadRequest, "invalid data form")
@@ -129,9 +143,16 @@ func (h *UserHandler) EditProfile(c echo.Context) error {
 	profileEdits.PasswordOld = formParams.Get("password_current")
 	fmt.Println(profileEdits)
 
-	srcFile, err := image.UploadAvatar(c)
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		return cc.SendERR(errors.BadRequest(err.Error()))
+	}
+	filename, err := h.ImageUcase.UploadAvatar(cc, file)
+	if err != nil {
+		return cc.SendERR(err)
+	}
 
-	profileEdits.Avatar = srcFile
+	profileEdits.Avatar = filename
 
 	if cc.User == nil {
 		userError := errors.Authorization("not authorization")
@@ -159,4 +180,20 @@ func (h *UserHandler) CheckAuth(c echo.Context) error {
 	}
 
 	return cc.SendOK(cc.User)
+}
+
+func (h *UserHandler) LogoutUser(c echo.Context) error {
+	cc := c.(*domain.CustomContext)
+
+	cook, err := cc.Cookie(domain.SessionCookie)
+	if err != nil {
+		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
+		return cc.SendERR(sendErr)
+	}
+
+	h.SessionUcase.Delete(cc, cook.Value)
+
+	deleteResponseCookie(c)
+
+	return cc.SendOK("")
 }

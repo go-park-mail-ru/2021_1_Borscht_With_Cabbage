@@ -9,10 +9,12 @@ type SessionUsecase interface {
 	Create(ctx *CustomContext, uid string) (string, error)
 	Check(sessionToCheck string, ctx *CustomContext) (string, bool)
 	UpdateValue(ctx *CustomContext, newValue, oldValue string) error // изменяет значение мап по заданной сессии
+	Delete(ctx *CustomContext, session string)
 }
 
 type SessionRepo interface {
 	Create(ctx *CustomContext, session, uid string) error
 	Check(sessionToCheck string, ctx *CustomContext) (string, bool)
 	UpdateValue(ctx *CustomContext, newValue, oldValue string) error
+	Delete(ctx *CustomContext, session string)
 }

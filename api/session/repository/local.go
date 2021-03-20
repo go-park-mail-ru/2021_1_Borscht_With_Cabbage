@@ -39,3 +39,10 @@ func (repo *sessionRepo) UpdateValue(ctx *domain.CustomContext, newValue, oldVal
 
 	return nil
 }
+
+func (repo *sessionRepo) Delete(ctx *domain.CustomContext, session string) {
+	_, ok := (*ctx.Sessions)[session]
+	if ok {
+		delete(*ctx.Sessions, session)
+	}
+}

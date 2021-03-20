@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/api/domain"
+	"backend/api/domain/user"
 	_restaurantDelivery "backend/api/restaurant/delivery/http"
 	_restaurantRepo "backend/api/restaurant/repository"
 	_restaurantUsecase "backend/api/restaurant/usecase"
@@ -25,7 +26,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	Users := make([]domain.User, 0)
+	Users := make([]user.User, 0)
 	Sessions := make(map[string]string, 0)
 	Restaurants := make(map[string]domain.Restaurant, 0)
 
@@ -40,11 +41,13 @@ func main() {
 	userRepo := _userRepo.NewUserRepo()
 	sessionRepo := _sessionRepo.NewSessionRepo()
 	restaurantRepo := _restaurantRepo.NewRestaurantRepo()
+	imageRepo := _userRepo.NewImageRepo()
 	userUcase := _userUcase.NewUserUsecase(userRepo)
 	sessionUcase := _sessionUcase.NewSessionUsecase(sessionRepo)
 	restaurantUsecase := _restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+	imageUcase := _userUcase.NewImageUsecase(imageRepo)
 
-	_userDelivery.NewUserHandler(e, userUcase, sessionUcase)
+	_userDelivery.NewUserHandler(e, userUcase, sessionUcase, imageUcase)
 	_restaurantDelivery.NewRestaurantHandler(e, restaurantUsecase)
 
 	e.Logger.Fatal(e.Start(":5000"))
