@@ -10,7 +10,7 @@ type CustomError struct {
 }
 
 type SendError struct {
-	Code int `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
@@ -21,7 +21,7 @@ func (err *CustomError) Error() string {
 func Create(code int, mess string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
-			Code: code,
+			Code:    code,
 			Message: mess,
 		},
 		Description: mess,
@@ -31,7 +31,7 @@ func Create(code int, mess string) *CustomError {
 func BadRequest(desc string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
-			Code: http.StatusBadRequest,
+			Code:    http.StatusBadRequest,
 			Message: "bad request",
 		},
 		Description: desc,
@@ -41,7 +41,7 @@ func BadRequest(desc string) *CustomError {
 func FailServer(desc string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
-			Code: http.StatusInternalServerError,
+			Code:    http.StatusInternalServerError,
 			Message: "server error",
 		},
 		Description: desc,
@@ -51,7 +51,7 @@ func FailServer(desc string) *CustomError {
 func Authorization(desc string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
-			Code: http.StatusUnauthorized,
+			Code:    http.StatusUnauthorized,
 			Message: "not authorized",
 		},
 		Description: desc,

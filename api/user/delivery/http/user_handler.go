@@ -3,6 +3,7 @@ package http
 import (
 	"backend/api/domain"
 	"backend/api/image"
+	"backend/api/user/delivery/http/middleware"
 	errors "backend/models"
 	"fmt"
 	"github.com/labstack/echo/v4"
@@ -10,7 +11,6 @@ import (
 	"time"
 )
 
-// TODO мидлвар на сессии
 // TODO архитектура загрузки фоток
 type UserHandler struct {
 	UserUcase domain.UserUsecase
@@ -23,6 +23,9 @@ func NewUserHandler(e *echo.Echo, uus domain.UserUsecase, sus domain.SessionUsec
 		UserUcase: uus,
 		SessionUcase: sus,
 	}
+
+	initMiddleware := middleware.InitMiddleware(uus, sus)
+	e.Use(initMiddleware.Auth)
 
 	e.POST("/signin", handler.LoginUser)
 	e.POST("/signup", handler.Create)
@@ -101,30 +104,12 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 func (h *UserHandler) GetUserData(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
-	user, err := h.getUser(cc)
-	if err != nil {
-		return cc.SendERR(err)
+	if cc.User == nil {
+		userError := errors.Authorization("not authorization")
+		return cc.SendERR(userError)
 	}
 
-	return cc.SendOK(user)
-}
-
-// получаем пользователя
-func (h *UserHandler) getUser(ctx *domain.CustomContext) (domain.User, error) {
-	sessionError := errors.Authorization("not authorization")
-	sessionError.Description = "session error"
-	session, err := ctx.Cookie(domain.SessionCookie)
-
-	if err != nil {
-		return domain.User{}, sessionError
-	}
-
-	phone, ok := h.SessionUcase.Check(session.Value, ctx)
-	if !ok {
-		return domain.User{}, sessionError
-	}
-
-	return h.UserUcase.GetByNumber(ctx, phone)
+	return cc.SendOK(*cc.User)
 }
 
 func (h *UserHandler) EditProfile(c echo.Context) error {
@@ -148,16 +133,16 @@ func (h *UserHandler) EditProfile(c echo.Context) error {
 
 	profileEdits.Avatar = srcFile
 
-	user, err := h.getUser(cc)
-	if err != nil {
-		return cc.SendERR(err)
+	if cc.User == nil {
+		userError := errors.Authorization("not authorization")
+		return cc.SendERR(userError)
 	}
 
-	err = h.UserUcase.Update(cc, *profileEdits, user)
+	err = h.UserUcase.Update(cc, *profileEdits)
 	if err != nil {
 		return cc.SendERR(err)
 	}
-	err = h.SessionUcase.UpdateValue(cc, profileEdits.Phone, user.Phone)
+	err = h.SessionUcase.UpdateValue(cc, profileEdits.Phone, cc.User.Phone)
 	if err != nil {
 		return cc.SendERR(err)
 	}
@@ -168,11 +153,10 @@ func (h *UserHandler) EditProfile(c echo.Context) error {
 func (h *UserHandler) CheckAuth(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
-	user, err := h.getUser(cc)
-	if err != nil {
+	if cc.User == nil {
 		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
 		return cc.SendERR(sendErr)
 	}
 
-	return cc.SendOK(user)
+	return cc.SendOK(cc.User)
 }

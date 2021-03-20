@@ -4,7 +4,7 @@ import (
 	"backend/api/domain"
 	_restaurantDelivery "backend/api/restaurant/delivery/http"
 	_restaurantRepo "backend/api/restaurant/repository"
-	_restaurantUsecase"backend/api/restaurant/usecase"
+	_restaurantUsecase "backend/api/restaurant/usecase"
 	_sessionRepo "backend/api/session/repository"
 	_sessionUcase "backend/api/session/usecase"
 	_userDelivery "backend/api/user/delivery/http"
@@ -43,7 +43,6 @@ func main() {
 	userUcase := _userUcase.NewUserUsecase(userRepo)
 	sessionUcase := _sessionUcase.NewSessionUsecase(sessionRepo)
 	restaurantUsecase := _restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
-
 
 	_userDelivery.NewUserHandler(e, userUcase, sessionUcase)
 	_restaurantDelivery.NewRestaurantHandler(e, restaurantUsecase)

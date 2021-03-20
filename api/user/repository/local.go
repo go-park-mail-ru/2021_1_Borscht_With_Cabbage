@@ -46,16 +46,16 @@ func (u *userRepo) GetByNumber(ctx *domain.CustomContext, number string) (domain
 	return domain.User{}, errors.Authorization("user not found")
 }
 
-func (u *userRepo) Update(ctx *domain.CustomContext, newUser domain.UserData, oldUser domain.User) error {
+func (u *userRepo) Update(ctx *domain.CustomContext, newUser domain.UserData) error {
 	for i, user := range *ctx.Users {
-		if user.Email == newUser.Email && user.Phone != oldUser.Phone { // если у кого-то другого уже есть такой email
+		if user.Email == newUser.Email && user.Phone != ctx.User.Phone { // если у кого-то другого уже есть такой email
 			return errors.Create(http.StatusBadRequest, "user with this email already exists")
 		}
-		if user.Phone == newUser.Phone && user.Phone != oldUser.Phone { // если у кого-то другого уже есть такой телефон
+		if user.Phone == newUser.Phone && user.Phone != ctx.User.Phone { // если у кого-то другого уже есть такой телефон
 			return errors.Create(http.StatusBadRequest, "user with this number already exists")
 		}
 
-		if user.Phone == oldUser.Phone {
+		if user.Phone == ctx.User.Phone {
 			if newUser.Password != "" {
 				if newUser.PasswordOld != user.Password {
 					fmt.Println(newUser.PasswordOld, " ", user.Password)

@@ -1,45 +1,16 @@
 package domain
 
 import (
-	errors "backend/models"
-	"github.com/labstack/echo/v4"
 	"math/rand"
-	"net/http"
 	"strconv"
 )
 
 const (
-	Host = "http://89.208.197.150"
-	Repository = Host + ":5000/"
+	Host          = "http://89.208.197.150"
+	Repository    = Host + ":5000/"
 	DefaultAvatar = Repository + "static/avatar/stas.jpg"
 	SessionCookie = "borscht_session"
 )
-
-type CustomContext struct {
-	echo.Context
-	Users       *[]User
-	Restaurants *map[string]Restaurant // [id]RestaurantStruct
-	Sessions    *map[string]string     // [session]user's phone number
-}
-
-type message struct {
-	Code int `json:"code"`
-	Data interface{} `json:"data"`
-}
-
-func (c *CustomContext) SendOK(data interface{}) error {
-	return c.JSON(http.StatusOK, message{200, data})
-}
-
-func (c *CustomContext) SendERR(err error) error {
-	// проверяем можно ли преобразовать в кастомную ошибку
-	if customErr, ok := err.(*errors.CustomError); ok {
-		return c.JSON(http.StatusOK, customErr.SendError)
-	}
-
-	customErr := errors.FailServer(err.Error())
-	return c.JSON(http.StatusOK, customErr.SendError)
-}
 
 type Dish struct {
 	ID          int    `json:"id"`
@@ -52,7 +23,7 @@ type Dish struct {
 
 var (
 	restaurantCount = 10
-	dishCostRange = 1000
+	dishCostRange   = 1000
 	dishWeightRange = 700
 )
 

@@ -29,8 +29,8 @@ func (u *userUsecase) GetByNumber(ctx *domain.CustomContext, number string) (dom
 	return u.userRepository.GetByNumber(ctx, number)
 }
 
-func (u *userUsecase) Update(ctx *domain.CustomContext, newUser domain.UserData, oldUser domain.User) error {
+func (u *userUsecase) Update(ctx *domain.CustomContext, newUser domain.UserData) error {
 	// TODO валидация
 
-	return u.userRepository.Update(ctx, newUser, oldUser)
+	return u.userRepository.Update(ctx, newUser)
 }
