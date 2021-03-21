@@ -11,8 +11,11 @@ import (
 	_userDelivery "backend/api/user/delivery/http"
 	_userRepo "backend/api/user/repository"
 	_userUcase "backend/api/user/usecase"
+	"backend/config"
+	"database/sql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/lib/pq"
 	"net/http"
 )
 
@@ -25,6 +28,19 @@ func main() {
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))
+
+	db, err := sql.Open(config.PostgresDB, dsn)
+	if err != nil {
+		// TODO
+	}
+
+	db.SetMaxOpenConns(10) // TODO mn 10 соединений до бд
+	db.SetMaxIdleConns(10) // TODO mn
+
+	err := db.Ping()
+	if err != nil {
+		// TODO
+	}
 
 	Users := make([]user.User, 0)
 	Sessions := make(map[string]string, 0)
