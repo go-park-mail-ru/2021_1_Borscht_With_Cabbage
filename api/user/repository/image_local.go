@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"backend/api/domain/user"
+	"backend/api/domain"
 	errors "backend/utils"
 	"io"
 	"mime/multipart"
@@ -11,7 +11,7 @@ import (
 type imageRepo struct {
 }
 
-func NewImageRepo() user.ImageRepo {
+func NewImageRepo() domain.ImageRepo {
 	return &imageRepo{}
 }
 

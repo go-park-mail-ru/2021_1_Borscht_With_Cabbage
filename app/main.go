@@ -2,7 +2,6 @@ package main
 
 import (
 	"backend/api/domain"
-	"backend/api/domain/user"
 	_restaurantDelivery "backend/api/restaurant/delivery/http"
 	_restaurantRepo "backend/api/restaurant/repository"
 	_restaurantUsecase "backend/api/restaurant/usecase"
@@ -11,8 +10,8 @@ import (
 	_userDelivery "backend/api/user/delivery/http"
 	_userRepo "backend/api/user/repository"
 	_userUcase "backend/api/user/usecase"
-	"backend/config"
-	"database/sql"
+	//"backend/config"
+	//"database/sql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
@@ -29,20 +28,21 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	db, err := sql.Open(config.PostgresDB, dsn)
-	if err != nil {
-		// TODO
-	}
+	//dsn := ""
+	//db, err := sql.Open(config.PostgresDB, dsn)
+	//if err != nil {
+	//	// TODO
+	//}
+	//
+	//db.SetMaxOpenConns(10) // TODO mn 10 соединений до бд
+	//db.SetMaxIdleConns(10) // TODO mn
+	//
+	//err = db.Ping()
+	//if err != nil {
+	//	// TODO
+	//}
 
-	db.SetMaxOpenConns(10) // TODO mn 10 соединений до бд
-	db.SetMaxIdleConns(10) // TODO mn
-
-	err := db.Ping()
-	if err != nil {
-		// TODO
-	}
-
-	Users := make([]user.User, 0)
+	Users := make([]domain.User, 0)
 	Sessions := make(map[string]string, 0)
 	Restaurants := make(map[string]domain.Restaurant, 0)
 

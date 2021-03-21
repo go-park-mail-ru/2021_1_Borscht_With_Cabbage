@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"backend/api/domain"
-	"backend/api/domain/user"
 	errors "backend/utils"
 	"hash/fnv"
 	"math/rand"
@@ -16,10 +15,10 @@ const (
 )
 
 type imageUsecase struct {
-	imageRepository user.ImageRepo
+	imageRepository domain.ImageRepo
 }
 
-func NewImageUsecase(repo user.ImageRepo) user.ImageUsecase {
+func NewImageUsecase(repo domain.ImageRepo) domain.ImageUsecase {
 	return &imageUsecase{
 		imageRepository: repo,
 	}
