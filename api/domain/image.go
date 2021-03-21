@@ -1,7 +1,6 @@
-package user
+package domain
 
 import (
-	"backend/api/domain"
 	"mime/multipart"
 )
 
@@ -9,7 +8,7 @@ type Image struct {
 }
 
 type ImageUsecase interface {
-	UploadAvatar(ctx *domain.CustomContext, image *multipart.FileHeader) (string, error)
+	UploadAvatar(ctx *CustomContext, image *multipart.FileHeader) (string, error)
 }
 
 type ImageRepo interface {

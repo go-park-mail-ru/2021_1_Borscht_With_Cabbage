@@ -2,7 +2,6 @@ package http
 
 import (
 	"backend/api/domain"
-	"backend/api/domain/user"
 	"backend/api/user/delivery/http/middleware"
 	errors "backend/utils"
 	"fmt"
@@ -12,16 +11,16 @@ import (
 )
 
 type UserHandler struct {
-	UserUcase    user.UserUsecase
+	UserUcase    domain.UserUsecase
 	SessionUcase domain.SessionUsecase
-	ImageUcase user.ImageUsecase
+	ImageUcase domain.ImageUsecase
 }
 
 // NewArticleHandler will initialize the articles/ resources endpoint
 func NewUserHandler(e *echo.Echo,
-					uus user.UserUsecase,
+					uus domain.UserUsecase,
 					sus domain.SessionUsecase,
-					iuc user.ImageUsecase) {
+					iuc domain.ImageUsecase) {
 	handler := &UserHandler{
 		UserUcase: uus,
 		SessionUcase: sus,
@@ -62,13 +61,13 @@ func deleteResponseCookie(c echo.Context) {
 func (h *UserHandler) Create(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
-	newUser := new(user.UserReg)
+	newUser := new(domain.UserReg)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
 		return cc.SendERR(sendErr)
 	}
 
-	userToRegister := user.User{
+	userToRegister := domain.User{
 		Name:     newUser.Name,
 		Email:    newUser.Email,
 		Password: newUser.Password,
@@ -87,13 +86,13 @@ func (h *UserHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := user.SuccessResponse{Name: userToRegister.Name}
+	response := domain.SuccessResponse{Name: userToRegister.Name}
 	return cc.SendOK(response)
 }
 
 func (h *UserHandler) LoginUser(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
-	newUser := new(user.UserAuth)
+	newUser := new(domain.UserAuth)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Create(http.StatusUnauthorized, "error with request data")
 		return cc.SendERR(sendErr)
@@ -111,7 +110,7 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := user.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
+	response := domain.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
 	return cc.SendOK(response)
 }
 
@@ -130,7 +129,7 @@ func (h *UserHandler) EditProfile(c echo.Context) error {
 	cc := c.(*domain.CustomContext)
 
 	// TODO убрать часть логики в usecase
-	profileEdits := new(user.UserData)
+	profileEdits := new(domain.UserData)
 	formParams, err := c.FormParams()
 	if err != nil {
 		return errors.Create(http.StatusBadRequest, "invalid data form")
