@@ -66,9 +66,9 @@ func main() {
 		}
 	})
 
-	userRepo := _userRepo.NewUserRepo()
-	sessionRepo := _sessionRepo.NewSessionRepo()
-	restaurantRepo := _restaurantRepo.NewRestaurantRepo()
+	userRepo := _userRepo.NewUserRepo(db)
+	sessionRepo := _sessionRepo.NewSessionRepo(db)
+	restaurantRepo := _restaurantRepo.NewRestaurantRepo(db)
 	userUcase := _userUcase.NewUserUsecase(userRepo)
 	sessionUcase := _sessionUcase.NewSessionUsecase(sessionRepo)
 	restaurantUsecase := _restaurantUsecase.NewRestaurantUsecase(restaurantRepo)

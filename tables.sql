@@ -22,8 +22,10 @@ CREATE TABLE addresses (
 CREATE TABLE restaurants (
     rid integer not null primary key,
     name text,
-    address text,
     deliveryCost integer,
+    avgCheck integer,
+    description text,
+    rating float,
     avatar string,
 )
 
@@ -34,5 +36,5 @@ CREATE TABLE dishes (
     price integer,
     weight integer,
     description text,
-    photo text,
+    image text,
 )

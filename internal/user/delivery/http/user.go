@@ -27,7 +27,7 @@ func NewUserHandler(userUcase _userModel.UserUsecase, sessionUcase _sessionModel
 }
 
 func setResponseCookie(c echo.Context, session string) {
-	sessionCookie := http.Cookie {
+	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(24 * time.Hour),
 		Name:     config.SessionCookie,
 		Value:    session,
@@ -37,7 +37,7 @@ func setResponseCookie(c echo.Context, session string) {
 }
 
 func deleteResponseCookie(c echo.Context) {
-	sessionCookie := http.Cookie {
+	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(-24 * time.Hour),
 		Name:     config.SessionCookie,
 		Value:    "session",
@@ -55,7 +55,7 @@ func (h *Handler) Create(c echo.Context) error {
 		return cc.SendResponseWithError(sendErr)
 	}
 
-	uid, err := h.UserUcase.Create(*newUser);
+	uid, err := h.UserUcase.Create(*newUser)
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}
@@ -117,10 +117,10 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	}
 
 	profileEdits := models.UserData{
-		Name: formParams.Get("name"),
-		Phone: formParams.Get("number"),
-		Email: formParams.Get("email"),
-		Password: formParams.Get("password"),
+		Name:        formParams.Get("name"),
+		Phone:       formParams.Get("number"),
+		Email:       formParams.Get("email"),
+		Password:    formParams.Get("password"),
 		PasswordOld: formParams.Get("password_current"),
 	}
 	fmt.Println(profileEdits)
@@ -141,7 +141,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 		return cc.SendResponseWithError(userError)
 	}
 
-	err = h.UserUcase.Update(profileEdits)
+	err = h.UserUcase.Update(profileEdits, cc.User.Uid)
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}

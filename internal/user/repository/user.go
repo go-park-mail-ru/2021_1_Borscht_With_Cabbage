@@ -2,59 +2,45 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/borscht/backend/database/local"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	_errors "github.com/borscht/backend/utils"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 )
 
 type userRepo struct {
-	db local.Database
 	DB *sql.DB
 }
 
-func NewUserRepo() user.UserRepo {
+func NewUserRepo(db *sql.DB) user.UserRepo {
 	return &userRepo{
-		db: local.GetInstance(),
+		DB: db,
 	}
 }
 
 func (u *userRepo) Create(newUser models.User) (int32, error) {
-	//for _, curUser := range *u.db.GetModels().Users {
-	//	if (curUser.Phone == newUser.Phone) && curUser.Password == newUser.Password {
-	//		return _errors.NewCustomError(http.StatusUnauthorized, "User with this number already exists") // такой юзер уже есть
-	//	}
-	//}
-	//
-	//// записываем нового
-	//*u.db.GetModels().Users = append(*u.db.GetModels().Users, newUser)
-	//return nil
-	// todo exists checking
+	err := u.checkExistingUser(newUser.Email, newUser.Phone, -1)
+	if err != nil {
+		return 0, _errors.NewCustomError(http.StatusUnauthorized, "User with this number already exists")
+	}
 	var uid int32
-	err := u.DB.QueryRow("insert into users (name, number, email, password) values ($1, $2, $3, $4) returning uid",
+	err = u.DB.QueryRow("insert into users (name, number, email, password) values ($1, $2, $3, $4) returning uid",
 		newUser.Name, newUser.Phone, newUser.Email, newUser.Password).Scan(&uid)
 	if err != nil {
-		// TODO
+		return 0, _errors.FailServer(err.Error())
 	}
 
 	return uid, nil
 }
 
 func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, error) {
-	//for _, curUser := range *u.db.GetModels().Users {
-	//	if (curUser.Email == check.Login || curUser.Phone == check.Login) && curUser.Password == check.Password {
-	//		return curUser, nil
-	//	}
-	//}
-	//
-	//return models.User{}, _errors.Authorization("not curUser bd")
 	DBuser, err := u.DB.Query("select uid, name, avatar from users where (phone=&1 or email=$1) and password=$2",
 		userToCheck.Login, userToCheck.Password)
 	if err != nil {
-		// todo
+		return models.User{}, _errors.FailServer(err.Error())
 	}
 	user := new(models.User)
 	for DBuser.Next() {
@@ -64,7 +50,7 @@ func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, er
 			&user.Avatar,
 		)
 		if err != nil {
-			// TODO
+			return models.User{}, _errors.FailServer(err.Error())
 		}
 	}
 
@@ -72,14 +58,6 @@ func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, er
 }
 
 func (u *userRepo) GetByUid(uid int32) (models.User, error) {
-	//for _, curUser := range *u.db.GetModels().Users {
-	//	if curUser.Phone == number {
-	//		return curUser, nil
-	//	}
-	//}
-	//
-	//return models.User{}, _errors.Authorization("curUser not found")
-
 	DBuser, err := u.DB.Query("select name, phone, email, avatar, address, mainAddress from users where uid=$1", uid)
 	if err != nil {
 		return models.User{}, _errors.Authorization("user not found")
@@ -94,43 +72,40 @@ func (u *userRepo) GetByUid(uid int32) (models.User, error) {
 			&user.Avatar,
 		)
 		if err != nil {
-			// TODO
+			return models.User{}, _errors.FailServer(err.Error())
 		}
 	}
 	return *user, nil
 }
 
-func (u *userRepo) Update(newUser models.UserData) error {
-	// TODO
+func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) error {
+	var userInDB int32
+	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != currentUserId {
+		return _errors.NewCustomError(http.StatusBadRequest, "curUser with this email already exists")
+	}
 
-	//for i, curUser := range *u.db.GetModels().Users {
-	//	if curUser.Email == newUser.Email && curUser.Phone != ctx.Value("User").(models.User).Phone { // если у кого-то другого уже есть такой email
-	//		return _errors.NewCustomError(http.StatusBadRequest, "curUser with this email already exists")
-	//	}
-	//	if curUser.Phone == newUser.Phone && curUser.Phone != ctx.Value("User").(models.User).Phone { // если у кого-то другого уже есть такой телефон
-	//		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
-	//	}
-	//
-	//	if curUser.Phone == ctx.Value("User").(models.User).Phone {
-	//		if newUser.Password != "" {
-	//			if newUser.PasswordOld != curUser.Password {
-	//				fmt.Println(newUser.PasswordOld, " ", curUser.Password)
-	//				return _errors.NewCustomError(http.StatusBadRequest, "invalid old password")
-	//			}
-	//			(*u.db.GetModels().Users)[i].Password = newUser.Password
-	//		}
-	//
-	//		(*u.db.GetModels().Users)[i].Phone = newUser.Phone
-	//		(*u.db.GetModels().Users)[i].Email = newUser.Email
-	//		(*u.db.GetModels().Users)[i].Name = newUser.Name
-	//
-	//		fmt.Println(*u.db.GetModels().Users)
-	//		//return cc.SendResponse(profileEdits)
-	//		return nil
-	//	}
-	//}
-	//
-	//return _errors.Authorization("curUser not found")
+	err = u.DB.QueryRow("SELECT uid FROM users WHERE number = &2", number).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != currentUserId {
+		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
+	}
+
+	return nil
+}
+
+func (u *userRepo) Update(newUser models.UserData, uid int32) error {
+	err := u.checkExistingUser(newUser.Phone, newUser.Email, uid)
+	if err != nil {
+		return _errors.FailServer(err.Error())
+	}
+
+	_, err = u.DB.Exec("UPDATE users SET number = $1, email = $2, name = $3, avatar = $4 ",
+		newUser.Email, newUser.Phone, newUser.Name, newUser.Avatar)
+	if err != nil {
+		return _errors.Authorization("curUser not found")
+	}
+
+	return nil
 }
 
 func (u *userRepo) UploadAvatar(image *multipart.FileHeader, filename string) error {

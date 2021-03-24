@@ -19,7 +19,7 @@ type UserUsecase interface {
 	Create(user models.User) (int32, error)
 	CheckUserExists(user models.UserAuth) (models.User, error)
 	GetByUid(uid int32) (models.User, error)
-	Update(newUser models.UserData) error
+	Update(newUser models.UserData, uid int32) error
 	UploadAvatar(image *multipart.FileHeader) (string, error)
 }
 
@@ -27,6 +27,6 @@ type UserRepo interface {
 	Create(user models.User) (int32, error)
 	CheckUserExists(user models.UserAuth) (models.User, error)
 	GetByUid(uid int32) (models.User, error)
-	Update(newUser models.UserData) error
+	Update(newUser models.UserData, uid int32) error
 	UploadAvatar(image *multipart.FileHeader, filename string) error
 }

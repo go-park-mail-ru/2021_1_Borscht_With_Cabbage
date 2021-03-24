@@ -17,7 +17,7 @@ type message struct {
 	Data interface{} `json:"data"`
 }
 
-func (c *CustomContext) GetContext() context.Context{
+func (c *CustomContext) GetContext() context.Context {
 	ctx := c.Request().Context()
 	if c.User != nil {
 		ctx = context.WithValue(ctx, "User", c.User)

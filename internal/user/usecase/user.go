@@ -40,10 +40,10 @@ func (u *userUsecase) GetByUid(uid int32) (models.User, error) {
 	return u.userRepository.GetByUid(uid)
 }
 
-func (u *userUsecase) Update(newUser models.UserData) error {
+func (u *userUsecase) Update(newUser models.UserData, uid int32) error {
 	// TODO валидация
 
-	return u.userRepository.Update(newUser)
+	return u.userRepository.Update(newUser, uid)
 }
 
 func (u *userUsecase) UploadAvatar(image *multipart.FileHeader) (string, error) {

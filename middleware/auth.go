@@ -25,13 +25,13 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c) // пользователь не вошел
 		}
 
-		phone, ok := m.SessionUcase.Check(cc.GetContext(), session.Value)
+		uid, ok := m.SessionUcase.Check(session.Value)
 		if !ok {
 			cc.User = nil
 			return next(c) // пользователь не вошел
 		}
 
-		user, err := m.UserUcase.GetByUid(cc.GetContext(), phone)
+		user, err := m.UserUcase.GetByUid(uid)
 		cc.User = &user
 
 		fmt.Println("THIS USER:", user)

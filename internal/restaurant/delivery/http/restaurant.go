@@ -32,8 +32,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return cc.SendResponseWithError(_errors.BadRequest(errOffset.Error()))
 	}
 
-
-	result, err := h.restaurantUsecase.GetVendor(cc.GetContext(), limit, offset)
+	result, err := h.restaurantUsecase.GetVendor(limit, offset)
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}
@@ -45,7 +44,10 @@ func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
 
 	id := c.Param("id")
 
-	restaurant, isItExists := h.restaurantUsecase.GetById(cc.GetContext(), id)
+	restaurant, isItExists, err := h.restaurantUsecase.GetById(id)
+	if err != nil {
+		return cc.SendResponseWithError(err)
+	}
 	if !isItExists {
 		return cc.SendResponseWithError(_errors.BadRequest("error with request data"))
 	}

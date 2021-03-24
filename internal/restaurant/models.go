@@ -1,7 +1,6 @@
 package restaurant
 
 import (
-	"context"
 	"github.com/borscht/backend/internal/models"
 	"github.com/labstack/echo/v4"
 )
@@ -12,11 +11,11 @@ type RestaurantHandler interface {
 }
 
 type RestaurantUsecase interface {
-	GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantResponse, error)
-	GetById(ctx context.Context, id string) (models.Restaurant, bool)
+	GetVendor(limit, offset int) ([]models.RestaurantResponse, error)
+	GetById(id string) (models.Restaurant, bool, error)
 }
 
 type RestaurantRepo interface {
-	GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantResponse, error)
-	GetById(ctx context.Context, id string) (models.Restaurant, bool)
+	GetVendor(limit, offset int) ([]models.RestaurantResponse, error)
+	GetById(id string) (models.Restaurant, bool, error)
 }
