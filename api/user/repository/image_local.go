@@ -16,7 +16,7 @@ func NewImageRepo() domain.ImageRepo {
 }
 
 func (i imageRepo) UploadAvatar(image *multipart.FileHeader,
-								filename string) error {
+	filename string) error {
 	// Читаем файл из пришедшего запроса
 	src, err := image.Open()
 	if err != nil {

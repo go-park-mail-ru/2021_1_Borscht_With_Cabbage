@@ -2,47 +2,49 @@ package repository
 
 import (
 	"backend/api/domain"
+	errors "backend/utils"
+	"database/sql"
 )
 
 type sessionRepo struct {
-
+	DB *sql.DB
 }
 
 func NewSessionRepo() domain.SessionRepo {
 	return &sessionRepo{}
 }
 
-
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (repo *sessionRepo) Check(sessionToCheck string, context *domain.CustomContext) (string, bool) {
-	number, isItExists := (*context.Sessions)[sessionToCheck]
-	if !isItExists {
-		return "", false
+func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool) {
+	var uid int32
+	err := repo.DB.QueryRow("select uid from sessions where session=&1", sessionToCheck).Scan(&uid)
+	if err != nil { // если она уникальная
+		return uid, true
 	}
-	return number, true
+	return 0, false
 }
 
 // создание уникальной сессии
-func (repo *sessionRepo) Create(ctx *domain.CustomContext, session, uid string) error {
-
-	(*ctx.Sessions)[session] = uid
-
-	return nil
+func (repo *sessionRepo) Create(session, uid string) error {
+	err := repo.DB.QueryRow("insert into sessions (session, uid) values ($1, $2)", session, uid)
+	if err != nil {
+		return nil
+	}
+	return errors.FailServer("session saving failed")
 }
 
-func (repo *sessionRepo) UpdateValue(ctx *domain.CustomContext, newValue, oldValue string) error {
-	for j, numSession := range *ctx.Sessions {
-		if numSession == oldValue {
-			(*ctx.Sessions)[j] = newValue
-		}
+func (repo *sessionRepo) UpdateValue(newValue, oldValue string) error {
+	err := repo.DB.QueryRow("update sessions set session = $1 where session = $2", newValue, oldValue)
+	if err != nil {
+		return nil
 	}
-
-	return nil
+	return errors.FailServer("session not found")
 }
 
-func (repo *sessionRepo) Delete(ctx *domain.CustomContext, session string) {
-	_, ok := (*ctx.Sessions)[session]
-	if ok {
-		delete(*ctx.Sessions, session)
+func (repo *sessionRepo) Delete(session string) error {
+	err := repo.DB.QueryRow("delete from sessions where session=$1", session)
+	if err != nil {
+		return errors.FailServer("session not found")
 	}
+	return nil
 }

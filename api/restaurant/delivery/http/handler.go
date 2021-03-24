@@ -35,7 +35,6 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return cc.SendERR(errors.BadRequest(errOffset.Error()))
 	}
 
-
 	result, err := h.restaurantUsecase.GetSlice(cc, Limit, Offset)
 	if err != nil {
 		return cc.SendERR(err)

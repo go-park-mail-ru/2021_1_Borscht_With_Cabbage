@@ -15,26 +15,25 @@ func NewSessionUsecase(repo domain.SessionRepo) domain.SessionUsecase {
 	}
 }
 
-
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *sessionUsecase) Check(session string, ctx *domain.CustomContext) (string, bool) {
-	return s.sessionRepo.Check(session, ctx)
+func (s *sessionUsecase) Check(session string) (int32, bool) {
+	return s.sessionRepo.Check(session)
 }
 
 // создание уникальной сессии
-func (s *sessionUsecase) Create(ctx *domain.CustomContext, uid string) (string, error) {
+func (s *sessionUsecase) Create(uid string) (string, error) {
 	session := ""
 
 	for {
 		session = uuid.New().String()
 
-		_, isItExists := s.Check(session, ctx) // далее в цикле - проверка на уникальность
-		if isItExists == false {               // не получили привязанного к сессии пользователя, следовательно, не существует
+		_, isItExists := s.Check(session) // далее в цикле - проверка на уникальность
+		if isItExists == false {          // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}
 
-	err := s.sessionRepo.Create(ctx, session, uid)
+	err := s.sessionRepo.Create(session, uid)
 	if err != nil {
 		return "", err
 	}
@@ -42,10 +41,10 @@ func (s *sessionUsecase) Create(ctx *domain.CustomContext, uid string) (string, 
 	return session, nil
 }
 
-func (s *sessionUsecase) UpdateValue(ctx *domain.CustomContext, newValue, oldValue string) error {
-	return s.sessionRepo.UpdateValue(ctx, newValue, oldValue)
+func (s *sessionUsecase) UpdateValue(newValue, oldValue string) error {
+	return s.sessionRepo.UpdateValue(newValue, oldValue)
 }
 
-func (s *sessionUsecase) Delete(ctx *domain.CustomContext, session string) {
-	s.sessionRepo.Delete(ctx, session)
+func (s *sessionUsecase) Delete(session string) error {
+	return s.sessionRepo.Delete(session)
 }

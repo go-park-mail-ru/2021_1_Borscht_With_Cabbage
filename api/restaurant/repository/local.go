@@ -5,7 +5,6 @@ import (
 )
 
 type restaurantRepo struct {
-
 }
 
 func NewRestaurantRepo() domain.RestaurantRepo {

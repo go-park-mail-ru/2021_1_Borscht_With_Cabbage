@@ -13,18 +13,18 @@ import (
 type UserHandler struct {
 	UserUcase    domain.UserUsecase
 	SessionUcase domain.SessionUsecase
-	ImageUcase domain.ImageUsecase
+	ImageUcase   domain.ImageUsecase
 }
 
 // NewArticleHandler will initialize the articles/ resources endpoint
 func NewUserHandler(e *echo.Echo,
-					uus domain.UserUsecase,
-					sus domain.SessionUsecase,
-					iuc domain.ImageUsecase) {
+	uus domain.UserUsecase,
+	sus domain.SessionUsecase,
+	iuc domain.ImageUsecase) {
 	handler := &UserHandler{
-		UserUcase: uus,
+		UserUcase:    uus,
 		SessionUcase: sus,
-		ImageUcase: iuc,
+		ImageUcase:   iuc,
 	}
 
 	initMiddleware := middleware.InitMiddleware(uus, sus)
@@ -39,7 +39,7 @@ func NewUserHandler(e *echo.Echo,
 }
 
 func setResponseCookie(c echo.Context, session string) {
-	sessionCookie := http.Cookie {
+	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(24 * time.Hour),
 		Name:     domain.SessionCookie,
 		Value:    session,
@@ -49,7 +49,7 @@ func setResponseCookie(c echo.Context, session string) {
 }
 
 func deleteResponseCookie(c echo.Context) {
-	sessionCookie := http.Cookie {
+	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(-24 * time.Hour),
 		Name:     domain.SessionCookie,
 		Value:    "session",
@@ -75,11 +75,11 @@ func (h *UserHandler) Create(c echo.Context) error {
 		Avatar:   domain.DefaultAvatar,
 	}
 
-	if err := h.UserUcase.Create(cc, userToRegister); err != nil {
+	if err := h.UserUcase.Create(userToRegister); err != nil {
 		return cc.SendERR(err)
 	}
 
-	session, err := h.SessionUcase.Create(cc, newUser.Phone)
+	session, err := h.SessionUcase.Create(newUser.Phone)
 	if err != nil {
 		return cc.SendERR(err)
 	}
@@ -98,19 +98,19 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 		return cc.SendERR(sendErr)
 	}
 
-	oldUser, err := h.UserUcase.GetByLogin(cc, *newUser)
+	user, err := h.UserUcase.LoginCheck(*newUser)
 	if err != nil {
 		return cc.SendERR(err)
 	}
 
-	session, err := h.SessionUcase.Create(cc, oldUser.Phone)
+	session, err := h.SessionUcase.Create(user.Uid)
 	if err != nil {
 		return cc.SendERR(err)
 	}
 
 	setResponseCookie(c, session)
 
-	response := domain.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
+	response := domain.SuccessResponse{Name: user.Name, Avatar: user.Avatar}
 	return cc.SendOK(response)
 }
 
@@ -158,11 +158,11 @@ func (h *UserHandler) EditProfile(c echo.Context) error {
 		return cc.SendERR(userError)
 	}
 
-	err = h.UserUcase.Update(cc, *profileEdits)
+	err = h.UserUcase.Update(*profileEdits)
 	if err != nil {
 		return cc.SendERR(err)
 	}
-	err = h.SessionUcase.UpdateValue(cc, profileEdits.Phone, cc.User.Phone)
+	err = h.SessionUcase.UpdateValue(profileEdits.Phone, cc.User.Phone)
 	if err != nil {
 		return cc.SendERR(err)
 	}
@@ -190,7 +190,7 @@ func (h *UserHandler) LogoutUser(c echo.Context) error {
 		return cc.SendERR(sendErr)
 	}
 
-	h.SessionUcase.Delete(cc, cook.Value)
+	h.SessionUcase.Delete(cook.Value)
 
 	deleteResponseCookie(c)
 

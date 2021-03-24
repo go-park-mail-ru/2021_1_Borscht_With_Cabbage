@@ -21,13 +21,13 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c) // пользователь не вошел
 		}
 
-		phone, ok := m.SessionUcase.Check(session.Value, cc)
+		uid, ok := m.SessionUcase.Check(session.Value)
 		if !ok {
 			cc.User = nil
 			return next(c) // пользователь не вошел
 		}
 
-		user, err := m.UserUcase.GetByNumber(cc, phone)
+		user, err := m.UserUcase.GetByUid(uid)
 		cc.User = &user
 
 		return next(c)
@@ -37,6 +37,6 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 func InitMiddleware(uus domain.UserUsecase, sus domain.SessionUsecase) *AuthMiddleware {
 	return &AuthMiddleware{
 		SessionUcase: sus,
-		UserUcase: uus,
+		UserUcase:    uus,
 	}
 }

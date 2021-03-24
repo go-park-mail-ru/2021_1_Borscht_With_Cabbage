@@ -1,11 +1,13 @@
 package domain
 
 type User struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Phone    string `json:"number"`
-	Avatar   string `json:"avatar"`
+	Uid         string `json:"uid"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Phone       string `json:"number"`
+	Avatar      string `json:"avatar"`
+	MainAddress string `json:"address"`
 }
 
 type UserAuth struct {
@@ -35,15 +37,15 @@ type SuccessResponse struct {
 }
 
 type UserUsecase interface {
-	Create(ctx *CustomContext, user User) error
-	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
-	GetByNumber(ctx *CustomContext, number string) (User, error)
-	Update(ctx *CustomContext, newUser UserData) error
+	Create(user User) error
+	LoginCheck(user UserAuth) (User, error)
+	GetByUid(uid int32) (User, error)
+	Update(newUser UserData) error
 }
 
 type UserRepo interface {
-	Create(ctx *CustomContext, user User) error
-	GetByLogin(ctx *CustomContext, user UserAuth) (User, error)
-	GetByNumber(ctx *CustomContext, number string) (User, error)
-	Update(ctx *CustomContext, newUser UserData) error
+	Create(user User) error
+	CheckUserExists(user UserAuth) (User, error)
+	GetByUid(uid int32) (User, error)
+	Update(newUser UserData) error
 }

@@ -14,23 +14,23 @@ func NewUserUsecase(repo domain.UserRepo) domain.UserUsecase {
 	}
 }
 
-func (u *userUsecase) Create(ctx *domain.CustomContext, newUser domain.User) error {
+func (u *userUsecase) Create(newUser domain.User) error {
 
 	// TODO валидация какая нибудь
 
-	return u.userRepository.Create(ctx, newUser)
+	return u.userRepository.Create(newUser)
 }
 
-func (u *userUsecase) GetByLogin(ctx *domain.CustomContext, user domain.UserAuth) (domain.User, error) {
-	return u.userRepository.GetByLogin(ctx, user)
+func (u *userUsecase) LoginCheck(user domain.UserAuth) (domain.User, error) {
+	return u.userRepository.CheckUserExists(user)
 }
 
-func (u *userUsecase) GetByNumber(ctx *domain.CustomContext, number string) (domain.User, error) {
-	return u.userRepository.GetByNumber(ctx, number)
+func (u *userUsecase) GetByUid(uid int32) (domain.User, error) {
+	return u.userRepository.GetByUid(uid)
 }
 
-func (u *userUsecase) Update(ctx *domain.CustomContext, newUser domain.UserData) error {
+func (u *userUsecase) Update(newUser domain.UserData) error {
 	// TODO валидация
 
-	return u.userRepository.Update(ctx, newUser)
+	return u.userRepository.Update(newUser)
 }
