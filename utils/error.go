@@ -18,7 +18,7 @@ func (err *CustomError) Error() string {
 	return err.Description
 }
 
-func Create(code int, mess string) *CustomError {
+func NewCustomError(code int, mess string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
 			Code:    code,
