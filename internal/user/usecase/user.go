@@ -2,15 +2,16 @@ package usecase
 
 import (
 	"context"
-	"github.com/borscht/backend/config"
-	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/user"
-	_errors "github.com/borscht/backend/utils"
 	"hash/fnv"
 	"math/rand"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
+
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/internal/user"
+	errors "github.com/borscht/backend/utils"
 )
 
 const (
@@ -73,7 +74,7 @@ func getUniqId(filename string) (string, error) {
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(filename + hashingSalt))
 	if err != nil {
-		return "", _errors.FailServer(err.Error())
+		return "", errors.FailServer(err.Error())
 	}
 
 	return strconv.Itoa(int(hash.Sum32())), nil

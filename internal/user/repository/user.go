@@ -3,14 +3,14 @@ package repository
 import (
 	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
+
 	"github.com/borscht/backend/database/local"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
-	_errors "github.com/borscht/backend/utils"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"os"
+	errors "github.com/borscht/backend/utils"
 )
 
 type userRepo struct {
@@ -26,7 +26,7 @@ func NewUserRepo() user.UserRepo {
 func (u *userRepo) Create(ctx context.Context, newUser models.User) error {
 	for _, curUser := range *u.db.GetModels().Users {
 		if (curUser.Phone == newUser.Phone) && curUser.Password == newUser.Password {
-			return _errors.NewCustomError(http.StatusUnauthorized, "User with this number already exists") // такой юзер уже есть
+			return errors.Authorization("User with this number already exists") // такой юзер уже есть
 		}
 	}
 
@@ -42,7 +42,7 @@ func (u *userRepo) GetByLogin(ctx context.Context, check models.UserAuth) (model
 		}
 	}
 
-	return models.User{}, _errors.Authorization("not curUser bd")
+	return models.User{}, errors.Authorization("not curUser bd")
 }
 
 func (u *userRepo) GetByNumber(ctx context.Context, number string) (models.User, error) {
@@ -52,23 +52,23 @@ func (u *userRepo) GetByNumber(ctx context.Context, number string) (models.User,
 		}
 	}
 
-	return models.User{}, _errors.Authorization("curUser not found")
+	return models.User{}, errors.Authorization("curUser not found")
 }
 
 func (u *userRepo) Update(ctx context.Context, newUser models.UserData) error {
 	for i, curUser := range *u.db.GetModels().Users {
 		if curUser.Email == newUser.Email && curUser.Phone != ctx.Value("User").(models.User).Phone { // если у кого-то другого уже есть такой email
-			return _errors.NewCustomError(http.StatusBadRequest, "curUser with this email already exists")
+			return errors.BadRequest("curUser with this email already exists")
 		}
 		if curUser.Phone == newUser.Phone && curUser.Phone != ctx.Value("User").(models.User).Phone { // если у кого-то другого уже есть такой телефон
-			return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
+			return errors.Authorization("User with this number already exists")
 		}
 
 		if curUser.Phone == ctx.Value("User").(models.User).Phone {
 			if newUser.Password != "" {
 				if newUser.PasswordOld != curUser.Password {
 					fmt.Println(newUser.PasswordOld, " ", curUser.Password)
-					return _errors.NewCustomError(http.StatusBadRequest, "invalid old password")
+					return errors.Authorization("invalid old password")
 				}
 				(*u.db.GetModels().Users)[i].Password = newUser.Password
 			}
@@ -83,27 +83,27 @@ func (u *userRepo) Update(ctx context.Context, newUser models.UserData) error {
 		}
 	}
 
-	return _errors.Authorization("curUser not found")
+	return errors.Authorization("curUser not found")
 }
 
 func (u *userRepo) UploadAvatar(image *multipart.FileHeader, filename string) error {
 	// Читаем файл из пришедшего запроса
 	src, err := image.Open()
 	if err != nil {
-		return _errors.FailServer(err.Error())
+		return errors.FailServer(err.Error())
 	}
 	defer src.Close()
 
 	// создаем файл у себя
 	dst, err := os.Create(filename)
 	if err != nil {
-		return _errors.FailServer(err.Error())
+		return errors.FailServer(err.Error())
 	}
 	defer dst.Close()
 
 	// копируем один в другой
 	if _, err = io.Copy(dst, src); err != nil {
-		return _errors.FailServer(err.Error())
+		return errors.FailServer(err.Error())
 	}
 
 	return nil

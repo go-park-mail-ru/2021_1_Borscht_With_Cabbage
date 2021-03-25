@@ -3,10 +3,11 @@ package local
 // Это все временное, удалиться когда будет другое бд
 
 import (
-	"github.com/borscht/backend/internal/models"
 	"math/rand"
 	"strconv"
 	"sync"
+
+	"github.com/borscht/backend/internal/models"
 )
 
 type LocalBd struct {

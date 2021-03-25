@@ -2,15 +2,16 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/borscht/backend/internal/models"
-	_restModel "github.com/borscht/backend/internal/restaurant"
+	restModel "github.com/borscht/backend/internal/restaurant"
 )
 
 type restaurantUsecase struct {
-	restaurantRepo _restModel.RestaurantRepo
+	restaurantRepo restModel.RestaurantRepo
 }
 
-func NewRestaurantUsecase(repo _restModel.RestaurantRepo) _restModel.RestaurantUsecase {
+func NewRestaurantUsecase(repo restModel.RestaurantRepo) restModel.RestaurantUsecase {
 	return &restaurantUsecase{
 		restaurantRepo: repo,
 	}

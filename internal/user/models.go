@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
+	"mime/multipart"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/labstack/echo/v4"
-	"mime/multipart"
 )
 
 type UserHandler interface {

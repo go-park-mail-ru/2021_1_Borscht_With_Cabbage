@@ -2,16 +2,17 @@ package repository
 
 import (
 	"context"
+
 	"github.com/borscht/backend/database/local"
 	"github.com/borscht/backend/internal/models"
-	_restModel "github.com/borscht/backend/internal/restaurant"
+	restModel "github.com/borscht/backend/internal/restaurant"
 )
 
 type restaurantRepo struct {
 	db local.Database
 }
 
-func NewRestaurantRepo() _restModel.RestaurantRepo {
+func NewRestaurantRepo() restModel.RestaurantRepo {
 	return &restaurantRepo{
 		db: local.GetInstance(),
 	}

@@ -2,20 +2,20 @@ package repository
 
 import (
 	"context"
+
 	"github.com/borscht/backend/database/local"
-	_sessionModel "github.com/borscht/backend/internal/session"
+	sessionModel "github.com/borscht/backend/internal/session"
 )
 
 type sessionRepo struct {
 	db local.Database
 }
 
-func NewSessionRepo() _sessionModel.SessionRepo {
+func NewSessionRepo() sessionModel.SessionRepo {
 	return &sessionRepo{
 		db: local.GetInstance(),
 	}
 }
-
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func (repo *sessionRepo) Check(ctx context.Context, sessionToCheck string) (string, bool) {
