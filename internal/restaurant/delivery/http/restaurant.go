@@ -21,7 +21,6 @@ func NewRestaurantHandler(restUCase _restModel.RestaurantUsecase) _restModel.Res
 
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	cc := c.(*models.CustomContext)
-
 	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
 

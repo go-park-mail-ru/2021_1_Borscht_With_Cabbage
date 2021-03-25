@@ -35,6 +35,7 @@ func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantRespon
 	//}
 	//
 	//return result, nil
+	return []models.RestaurantResponse{}, nil
 }
 
 func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {

@@ -45,14 +45,15 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	dsn := ""
+	//dsn := "jdbc:postgresql://localhost:5432/postgres?user=labzunova&password=1111"
+	dsn := "user=labzunova password=1111 dbname=postgres"
 	db, err := sql.Open(config.PostgresDB, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db.SetMaxOpenConns(10) // TODO mn 10 соединений до бд
-	db.SetMaxIdleConns(10) // TODO mn
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(3)
 
 	err = db.Ping()
 	if err != nil {

@@ -1,3 +1,8 @@
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS restaurants CASCADE;
+DROP TABLE IF EXISTS dishes;
 
 CREATE TABLE users (
     uid integer NOT NULL PRIMARY KEY,
@@ -11,7 +16,7 @@ CREATE TABLE users (
 
 CREATE TABLE sessions (
     session  integer NOT NULL PRIMARY KEY,
-    uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+    uid INTEGER REFERENCES users(uid) ON DELETE CASCADE
 );
 
 CREATE TABLE addresses (
@@ -26,15 +31,15 @@ CREATE TABLE restaurants (
     avgCheck integer,
     description text,
     rating float,
-    avatar string,
-)
+    avatar text
+);
 
 CREATE TABLE dishes (
     did integer not null primary key,
-    restaurant integer references restaurants(rid) on delete cascade
+    restaurant integer references restaurants(rid) on delete cascade,
     name text,
     price integer,
     weight integer,
     description text,
-    image text,
+    image text
 )
