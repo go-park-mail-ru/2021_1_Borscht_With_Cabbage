@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	_sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
 )
@@ -35,14 +34,15 @@ func (repo *sessionRepo) Create(session string, uid int32) error {
 	if err != nil {
 		return nil
 	}
+
 	return errors.FailServer("session saving failed")
 }
 
 func (repo *sessionRepo) Delete(session string) error {
-	fmt.Println(session)
-	err := repo.DB.QueryRow("delete from sessions where session=$1", session)
+	_, err := repo.DB.Exec("delete from sessions where session=$1", session)
 	if err != nil {
 		return errors.FailServer("session not found")
 	}
+
 	return nil
 }

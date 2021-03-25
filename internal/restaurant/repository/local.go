@@ -41,7 +41,7 @@ func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantRespon
 func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {
 	restaurantDB, err := r.DB.Query("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1", id)
 	if err != nil {
-		// todo
+		return models.Restaurant{}, false, _errors.FailServer(err.Error())
 	}
 
 	restaurant := new(models.Restaurant)
@@ -58,19 +58,36 @@ func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {
 			return models.Restaurant{}, false, _errors.FailServer(err.Error())
 		}
 	}
+	err = restaurantDB.Close()
+	if err != nil {
+		return models.Restaurant{}, false, _errors.FailServer(err.Error())
 
-	// todo query dishes
+	}
+
 	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
 	if errr != nil {
 		return models.Restaurant{}, false, _errors.FailServer(errr.Error())
 	}
+
 	dishes := make([]models.Dish, 0)
 	for dishesDB.Next() {
-		// todo
+		dish := new(models.Dish)
+		err = dishesDB.Scan(
+			&dish.Name,
+			&dish.Price,
+			&dish.Weight,
+			&dish.Description,
+			&dish.Image,
+		)
+		if err != nil {
+			return models.Restaurant{}, false, _errors.FailServer(err.Error())
+		}
+
+		dishes = append(dishes, *dish)
 	}
 	err = dishesDB.Close()
 	if err != nil {
-		// todo
+		return models.Restaurant{}, false, _errors.FailServer(err.Error())
 	}
 
 	restaurant.Dishes = dishes

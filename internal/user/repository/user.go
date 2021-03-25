@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -27,6 +28,7 @@ func (u *userRepo) Create(newUser models.User) (int32, error) {
 	if err != nil {
 		return 0, _errors.NewCustomError(http.StatusUnauthorized, "User with this number already exists")
 	}
+	fmt.Println(newUser)
 
 	var uid int32
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
@@ -41,7 +43,7 @@ func (u *userRepo) Create(newUser models.User) (int32, error) {
 func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, error) {
 	DBuser, err := u.DB.Query("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
 		userToCheck.Login, userToCheck.Password)
-	if err != nil {
+	if err != nil { // todo no rows
 		return models.User{}, _errors.FailServer(err.Error())
 	}
 
@@ -88,12 +90,12 @@ func (u *userRepo) GetByUid(uid int32) (models.User, error) {
 func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) error {
 	var userInDB int32
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentUserId {
+	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
 		return _errors.NewCustomError(http.StatusBadRequest, "curUser with this email already exists")
 	}
 
 	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentUserId {
+	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
 		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
 	}
 

@@ -90,12 +90,9 @@ func (h *Handler) Login(c echo.Context) error {
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}
-	fmt.Println("hey")
 	setResponseCookie(c, session)
-	fmt.Println("hey")
 
 	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
-	fmt.Println("hey")
 
 	return cc.SendResponse(response)
 }
@@ -177,7 +174,6 @@ func (h *Handler) Logout(c echo.Context) error {
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}
-
 	deleteResponseCookie(c)
 
 	return cc.SendResponse("")
