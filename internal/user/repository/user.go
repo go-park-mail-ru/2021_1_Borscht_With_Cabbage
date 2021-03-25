@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	_errors "github.com/borscht/backend/utils"
@@ -26,9 +27,10 @@ func (u *userRepo) Create(newUser models.User) (int32, error) {
 	if err != nil {
 		return 0, _errors.NewCustomError(http.StatusUnauthorized, "User with this number already exists")
 	}
+
 	var uid int32
-	err = u.DB.QueryRow("insert into users (name, number, email, password) values ($1, $2, $3, $4) returning uid",
-		newUser.Name, newUser.Phone, newUser.Email, newUser.Password).Scan(&uid)
+	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
+		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultAvatar).Scan(&uid)
 	if err != nil {
 		return 0, _errors.FailServer(err.Error())
 	}
@@ -37,11 +39,12 @@ func (u *userRepo) Create(newUser models.User) (int32, error) {
 }
 
 func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, error) {
-	DBuser, err := u.DB.Query("select uid, name, avatar from users where (phone=&1 or email=$1) and password=$2",
+	DBuser, err := u.DB.Query("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
 		userToCheck.Login, userToCheck.Password)
 	if err != nil {
 		return models.User{}, _errors.FailServer(err.Error())
 	}
+
 	user := new(models.User)
 	for DBuser.Next() {
 		err = DBuser.Scan(
@@ -54,11 +57,16 @@ func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, er
 		}
 	}
 
+	err = DBuser.Close()
+	if err != nil {
+		return models.User{}, _errors.FailServer(err.Error())
+	}
+
 	return *user, nil
 }
 
 func (u *userRepo) GetByUid(uid int32) (models.User, error) {
-	DBuser, err := u.DB.Query("select name, phone, email, avatar, address, mainAddress from users where uid=$1", uid)
+	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
 	if err != nil {
 		return models.User{}, _errors.Authorization("user not found")
 	}
@@ -66,9 +74,8 @@ func (u *userRepo) GetByUid(uid int32) (models.User, error) {
 	for DBuser.Next() {
 		err = DBuser.Scan(
 			&user.Name,
-			&user.Email,
 			&user.Phone,
-			&user.MainAddress,
+			&user.Email,
 			&user.Avatar,
 		)
 		if err != nil {
@@ -85,7 +92,7 @@ func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) 
 		return _errors.NewCustomError(http.StatusBadRequest, "curUser with this email already exists")
 	}
 
-	err = u.DB.QueryRow("SELECT uid FROM users WHERE number = &2", number).Scan(&userInDB)
+	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
 		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
 	}
@@ -99,7 +106,7 @@ func (u *userRepo) Update(newUser models.UserData, uid int32) error {
 		return _errors.FailServer(err.Error())
 	}
 
-	_, err = u.DB.Exec("UPDATE users SET number = $1, email = $2, name = $3, avatar = $4 ",
+	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3, photo = $4 ",
 		newUser.Email, newUser.Phone, newUser.Name, newUser.Avatar)
 	if err != nil {
 		return _errors.Authorization("curUser not found")

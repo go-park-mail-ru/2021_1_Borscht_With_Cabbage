@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	_sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
 )
@@ -19,10 +20,12 @@ func NewSessionRepo(db *sql.DB) _sessionModel.SessionRepo {
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool) {
 	var uid int32
-	err := repo.DB.QueryRow("select uid from sessions where session=&1", sessionToCheck).Scan(&uid)
-	if err != nil { // если она уникальная
+	err := repo.DB.QueryRow("select uid from sessions where session=$1", sessionToCheck).Scan(&uid)
+
+	if err != sql.ErrNoRows { // если она не уникальная
 		return uid, true
 	}
+
 	return 0, false
 }
 
@@ -36,6 +39,7 @@ func (repo *sessionRepo) Create(session string, uid int32) error {
 }
 
 func (repo *sessionRepo) Delete(session string) error {
+	fmt.Println(session)
 	err := repo.DB.QueryRow("delete from sessions where session=$1", session)
 	if err != nil {
 		return errors.FailServer("session not found")

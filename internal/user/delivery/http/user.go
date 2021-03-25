@@ -75,6 +75,7 @@ func (h *Handler) Create(c echo.Context) error {
 func (h *Handler) Login(c echo.Context) error {
 	cc := c.(*models.CustomContext)
 	newUser := new(models.UserAuth)
+
 	if err := c.Bind(newUser); err != nil {
 		sendErr := _errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		return cc.SendResponseWithError(sendErr)
@@ -89,10 +90,13 @@ func (h *Handler) Login(c echo.Context) error {
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}
-
+	fmt.Println("hey")
 	setResponseCookie(c, session)
+	fmt.Println("hey")
 
 	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
+	fmt.Println("hey")
+
 	return cc.SendResponse(response)
 }
 
@@ -171,7 +175,7 @@ func (h *Handler) Logout(c echo.Context) error {
 
 	err = h.SessionUcase.Delete(cook.Value)
 	if err != nil {
-		// 	TODO
+		return cc.SendResponseWithError(err)
 	}
 
 	deleteResponseCookie(c)

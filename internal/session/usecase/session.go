@@ -23,12 +23,11 @@ func (s *sessionUsecase) Check(session string) (int32, bool) {
 // создание уникальной сессии
 func (s *sessionUsecase) Create(uid int32) (string, error) {
 	session := ""
-
 	for {
 		session = uuid.New().String()
 
-		_, isItExists := s.Check(session) // далее в цикле - проверка на уникальность
-		if isItExists == false {          // не получили привязанного к сессии пользователя, следовательно, не существует
+		_, isItExists := s.sessionRepo.Check(session) // далее в цикле - проверка на уникальность
+		if isItExists == false {                      // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}

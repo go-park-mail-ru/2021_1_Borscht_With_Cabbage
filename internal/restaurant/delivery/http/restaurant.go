@@ -35,6 +35,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	if err != nil {
 		return cc.SendResponseWithError(err)
 	}
+
 	return cc.SendResponse(result)
 }
 

@@ -60,12 +60,16 @@ func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {
 	}
 
 	// todo query dishes
-	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where rid = $1", id)
+	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
 	if errr != nil {
 		return models.Restaurant{}, false, _errors.FailServer(errr.Error())
 	}
 	dishes := make([]models.Dish, 0)
 	for dishesDB.Next() {
+		// todo
+	}
+	err = dishesDB.Close()
+	if err != nil {
 		// todo
 	}
 

@@ -33,6 +33,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		user, err := m.UserUcase.GetByUid(uid)
 		cc.User = &user
+		cc.User.Uid = uid
 
 		fmt.Println("THIS USER:", user)
 		return next(cc)
