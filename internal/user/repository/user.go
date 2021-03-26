@@ -27,12 +27,12 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) error {
 	var userInDB int32
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
+	if err != sql.ErrNoRows && userInDB != currentUserId {
 		return _errors.NewCustomError(http.StatusBadRequest, "User with this email already exists")
 	}
 
 	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
+	if err != sql.ErrNoRows && userInDB != currentUserId {
 		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
 	}
 
