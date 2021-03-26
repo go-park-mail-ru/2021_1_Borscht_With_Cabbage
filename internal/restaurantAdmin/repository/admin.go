@@ -55,10 +55,53 @@ func (a adminRepo) Create(newRestaurant models.Restaurant) (int32, error) {
 	return rid, nil
 }
 
-func (a adminRepo) CheckRestaurantExists(user models.RestaurantAuth) (models.Restaurant, error) {
-	panic("implement me")
+func (a adminRepo) CheckRestaurantExists(restaurantToCheck models.RestaurantAuth) (models.Restaurant, error) {
+	DBrestaurant, err := a.DB.Query("select rid, name, avatar from restaurants where (adminphone=$1 or adminemail=$1) and adminpassword=$2",
+		restaurantToCheck.Login, restaurantToCheck.Password)
+	if err == sql.ErrNoRows {
+		return models.Restaurant{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
+	}
+	if err != nil {
+		return models.Restaurant{}, _errors.FailServer(err.Error())
+	}
+
+	restaurant := new(models.Restaurant)
+	for DBrestaurant.Next() {
+		err = DBrestaurant.Scan(
+			&restaurant.ID,
+			&restaurant.Name,
+			&restaurant.Avatar,
+		)
+		if err != nil {
+			return models.Restaurant{}, _errors.FailServer(err.Error())
+		}
+	}
+
+	err = DBrestaurant.Close()
+	if err != nil {
+		return models.Restaurant{}, _errors.FailServer(err.Error())
+	}
+
+	return *restaurant, nil
 }
 
 func (a adminRepo) GetByRid(rid int32) (models.Restaurant, error) {
-	panic("implement me")
+	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
+	if err != nil {
+		return models.Restaurant{}, _errors.Authorization("user not found")
+	}
+
+	restaurant := new(models.Restaurant)
+	for DBuser.Next() {
+		err = DBuser.Scan(
+			&restaurant.Name,
+			&restaurant.AdminPhone,
+			&restaurant.AdminEmail,
+			&restaurant.Avatar,
+		)
+		if err != nil {
+			return models.Restaurant{}, _errors.FailServer(err.Error())
+		}
+	}
+	return *restaurant, nil
 }
