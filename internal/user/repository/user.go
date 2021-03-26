@@ -56,15 +56,19 @@ func (u *userRepo) GetByNumber(ctx context.Context, number string) (models.User,
 }
 
 func (u *userRepo) Update(ctx context.Context, newUser models.UserData) error {
+	fmt.Println("REPO------", ctx)
+	fmt.Println("USER REPO:", newUser)
+	user := ctx.Value("User").(models.User)
+
 	for i, curUser := range *u.db.GetModels().Users {
-		if curUser.Email == newUser.Email && curUser.Phone != ctx.Value("User").(models.User).Phone { // если у кого-то другого уже есть такой email
+		if curUser.Email == newUser.Email && curUser.Phone != user.Phone { // если у кого-то другого уже есть такой email
 			return errors.BadRequest("curUser with this email already exists")
 		}
-		if curUser.Phone == newUser.Phone && curUser.Phone != ctx.Value("User").(models.User).Phone { // если у кого-то другого уже есть такой телефон
+		if curUser.Phone == newUser.Phone && curUser.Phone != user.Phone { // если у кого-то другого уже есть такой телефон
 			return errors.Authorization("User with this number already exists")
 		}
 
-		if curUser.Phone == ctx.Value("User").(models.User).Phone {
+		if curUser.Phone == user.Phone {
 			if newUser.Password != "" {
 				if newUser.PasswordOld != curUser.Password {
 					fmt.Println(newUser.PasswordOld, " ", curUser.Password)
@@ -73,9 +77,12 @@ func (u *userRepo) Update(ctx context.Context, newUser models.UserData) error {
 				(*u.db.GetModels().Users)[i].Password = newUser.Password
 			}
 
-			(*u.db.GetModels().Users)[i].Phone = newUser.Phone
-			(*u.db.GetModels().Users)[i].Email = newUser.Email
-			(*u.db.GetModels().Users)[i].Name = newUser.Name
+			userDb := &(*u.db.GetModels().Users)[i]
+
+			userDb.Phone = newUser.Phone
+			userDb.Email = newUser.Email
+			userDb.Name = newUser.Name
+			userDb.Avatar = newUser.Avatar
 
 			fmt.Println(*u.db.GetModels().Users)
 			//return cc.SendResponse(profileEdits)
@@ -97,6 +104,7 @@ func (u *userRepo) UploadAvatar(image *multipart.FileHeader, filename string) er
 	// создаем файл у себя
 	dst, err := os.Create(filename)
 	if err != nil {
+		fmt.Println("ERROR:", err.Error())
 		return errors.FailServer(err.Error())
 	}
 	defer dst.Close()

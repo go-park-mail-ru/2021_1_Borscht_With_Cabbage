@@ -21,7 +21,7 @@ func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.Resta
 }
 
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := models.GetContext(c)
 
 	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
@@ -41,7 +41,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 }
 
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := models.GetContext(c)
 
 	id := c.Param("id")
 

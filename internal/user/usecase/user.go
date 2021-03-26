@@ -14,6 +14,8 @@ import (
 	errors "github.com/borscht/backend/utils"
 )
 
+// TODO: хранить статику в /var/...
+
 const (
 	HeadAvatar = "static/avatar/"
 )
@@ -63,7 +65,7 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 		return "", err
 	}
 
-	return filename, nil
+	return config.Repository + filename, nil
 }
 
 func getUniqId(filename string) (string, error) {

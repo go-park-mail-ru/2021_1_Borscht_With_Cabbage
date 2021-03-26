@@ -39,7 +39,8 @@ func route(data initRoute) {
 
 func main() {
 	e := echo.New()
-	e.Static("/static/avatar", config.Static)
+	e.Static("/static", config.Static)
+	e.Static("/default", config.DefaultStatic)
 
 	// TODO убрать мидлвар в отедльный файл
 	e.Use(custMiddleware.CORS)
