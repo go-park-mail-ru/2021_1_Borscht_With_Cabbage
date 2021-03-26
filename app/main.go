@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
@@ -46,8 +47,7 @@ func main() {
 
 	e.Use(custMiddleware.CORS)
 
-	//dsn := "jdbc:postgresql://localhost:5432/postgres?user=labzunova&password=1111"
-	dsn := "user=labzunova password=1111 dbname=postgres"
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open(config.PostgresDB, dsn)
 	if err != nil {
 		log.Fatal(err)

@@ -8,7 +8,7 @@ const (
 	SessionCookie = "borscht_session"
 	Static        = "static/avatar"
 	PostgresDB    = "postgres"
-	DBUser        = ""
-	DBPass        = ""
-	DBName        = ""
+	DBUser        = "labzunova" // todo ...
+	DBPass        = "1111"
+	DBName        = "postgres"
 )
