@@ -24,10 +24,25 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 	}
 }
 
+func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) error {
+	var userInDB int32
+	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
+	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
+		return _errors.NewCustomError(http.StatusBadRequest, "User with this email already exists")
+	}
+
+	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
+		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
+	}
+
+	return nil
+}
+
 func (u *userRepo) Create(newUser models.User) (int32, error) {
 	err := u.checkExistingUser(newUser.Email, newUser.Phone, -1)
 	if err != nil {
-		return 0, _errors.NewCustomError(http.StatusUnauthorized, "User with this number already exists")
+		return 0, _errors.FailServer(err.Error())
 	}
 	fmt.Println(newUser)
 
@@ -89,21 +104,6 @@ func (u *userRepo) GetByUid(uid int32) (models.User, error) {
 		}
 	}
 	return *user, nil
-}
-
-func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) error {
-	var userInDB int32
-	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
-		return _errors.NewCustomError(http.StatusBadRequest, "curUser with this email already exists")
-	}
-
-	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentUserId {
-		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
-	}
-
-	return nil
 }
 
 func (u *userRepo) Update(newUser models.UserData, uid int32) error {
