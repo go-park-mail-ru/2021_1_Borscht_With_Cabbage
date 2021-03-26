@@ -112,8 +112,8 @@ func (u *userRepo) Update(newUser models.UserData, uid int32) error {
 		return _errors.FailServer(err.Error())
 	}
 
-	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3, photo = $4 ",
-		newUser.Email, newUser.Phone, newUser.Name, newUser.Avatar)
+	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3, photo = $4 where uid = $5",
+		newUser.Phone, newUser.Email, newUser.Name, newUser.Avatar, uid)
 	if err != nil {
 		return _errors.Authorization("curUser not found")
 	}

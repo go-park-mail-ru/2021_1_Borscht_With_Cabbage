@@ -127,13 +127,12 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	fmt.Println(profileEdits)
 
 	file, err := c.FormFile("avatar")
-	if err != nil {
-		return models.SendResponseWithError(c, errors.BadRequest(err.Error()))
-	}
-	filename, err := h.UserUcase.UploadAvatar(file)
-
-	if err != nil {
-		return models.SendResponseWithError(c, err)
+	var filename string
+	if err == nil { // если аватарка прикреплена
+		filename, err = h.UserUcase.UploadAvatar(file)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
 	}
 
 	profileEdits.Avatar = filename
@@ -145,8 +144,6 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	}
 
 	err = h.UserUcase.Update(profileEdits, user.(models.User).Uid)
-
-	//err = h.SessionUcase.Update(ctx, profileEdits.Phone, user.(models.User).Phone)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
