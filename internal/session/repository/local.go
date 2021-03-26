@@ -21,7 +21,7 @@ func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool) {
 	var uid int32
 	err := repo.DB.QueryRow("select uid from sessions where session=$1", sessionToCheck).Scan(&uid)
 
-	if err != sql.ErrNoRows { // если она не уникальная
+	if err != sql.ErrNoRows { // если она не уникальна
 		return uid, true
 	}
 
