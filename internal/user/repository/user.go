@@ -7,9 +7,10 @@ import (
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	_errors "github.com/borscht/backend/utils"
+	"net/http"
+
 	"io"
 	"mime/multipart"
-	"net/http"
 	"os"
 )
 

@@ -1,15 +1,15 @@
 package usecase
 
 import (
-	_sessionModel "github.com/borscht/backend/internal/session"
+	sessionModel "github.com/borscht/backend/internal/session"
 	"github.com/google/uuid"
 )
 
 type sessionUsecase struct {
-	sessionRepo _sessionModel.SessionRepo
+	sessionRepo sessionModel.SessionRepo
 }
 
-func NewSessionUsecase(repo _sessionModel.SessionRepo) _sessionModel.SessionUsecase {
+func NewSessionUsecase(repo sessionModel.SessionRepo) sessionModel.SessionUsecase {
 	return &sessionUsecase{
 		sessionRepo: repo,
 	}

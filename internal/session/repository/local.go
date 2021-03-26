@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	_sessionModel "github.com/borscht/backend/internal/session"
+	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
 )
 
@@ -10,7 +10,7 @@ type sessionRepo struct {
 	DB *sql.DB
 }
 
-func NewSessionRepo(db *sql.DB) _sessionModel.SessionRepo {
+func NewSessionRepo(db *sql.DB) sessionModel.SessionRepo {
 	return &sessionRepo{
 		DB: db,
 	}

@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"github.com/borscht/backend/internal/models"
-	_restModel "github.com/borscht/backend/internal/restaurant"
+	restModel "github.com/borscht/backend/internal/restaurant"
 	_errors "github.com/borscht/backend/utils"
 )
 
@@ -11,7 +11,7 @@ type restaurantRepo struct {
 	DB *sql.DB
 }
 
-func NewRestaurantRepo(db *sql.DB) _restModel.RestaurantRepo {
+func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	return &restaurantRepo{
 		DB: db,
 	}

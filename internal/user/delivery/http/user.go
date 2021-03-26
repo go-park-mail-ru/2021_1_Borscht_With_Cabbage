@@ -2,22 +2,23 @@ package http
 
 import (
 	"fmt"
-	"github.com/borscht/backend/config"
-	"github.com/borscht/backend/internal/models"
-	_sessionModel "github.com/borscht/backend/internal/session"
-	_userModel "github.com/borscht/backend/internal/user"
-	_errors "github.com/borscht/backend/utils"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
+
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
+	sessionModel "github.com/borscht/backend/internal/session"
+	userModel "github.com/borscht/backend/internal/user"
+	errors "github.com/borscht/backend/utils"
+	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
-	UserUcase    _userModel.UserUsecase
-	SessionUcase _sessionModel.SessionUsecase
+	UserUcase    userModel.UserUsecase
+	SessionUcase sessionModel.SessionUsecase
 }
 
-func NewUserHandler(userUcase _userModel.UserUsecase, sessionUcase _sessionModel.SessionUsecase) _userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
 	handler := &Handler{
 		UserUcase:    userUcase,
 		SessionUcase: sessionUcase,
@@ -47,74 +48,73 @@ func deleteResponseCookie(c echo.Context) {
 }
 
 func (h *Handler) Create(c echo.Context) error {
-	cc := c.(*models.CustomContext)
 
 	newUser := new(models.User)
 	if err := c.Bind(newUser); err != nil {
-		sendErr := _errors.NewCustomError(http.StatusUnauthorized, "error with request data")
-		return cc.SendResponseWithError(sendErr)
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		return models.SendResponseWithError(c, sendErr)
 	}
 
 	uid, err := h.UserUcase.Create(*newUser)
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
 
 	session, err := h.SessionUcase.Create(uid)
+
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
 
 	fmt.Println("SESSION:", session)
 	setResponseCookie(c, session)
 
 	response := models.SuccessResponse{Name: newUser.Name, Avatar: config.DefaultAvatar} // TODO убрать config отсюда
-	return cc.SendResponse(response)
+	return models.SendResponse(c, response)
 }
 
 func (h *Handler) Login(c echo.Context) error {
-	cc := c.(*models.CustomContext)
 	newUser := new(models.UserAuth)
 
 	if err := c.Bind(newUser); err != nil {
-		sendErr := _errors.NewCustomError(http.StatusUnauthorized, "error with request data")
-		return cc.SendResponseWithError(sendErr)
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		return models.SendResponseWithError(c, sendErr)
 	}
 
 	oldUser, err := h.UserUcase.CheckUserExists(*newUser)
+
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
 
 	session, err := h.SessionUcase.Create(oldUser.Uid)
+
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
 	setResponseCookie(c, session)
 
 	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
 
-	return cc.SendResponse(response)
+	return models.SendResponse(c, response)
 }
 
 func (h *Handler) GetUserData(c echo.Context) error {
-	cc := c.(*models.CustomContext)
+	user := c.Get("User")
 
-	if cc.User == nil {
-		userError := _errors.Authorization("not authorization")
-		return cc.SendResponseWithError(userError)
+	if user == nil {
+		userError := errors.Authorization("not authorization")
+		return models.SendResponseWithError(c, userError)
 	}
 
-	return cc.SendResponse(*cc.User)
+	return models.SendResponse(c, user)
 }
 
 func (h *Handler) EditProfile(c echo.Context) error {
-	cc := c.(*models.CustomContext)
-
 	// TODO убрать часть логики в usecase
 	formParams, err := c.FormParams()
 	if err != nil {
-		return _errors.NewCustomError(http.StatusBadRequest, "invalid data form")
+		return errors.NewCustomError(http.StatusBadRequest, "invalid data form")
 	}
 
 	profileEdits := models.UserData{
@@ -128,53 +128,58 @@ func (h *Handler) EditProfile(c echo.Context) error {
 
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		return cc.SendResponseWithError(_errors.BadRequest(err.Error()))
+		return models.SendResponseWithError(c, errors.BadRequest(err.Error()))
 	}
 	filename, err := h.UserUcase.UploadAvatar(file)
+
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
 
 	profileEdits.Avatar = filename
+	user := c.Get("User")
 
-	if cc.User == nil {
-		userError := _errors.Authorization("not authorization")
-		return cc.SendResponseWithError(userError)
+	if user == nil {
+		userError := errors.Authorization("not authorization")
+		return models.SendResponseWithError(c, userError)
 	}
 
-	err = h.UserUcase.Update(profileEdits, cc.User.Uid)
+	err = h.UserUcase.Update(profileEdits, user.(models.User).Uid)
+
+	//err = h.SessionUcase.Update(ctx, profileEdits.Phone, user.(models.User).Phone)
+
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
 
-	return cc.SendResponse(profileEdits)
+	return models.SendResponse(c, profileEdits)
 }
 
 func (h *Handler) CheckAuth(c echo.Context) error {
-	cc := c.(*models.CustomContext)
+	user := c.Get("User")
 
-	if cc.User == nil {
-		sendErr := _errors.NewCustomError(http.StatusUnauthorized, "error with request data")
-		return cc.SendResponseWithError(sendErr)
+	if user == nil {
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		return models.SendResponseWithError(c, sendErr)
 	}
 
-	return cc.SendResponse(cc.User)
+	return models.SendResponse(c, user)
 }
 
 func (h *Handler) Logout(c echo.Context) error {
-	cc := c.(*models.CustomContext)
 
-	cook, err := cc.Cookie(config.SessionCookie)
+	cook, err := c.Cookie(config.SessionCookie)
 	if err != nil {
-		sendErr := _errors.NewCustomError(http.StatusUnauthorized, "error with request data")
-		return cc.SendResponseWithError(sendErr)
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		return models.SendResponseWithError(c, sendErr)
 	}
 
 	err = h.SessionUcase.Delete(cook.Value)
 	if err != nil {
-		return cc.SendResponseWithError(err)
+		return models.SendResponseWithError(c, err)
 	}
+
 	deleteResponseCookie(c)
 
-	return cc.SendResponse("")
+	return models.SendResponse(c, "")
 }
