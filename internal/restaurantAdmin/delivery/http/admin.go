@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -64,10 +65,14 @@ func (a AdminHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
+	fmt.Println(newRest)
+
 	existingRest, err := a.AdminUsecase.CheckRestaurantExists(*newRest)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
+
+	fmt.Println(existingRest)
 
 	session, err := a.SessionUcase.Create(existingRest.ID, config.RoleAdmin)
 
