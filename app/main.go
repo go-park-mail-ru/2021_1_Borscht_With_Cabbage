@@ -29,11 +29,12 @@ type initRoute struct {
 	user            user.UserHandler
 	restaurant      restaurant.RestaurantHandler
 	restaurantAdmin restaurantAdmin.AdminHandler
-	middleware      custMiddleware.AuthMiddleware
+	authMiddleware  custMiddleware.AuthMiddleware
+	adminMiddleware custMiddleware.AdminAuthMiddleware
 }
 
 func route(data initRoute) {
-	user := data.e.Group("/user", data.middleware.Auth)
+	user := data.e.Group("/user", data.authMiddleware.Auth)
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
@@ -81,14 +82,16 @@ func main() {
 	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 
-	initMiddleware := custMiddleware.InitMiddleware(userUcase, sessionUcase)
+	initAuthMiddleware := custMiddleware.InitMiddleware(userUcase, sessionUcase)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(restaurantAdminUsecase, sessionUcase)
 
 	route(initRoute{
 		e:               e,
 		user:            userHandler,
 		restaurantAdmin: restaurantAdminHandler,
 		restaurant:      restaurantHandler,
-		middleware:      *initMiddleware,
+		authMiddleware:  *initAuthMiddleware,
+		adminMiddleware: *initAdminMiddleware,
 	})
 
 	e.Logger.Fatal(e.Start(":5000"))

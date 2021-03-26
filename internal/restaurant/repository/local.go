@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	_errors "github.com/borscht/backend/utils"
@@ -19,7 +20,7 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 
 func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantResponse, error) {
 	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
-		"where rid >= $1 and rid <= $2", limit, limit+offset)
+		"where rid >= $1 and rid <= $2", offset, limit+offset)
 	if err != nil {
 		return []models.RestaurantResponse{}, _errors.FailServer(err.Error())
 	}
@@ -43,29 +44,12 @@ func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantRespon
 }
 
 func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {
-	restaurantDB, err := r.DB.Query("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1", id)
-	if err != nil {
-		return models.Restaurant{}, false, _errors.FailServer(err.Error())
-	}
-
 	restaurant := new(models.Restaurant)
-	for restaurantDB.Next() {
-		err = restaurantDB.Scan(
-			&restaurant.Name,
-			&restaurant.DeliveryCost,
-			&restaurant.AvgCheck,
-			&restaurant.Description,
-			&restaurant.Rating,
-			&restaurant.Avatar,
-		)
-		if err != nil {
-			return models.Restaurant{}, false, _errors.FailServer(err.Error())
-		}
-	}
-	err = restaurantDB.Close()
+	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
+		id).Scan(&restaurant.Name, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
+	fmt.Println(restaurant)
 	if err != nil {
 		return models.Restaurant{}, false, _errors.FailServer(err.Error())
-
 	}
 
 	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)

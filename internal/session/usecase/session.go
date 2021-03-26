@@ -16,7 +16,7 @@ func NewSessionUsecase(repo sessionModel.SessionRepo) sessionModel.SessionUsecas
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *sessionUsecase) Check(session string) (int32, bool) {
+func (s *sessionUsecase) Check(session string) (int32, bool, string) {
 	return s.sessionRepo.Check(session)
 }
 
@@ -26,8 +26,8 @@ func (s *sessionUsecase) Create(uid int32, role string) (string, error) {
 	for {
 		session = uuid.New().String()
 
-		_, isItExists := s.sessionRepo.Check(session) // далее в цикле - проверка на уникальность
-		if isItExists == false {                      // не получили привязанного к сессии пользователя, следовательно, не существует
+		_, isItExists, _ := s.sessionRepo.Check(session) // далее в цикле - проверка на уникальность
+		if isItExists == false {                         // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}

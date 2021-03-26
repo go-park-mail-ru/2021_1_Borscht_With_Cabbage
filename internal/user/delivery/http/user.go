@@ -152,14 +152,44 @@ func (h *Handler) EditProfile(c echo.Context) error {
 }
 
 func (h *Handler) CheckAuth(c echo.Context) error {
-	user := c.Get("User")
-
-	if user == nil {
+	cookie, err := c.Cookie(config.SessionCookie)
+	if err != nil {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	return models.SendResponse(c, user)
+	authResponse := new(models.Auth)
+
+	id, exists, role := h.SessionUcase.Check(cookie.Value)
+	if exists {
+		switch role {
+		case config.RoleAdmin:
+			restaurant := h.UserUcase
+		case config.RoleUser:
+		default:
+
+		}
+	}
+
+	//user := c.Get("User")
+	//if user != nil {
+	//	authResponse.Name = user.(models.User).Name
+	//	authResponse.Avatar = user.(models.User).Avatar
+	//	authResponse.Role = config.RoleUser
+	//	return models.SendResponse(c, authResponse)
+	//}
+	//
+	//userAdmin := c.Get("Restaurant")
+	//if userAdmin != nil {
+	//	authResponse.Name = user.(models.Restaurant).Name
+	//	authResponse.Avatar = user.(models.Restaurant).Avatar
+	//	authResponse.Role = config.RoleAdmin
+	//	return models.SendResponse(c, authResponse)
+	//}
+
+	sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+	return models.SendResponseWithError(c, sendErr)
+
 }
 
 func (h *Handler) Logout(c echo.Context) error {

@@ -23,18 +23,24 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		uid, ok := m.SessionUcase.Check(session.Value)
+		uid, ok, role := m.SessionUcase.Check(session.Value)
 
 		if !ok {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		user, err := m.UserUcase.GetByUid(uid)
-		user.Uid = uid
-		c.Set("User", user)
+		if role == config.RoleUser { // тут проверяются права именно на обычного юзера
+			user, err := m.UserUcase.GetByUid(uid)
+			if err != nil {
+				return models.SendRedirectLogin(c)
+			}
+			user.Uid = uid
+			c.Set("User", user)
+			fmt.Println("THIS USER:", c.Get("User"))
+			return next(c)
+		}
 
-		fmt.Println("THIS USER:", c.Get("User"))
-		return next(c)
+		return models.SendRedirectLogin(c)
 	}
 }
 
