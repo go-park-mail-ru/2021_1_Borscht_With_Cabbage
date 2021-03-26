@@ -78,7 +78,7 @@ func main() {
 	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, sessionUcase)
+	userHandler := userDelivery.NewUserHandler(userUcase, restaurantAdminUsecase, sessionUcase)
 	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 

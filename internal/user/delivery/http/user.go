@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	"net/http"
 	"time"
 
@@ -15,12 +16,14 @@ import (
 
 type Handler struct {
 	UserUcase    userModel.UserUsecase
+	AdminUcase   adminModel.AdminUsecase
 	SessionUcase sessionModel.SessionUsecase
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
 	handler := &Handler{
 		UserUcase:    userUcase,
+		AdminUcase:   adminUcase,
 		SessionUcase: sessionUcase,
 	}
 
@@ -164,32 +167,31 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 	if exists {
 		switch role {
 		case config.RoleAdmin:
-			restaurant := h.UserUcase
-		case config.RoleUser:
-		default:
+			restaurant, err := h.AdminUcase.GetByRid(id)
+			if err != nil {
+				sendErr := errors.NewCustomError(http.StatusUnauthorized, err.Error())
+				return models.SendResponseWithError(c, sendErr)
+			}
+			authResponse.Name = restaurant.Name
+			authResponse.Avatar = restaurant.Avatar
+			authResponse.Role = config.RoleUser
+			return models.SendResponse(c, authResponse)
 
+		case config.RoleUser:
+			user, err := h.UserUcase.GetByUid(id)
+			if err != nil {
+				sendErr := errors.NewCustomError(http.StatusUnauthorized, err.Error())
+				return models.SendResponseWithError(c, sendErr)
+			}
+			authResponse.Name = user.Name
+			authResponse.Avatar = user.Avatar
+			authResponse.Role = config.RoleUser
+			return models.SendResponse(c, authResponse)
 		}
 	}
 
-	//user := c.Get("User")
-	//if user != nil {
-	//	authResponse.Name = user.(models.User).Name
-	//	authResponse.Avatar = user.(models.User).Avatar
-	//	authResponse.Role = config.RoleUser
-	//	return models.SendResponse(c, authResponse)
-	//}
-	//
-	//userAdmin := c.Get("Restaurant")
-	//if userAdmin != nil {
-	//	authResponse.Name = user.(models.Restaurant).Name
-	//	authResponse.Avatar = user.(models.Restaurant).Avatar
-	//	authResponse.Role = config.RoleAdmin
-	//	return models.SendResponse(c, authResponse)
-	//}
-
 	sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 	return models.SendResponseWithError(c, sendErr)
-
 }
 
 func (h *Handler) Logout(c echo.Context) error {
