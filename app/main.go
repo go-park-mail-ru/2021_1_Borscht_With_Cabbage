@@ -44,7 +44,6 @@ func main() {
 	e := echo.New()
 	e.Static("/static/avatar", config.Static)
 
-	// TODO убрать мидлвар в отедльный файл
 	e.Use(custMiddleware.CORS)
 
 	//dsn := "jdbc:postgresql://localhost:5432/postgres?user=labzunova&password=1111"

@@ -18,24 +18,28 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 }
 
 func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantResponse, error) {
-	//var result []models.RestaurantResponse
-	//
-	//for _, rest := range *r.db.GetModels().Restaurants {
-	//	if rest.ID >= offset && rest.ID < offset+limit {
-	//		restaurant := models.RestaurantResponse{
-	//			ID:           rest.ID,
-	//			Name:         rest.Name,
-	//			Rating:       rest.Rating,
-	//			DeliveryCost: rest.DeliveryCost,
-	//			AvgCheck:     rest.AvgCheck,
-	//			Description:  rest.Description,
-	//		}
-	//		result = append(result, restaurant)
-	//	}
-	//}
-	//
-	//return result, nil
-	return []models.RestaurantResponse{}, nil
+	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
+		"where rid >= $1 and rid <= $2", limit, limit+offset)
+	if err != nil {
+		return []models.RestaurantResponse{}, _errors.FailServer(err.Error())
+	}
+
+	var restaurants []models.RestaurantResponse
+	for restaurantsDB.Next() {
+		restaurant := new(models.RestaurantResponse)
+		err = restaurantsDB.Scan(
+			&restaurant.ID,
+			&restaurant.Name,
+			&restaurant.DeliveryCost,
+			&restaurant.AvgCheck,
+			&restaurant.Description,
+			&restaurant.Rating,
+			&restaurant.Avatar,
+		)
+		restaurants = append(restaurants, *restaurant)
+	}
+
+	return restaurants, nil
 }
 
 func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {

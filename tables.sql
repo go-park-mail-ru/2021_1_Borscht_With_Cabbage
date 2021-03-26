@@ -5,41 +5,41 @@ DROP TABLE IF EXISTS restaurants CASCADE;
 DROP TABLE IF EXISTS dishes;
 
 CREATE TABLE users (
-                       uid SERIAL PRIMARY KEY,
-                       name text,
-                       phone text,
-                       email text,
-                       photo text,
+    uid SERIAL PRIMARY KEY,
+    name TEXT,
+    phone TEXT,
+    email TEXT,
+    photo TEXT,
     -- mainAddress text references addresses(address) on delete cascade ,
-                       password text
+    password TEXT
 );
 
 CREATE TABLE sessions (
-                          session text NOT NULL PRIMARY KEY,
-                          uid INTEGER REFERENCES users(uid) ON DELETE CASCADE
+    session TEXT NOT NULL PRIMARY KEY,
+    uid INTEGER REFERENCES users(uid) ON DELETE CASCADE
 );
 
 CREATE TABLE addresses (
-                           address text,
-                           "user" integer references users(uid) on delete cascade
+    address TEXT,
+    "user" INTEGER REFERENCES users(uid) ON DELETE CASCADE
 );
 
 CREATE TABLE restaurants (
-                             rid SERIAL PRIMARY KEY,
-                             name text,
-                             deliveryCost integer,
-                             avgCheck integer,
-                             description text,
-                             rating float,
-                             avatar text
+    rid SERIAL PRIMARY KEY,
+    name TEXT,
+    deliveryCost INTEGER,
+    avgCheck INTEGER,
+    description TEXT,
+    rating FLOAT,
+    avatar TEXT
 );
 
 CREATE TABLE dishes (
-                        did SERIAL PRIMARY KEY,
-                        restaurant integer references restaurants(rid) on delete cascade,
-                        name text,
-                        price integer,
-                        weight integer,
-                        description text,
-                        image text
+    did SERIAL PRIMARY KEY,
+    restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+    name TEXT,
+    price INTEGER,
+    weight INTEGER,
+    description TEXT,
+    image TEXT
 )

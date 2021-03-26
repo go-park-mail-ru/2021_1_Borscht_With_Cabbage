@@ -44,7 +44,10 @@ func (u *userRepo) Create(newUser models.User) (int32, error) {
 func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, error) {
 	DBuser, err := u.DB.Query("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
 		userToCheck.Login, userToCheck.Password)
-	if err != nil { // todo no rows
+	if err == sql.ErrNoRows {
+		return models.User{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
+	}
+	if err != nil {
 		return models.User{}, _errors.FailServer(err.Error())
 	}
 

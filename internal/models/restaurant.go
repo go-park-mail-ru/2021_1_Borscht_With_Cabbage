@@ -29,4 +29,5 @@ type RestaurantResponse struct {
 	DeliveryTime int     `json:"time"`
 	AvgCheck     int     `json:"cost"`
 	DeliveryCost int     `json:"deliveryCost"`
+	Avatar       string  `json:"avatar"`
 }

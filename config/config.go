@@ -10,7 +10,5 @@ const (
 	PostgresDB    = "postgres"
 	DBUser        = ""
 	DBPass        = ""
-	DBHost        = ""
-	DBPort        = ""
 	DBName        = ""
 )
