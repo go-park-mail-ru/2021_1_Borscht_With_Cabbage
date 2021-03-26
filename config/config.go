@@ -11,4 +11,5 @@ const (
 	DBUser        = "labzunova" // todo ...
 	DBPass        = "1111"
 	DBName        = "postgres"
+	CORStime      = 3600
 )
