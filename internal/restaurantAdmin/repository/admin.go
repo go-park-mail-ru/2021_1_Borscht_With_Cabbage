@@ -22,17 +22,17 @@ func NewAdminRepo(db *sql.DB) restaurantAdmin.AdminRepo {
 func (a adminRepo) checkExistingRestaurant(email, number, name string, currentRestId int32) error {
 	var userInDB int32
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", email).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentRestId {
+	if err != sql.ErrNoRows && userInDB != currentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this email already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", number).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentRestId {
+	if err != sql.ErrNoRows && userInDB != currentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this number already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where name = $1", name).Scan(&userInDB)
-	if err != sql.ErrNoRows && err != nil && userInDB != currentRestId {
+	if err != sql.ErrNoRows && userInDB != currentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this name already exists")
 	}
 
