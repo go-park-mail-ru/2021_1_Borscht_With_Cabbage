@@ -48,7 +48,6 @@ func deleteResponseCookie(c echo.Context) {
 }
 
 func (h *Handler) Create(c echo.Context) error {
-
 	newUser := new(models.User)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
@@ -60,7 +59,7 @@ func (h *Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(uid)
+	session, err := h.SessionUcase.Create(uid, config.RoleUser)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -87,7 +86,7 @@ func (h *Handler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(oldUser.Uid)
+	session, err := h.SessionUcase.Create(oldUser.Uid, config.RoleUser)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)

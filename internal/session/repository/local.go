@@ -29,8 +29,8 @@ func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool) {
 }
 
 // создание уникальной сессии
-func (repo *sessionRepo) Create(session string, uid int32) error {
-	err := repo.DB.QueryRow("insert into sessions (session, uid) values ($1, $2)", session, uid)
+func (repo *sessionRepo) Create(session string, uid int32, role string) error {
+	err := repo.DB.QueryRow("insert into sessions (session, uid, role) values ($1, $2, $3)", session, uid, role)
 	if err != nil {
 		return nil
 	}

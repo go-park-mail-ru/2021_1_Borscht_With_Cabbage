@@ -21,7 +21,7 @@ func (s *sessionUsecase) Check(session string) (int32, bool) {
 }
 
 // создание уникальной сессии
-func (s *sessionUsecase) Create(uid int32) (string, error) {
+func (s *sessionUsecase) Create(uid int32, role string) (string, error) {
 	session := ""
 	for {
 		session = uuid.New().String()
@@ -32,7 +32,7 @@ func (s *sessionUsecase) Create(uid int32) (string, error) {
 		}
 	}
 
-	err := s.sessionRepo.Create(session, uid)
+	err := s.sessionRepo.Create(session, uid, role)
 	if err != nil {
 		return "", err
 	}

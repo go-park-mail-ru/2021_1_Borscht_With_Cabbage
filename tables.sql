@@ -16,7 +16,8 @@ CREATE TABLE users (
 
 CREATE TABLE sessions (
     session TEXT NOT NULL PRIMARY KEY,
-    uid INTEGER REFERENCES users(uid) ON DELETE CASCADE
+    uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+    role TEXT
 );
 
 CREATE TABLE addresses (
@@ -27,6 +28,9 @@ CREATE TABLE addresses (
 CREATE TABLE restaurants (
     rid SERIAL PRIMARY KEY,
     name TEXT,
+    adminEmail TEXT,
+    adminPhone TEXT,
+    adminPassword TEXT,
     deliveryCost INTEGER,
     avgCheck INTEGER,
     description TEXT,
