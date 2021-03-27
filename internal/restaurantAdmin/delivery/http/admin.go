@@ -53,7 +53,7 @@ func (a AdminHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: newRestaurant.Name, Avatar: config.DefaultAvatar} // TODO убрать config отсюда
+	response := models.SuccessResponse{Name: newRestaurant.Name, Avatar: config.DefaultAvatar, Role: config.RoleAdmin} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -69,6 +69,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 
 	existingRest, err := a.AdminUsecase.CheckRestaurantExists(*newRest)
 	if err != nil {
+		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
 
@@ -81,7 +82,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: existingRest.Name, Avatar: existingRest.Avatar}
+	response := models.SuccessResponse{Name: existingRest.Name, Avatar: existingRest.Avatar, Role: config.RoleAdmin}
 	return models.SendResponse(c, response)
 }
 

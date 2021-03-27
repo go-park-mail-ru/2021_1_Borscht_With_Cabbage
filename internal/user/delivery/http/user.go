@@ -71,7 +71,7 @@ func (h *Handler) Create(c echo.Context) error {
 	fmt.Println("SESSION:", session)
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: newUser.Name, Avatar: config.DefaultAvatar} // TODO убрать config отсюда
+	response := models.SuccessResponse{Name: newUser.Name, Avatar: config.DefaultAvatar, Role: config.RoleUser} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -96,7 +96,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
+	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar, Role: config.RoleUser}
 
 	return models.SendResponse(c, response)
 }
@@ -174,7 +174,7 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			}
 			authResponse.Name = restaurant.Name
 			authResponse.Avatar = restaurant.Avatar
-			authResponse.Role = config.RoleUser
+			authResponse.Role = config.RoleAdmin
 			return models.SendResponse(c, authResponse)
 
 		case config.RoleUser:

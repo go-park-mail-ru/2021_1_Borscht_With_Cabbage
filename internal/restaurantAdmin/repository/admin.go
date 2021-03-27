@@ -59,6 +59,7 @@ func (a adminRepo) CheckRestaurantExists(restaurantToCheck models.RestaurantAuth
 	restaurant := new(models.Restaurant)
 	err := a.DB.QueryRow("select rid, name, avatar from restaurants where (adminphone=$1 or adminemail=$1) and adminpassword=$2",
 		restaurantToCheck.Login, restaurantToCheck.Password).Scan(&restaurant.ID, &restaurant.Name, &restaurant.Avatar)
+
 	if err == sql.ErrNoRows {
 		return models.Restaurant{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
