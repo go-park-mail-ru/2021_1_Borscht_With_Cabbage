@@ -10,15 +10,23 @@ type Dish struct {
 	Image       string `json:"image"`
 }
 
+type RestaurantAuth struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
 type Restaurant struct {
-	ID           int     `json:"id"`
-	AvgCheck     int     `json:"cost"`
-	Name         string  `json:"title"`
-	Description  string  `json:"description"`
-	Dishes       []Dish  `json:"foods"`
-	DeliveryCost int     `json:"deliveryCost"`
-	Rating       float64 `json:"rating"`
-	Avatar       string  `json:"avatar"`
+	ID            int32   `json:"id"`
+	AdminEmail    string  `json:"email"`
+	AdminPhone    string  `json:"number"`
+	AdminPassword string  `json:"password"`
+	AvgCheck      int     `json:"cost"`
+	Name          string  `json:"title"`
+	Description   string  `json:"description"`
+	Dishes        []Dish  `json:"foods"`
+	DeliveryCost  int     `json:"deliveryCost"`
+	Rating        float64 `json:"rating"`
+	Avatar        string  `json:"avatar"`
 }
 
 type RestaurantResponse struct {

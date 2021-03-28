@@ -27,4 +27,5 @@ type UserData struct {
 type SuccessResponse struct {
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
+	Role   string `json:"role"`
 }

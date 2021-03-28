@@ -13,4 +13,6 @@ const (
 	DBPass        = "password"
 	DBName        = "delivery_psql"
 	CORStime      = 3600
+	RoleAdmin     = "admin"
+	RoleUser      = "user"
 )

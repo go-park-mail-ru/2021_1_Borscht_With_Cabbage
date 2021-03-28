@@ -8,6 +8,10 @@ import (
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
 	restaurantRepo "github.com/borscht/backend/internal/restaurant/repository"
 	restaurantUsecase "github.com/borscht/backend/internal/restaurant/usecase"
+	"github.com/borscht/backend/internal/restaurantAdmin"
+	restaurantAdminDelivery "github.com/borscht/backend/internal/restaurantAdmin/delivery/http"
+	restaurantAdminRepo "github.com/borscht/backend/internal/restaurantAdmin/repository"
+	restaurantAdminUsecase "github.com/borscht/backend/internal/restaurantAdmin/usecase"
 	sessionRepo "github.com/borscht/backend/internal/session/repository"
 	sessionUcase "github.com/borscht/backend/internal/session/usecase"
 	"github.com/borscht/backend/internal/user"
@@ -21,17 +25,21 @@ import (
 )
 
 type initRoute struct {
-	e          *echo.Echo
-	user       user.UserHandler
-	restaurant restaurant.RestaurantHandler
-	middleware custMiddleware.AuthMiddleware
+	e               *echo.Echo
+	user            user.UserHandler
+	restaurant      restaurant.RestaurantHandler
+	restaurantAdmin restaurantAdmin.AdminHandler
+	authMiddleware  custMiddleware.AuthMiddleware
+	adminMiddleware custMiddleware.AdminAuthMiddleware
 }
 
 func route(data initRoute) {
-	user := data.e.Group("/user", data.middleware.Auth)
+	user := data.e.Group("/user", data.authMiddleware.Auth)
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
+	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
+	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
 	data.e.GET("/auth", data.user.CheckAuth)
@@ -63,21 +71,27 @@ func main() {
 
 	userRepo := userRepo.NewUserRepo(db)
 	sessionRepo := sessionRepo.NewSessionRepo(db)
+	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	userUcase := userUcase.NewUserUsecase(userRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
+	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, sessionUcase)
+	userHandler := userDelivery.NewUserHandler(userUcase, restaurantAdminUsecase, sessionUcase)
+	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 
-	initMiddleware := custMiddleware.InitMiddleware(userUcase, sessionUcase)
+	initAuthMiddleware := custMiddleware.InitMiddleware(userUcase, sessionUcase)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(restaurantAdminUsecase, sessionUcase)
 
 	route(initRoute{
-		e:          e,
-		user:       userHandler,
-		restaurant: restaurantHandler,
-		middleware: *initMiddleware,
+		e:               e,
+		user:            userHandler,
+		restaurantAdmin: restaurantAdminHandler,
+		restaurant:      restaurantHandler,
+		authMiddleware:  *initAuthMiddleware,
+		adminMiddleware: *initAdminMiddleware,
 	})
 
 	e.Logger.Fatal(e.Start(":5000"))

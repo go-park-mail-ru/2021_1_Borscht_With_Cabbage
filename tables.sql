@@ -14,7 +14,7 @@ CREATE TABLE users (
     password TEXT
 );
 
-CREATE TABLE sessions (
+CREATE TABLE userSessions (
     session TEXT NOT NULL PRIMARY KEY,
     uid INTEGER REFERENCES users(uid) ON DELETE CASCADE
 );
@@ -27,11 +27,19 @@ CREATE TABLE addresses (
 CREATE TABLE restaurants (
     rid SERIAL PRIMARY KEY,
     name TEXT,
+    adminEmail TEXT,
+    adminPhone TEXT,
+    adminPassword TEXT,
     deliveryCost INTEGER,
     avgCheck INTEGER,
     description TEXT,
     rating FLOAT,
     avatar TEXT
+);
+
+CREATE TABLE adminSessions (
+    session TEXT NOT NULL PRIMARY KEY,
+    rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
 );
 
 CREATE TABLE dishes (
