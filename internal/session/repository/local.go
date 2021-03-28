@@ -64,7 +64,7 @@ func (repo *sessionRepo) Create(session string, uid int32, role string) error {
 
 	mkey := headKey + id.ID
 
-	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSession))
+	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSecond))
 	if err != nil {
 		return errors.FailServer(err.Error())
 	}

@@ -2,9 +2,10 @@ package http
 
 import (
 	"fmt"
-	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	"net/http"
 	"time"
+
+	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"

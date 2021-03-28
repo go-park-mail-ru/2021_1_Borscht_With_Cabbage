@@ -6,10 +6,10 @@ const (
 	Repository = Host + ":5000/"
 	Client     = Host + ":3000/"
 
-	DefaultAvatar   = Repository + "static/avatar/stas.jpg"
-	SessionCookie   = "borscht_session"
-	LifetimeSession = 86400
-	Static          = "static/avatar"
+	DefaultAvatar  = Repository + "static/avatar/stas.jpg"
+	SessionCookie  = "borscht_session"
+	LifetimeSecond = 86400
+	Static         = "static/avatar"
 
 	PostgresDB = "postgres"
 	DBUser     = "delivery" // todo ...
