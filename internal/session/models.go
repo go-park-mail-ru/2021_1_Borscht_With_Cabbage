@@ -1,13 +1,13 @@
 package session
 
 type SessionUsecase interface {
-	Create(uid int32) (string, error)
-	Check(sessionToCheck string) (int32, bool)
+	Create(uid int) (string, error)
+	Check(sessionToCheck string) (int, bool)
 	Delete(session string) error
 }
 
 type SessionRepo interface {
-	Create(session string, uid int32) error
-	Check(sessionToCheck string) (int32, bool)
+	Create(session string, uid int) error
+	Check(sessionToCheck string) (int, bool)
 	Delete(session string) error
 }

@@ -42,35 +42,17 @@ func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantRespon
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {
-	restaurantDB, err := r.DB.Query("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1", id)
-	if err != nil {
-		return models.Restaurant{}, false, _errors.FailServer(err.Error())
-	}
-
+func (r *restaurantRepo) GetById(id string) (models.Restaurant, error) {
 	restaurant := new(models.Restaurant)
-	for restaurantDB.Next() {
-		err = restaurantDB.Scan(
-			&restaurant.Name,
-			&restaurant.DeliveryCost,
-			&restaurant.AvgCheck,
-			&restaurant.Description,
-			&restaurant.Rating,
-			&restaurant.Avatar,
-		)
-		if err != nil {
-			return models.Restaurant{}, false, _errors.FailServer(err.Error())
-		}
-	}
-	err = restaurantDB.Close()
+	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
+		id).Scan(&restaurant.Name, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
-		return models.Restaurant{}, false, _errors.FailServer(err.Error())
-
+		return models.Restaurant{}, _errors.FailServer(err.Error())
 	}
 
 	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
 	if errr != nil {
-		return models.Restaurant{}, false, _errors.FailServer(errr.Error())
+		return models.Restaurant{}, _errors.FailServer(errr.Error())
 	}
 
 	dishes := make([]models.Dish, 0)
@@ -84,16 +66,16 @@ func (r *restaurantRepo) GetById(id string) (models.Restaurant, bool, error) {
 			&dish.Image,
 		)
 		if err != nil {
-			return models.Restaurant{}, false, _errors.FailServer(err.Error())
+			return models.Restaurant{}, _errors.FailServer(err.Error())
 		}
 
 		dishes = append(dishes, *dish)
 	}
 	err = dishesDB.Close()
 	if err != nil {
-		return models.Restaurant{}, false, _errors.FailServer(err.Error())
+		return models.Restaurant{}, _errors.FailServer(err.Error())
 	}
 
 	restaurant.Dishes = dishes
-	return *restaurant, true, nil
+	return *restaurant, nil
 }

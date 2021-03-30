@@ -24,29 +24,44 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 	}
 }
 
-func (u *userRepo) checkExistingUser(email, number string, currentUserId int32) error {
-	var userInDB int32
+func (u *userRepo) checkExistingUser(email, number string) error {
+	var userInDB int
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentUserId {
-		return _errors.NewCustomError(http.StatusBadRequest, "User with this email already exists")
+	if err != sql.ErrNoRows {
+		return _errors.BadRequest("User with this email already exists")
 	}
 
 	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentUserId {
-		return _errors.NewCustomError(http.StatusBadRequest, "User with this number already exists")
+	if err != sql.ErrNoRows {
+		return _errors.BadRequest("User with this number already exists")
 	}
 
 	return nil
 }
 
-func (u *userRepo) Create(newUser models.User) (int32, error) {
-	err := u.checkExistingUser(newUser.Email, newUser.Phone, -1)
+func (u *userRepo) checkUserWithThisData(email, number string, currentUserId int) error {
+	var userInDB int
+	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != currentUserId {
+		return _errors.BadRequest("User with this email already exists")
+	}
+
+	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != currentUserId {
+		return _errors.BadRequest("User with this number already exists")
+	}
+
+	return nil
+}
+
+func (u *userRepo) Create(newUser models.User) (int, error) {
+	err := u.checkExistingUser(newUser.Email, newUser.Phone)
 	if err != nil {
 		return 0, _errors.FailServer(err.Error())
 	}
 	fmt.Println(newUser)
 
-	var uid int32
+	var uid int
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
 		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultAvatar).Scan(&uid)
 	if err != nil {
@@ -71,7 +86,7 @@ func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, er
 	return *user, nil
 }
 
-func (u *userRepo) GetByUid(uid int32) (models.User, error) {
+func (u *userRepo) GetByUid(uid int) (models.User, error) {
 	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
 	if err != nil {
 		return models.User{}, _errors.Authorization("user not found")
@@ -91,8 +106,8 @@ func (u *userRepo) GetByUid(uid int32) (models.User, error) {
 	return *user, nil
 }
 
-func (u *userRepo) Update(newUser models.UserData, uid int32) error {
-	err := u.checkExistingUser(newUser.Phone, newUser.Email, uid)
+func (u *userRepo) Update(newUser models.UserData, uid int) error {
+	err := u.checkUserWithThisData(newUser.Phone, newUser.Email, uid)
 	if err != nil {
 		return _errors.FailServer(err.Error())
 	}

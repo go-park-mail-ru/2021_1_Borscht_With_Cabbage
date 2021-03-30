@@ -19,6 +19,6 @@ func (r *restaurantUsecase) GetVendor(limit, offset int) ([]models.RestaurantRes
 	return r.restaurantRepo.GetVendor(limit, offset)
 }
 
-func (r *restaurantUsecase) GetById(id string) (models.Restaurant, bool, error) {
+func (r *restaurantUsecase) GetById(id string) (models.Restaurant, error) {
 	return r.restaurantRepo.GetById(id)
 }
