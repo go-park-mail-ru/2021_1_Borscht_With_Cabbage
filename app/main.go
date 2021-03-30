@@ -30,7 +30,7 @@ func route(data initRoute) {
 	data.e.POST("/signup", data.user.Create)
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
-	data.e.GET("/auth", data.user.CheckAuth)
+	user.GET("/auth", data.user.CheckAuth)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
