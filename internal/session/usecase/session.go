@@ -16,12 +16,12 @@ func NewSessionUsecase(repo sessionModel.SessionRepo) sessionModel.SessionUsecas
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *sessionUsecase) Check(session string) (int32, bool, string) {
+func (s *sessionUsecase) Check(session string) (int, bool, string) {
 	return s.sessionRepo.Check(session)
 }
 
 // создание уникальной сессии
-func (s *sessionUsecase) Create(uid int32, role string) (string, error) {
+func (s *sessionUsecase) Create(uid int, role string) (string, error) {
 	session := ""
 	for {
 		session = uuid.New().String()

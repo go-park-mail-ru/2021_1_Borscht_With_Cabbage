@@ -16,7 +16,7 @@ type RestaurantAuth struct {
 }
 
 type Restaurant struct {
-	ID            int32   `json:"id"`
+	ID            int     `json:"id"`
 	AdminEmail    string  `json:"email"`
 	AdminPhone    string  `json:"number"`
 	AdminPassword string  `json:"password"`

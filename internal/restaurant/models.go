@@ -12,10 +12,10 @@ type RestaurantHandler interface {
 
 type RestaurantUsecase interface {
 	GetVendor(limit, offset int) ([]models.RestaurantResponse, error)
-	GetById(id string) (models.Restaurant, bool, error)
+	GetById(id string) (models.Restaurant, error)
 }
 
 type RestaurantRepo interface {
 	GetVendor(limit, offset int) ([]models.RestaurantResponse, error)
-	GetById(id string) (models.Restaurant, bool, error)
+	GetById(id string) (models.Restaurant, error)
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"net/http"
 
 	errors "github.com/borscht/backend/utils"
@@ -22,6 +23,12 @@ func SendRedirectLogin(c echo.Context) error {
 		Code:     http.StatusFound,
 		Redirect: "/login",
 	})
+}
+
+func GetContext(c echo.Context) context.Context {
+	ctx := c.Request().Context()
+
+	return context.WithValue(ctx, "User", c.Get("User"))
 }
 
 func SendResponse(c echo.Context, data interface{}) error {
