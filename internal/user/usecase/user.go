@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils"
@@ -10,6 +11,8 @@ import (
 	"path/filepath"
 	"strconv"
 )
+
+// TODO: хранить статику в /var/...
 
 const (
 	HeadAvatar = "static/avatar/"
@@ -60,7 +63,7 @@ func (u *userUsecase) UploadAvatar(image *multipart.FileHeader) (string, error) 
 		return "", err
 	}
 
-	return filename, nil
+	return config.Repository + filename, nil
 }
 
 func getUniqId(filename string) (string, error) {

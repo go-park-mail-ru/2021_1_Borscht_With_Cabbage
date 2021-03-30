@@ -17,8 +17,8 @@ func NewSessionRepo(db *sql.DB) sessionModel.SessionRepo {
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool) {
-	var uid int32
+func (repo *sessionRepo) Check(sessionToCheck string) (int, bool) {
+	var uid int
 	err := repo.DB.QueryRow("select uid from sessions where session=$1", sessionToCheck).Scan(&uid)
 
 	if err != sql.ErrNoRows { // если она не уникальная
@@ -29,7 +29,7 @@ func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool) {
 }
 
 // создание уникальной сессии
-func (repo *sessionRepo) Create(session string, uid int32) error {
+func (repo *sessionRepo) Create(session string, uid int) error {
 	err := repo.DB.QueryRow("insert into sessions (session, uid) values ($1, $2)", session, uid)
 	if err != nil {
 		return nil
