@@ -16,17 +16,17 @@ type UserHandler interface {
 }
 
 type UserUsecase interface {
-	Create(user models.User) (int32, error)
+	Create(user models.User) (int, error)
 	CheckUserExists(user models.UserAuth) (models.User, error)
-	GetByUid(uid int32) (models.User, error)
-	Update(newUser models.UserData, uid int32) error
+	GetByUid(uid int) (models.User, error)
+	Update(newUser models.UserData, uid int) error
 	UploadAvatar(image *multipart.FileHeader) (string, error)
 }
 
 type UserRepo interface {
-	Create(user models.User) (int32, error)
+	Create(user models.User) (int, error)
 	CheckUserExists(user models.UserAuth) (models.User, error)
-	GetByUid(uid int32) (models.User, error)
-	Update(newUser models.UserData, uid int32) error
+	GetByUid(uid int) (models.User, error)
+	Update(newUser models.UserData, uid int) error
 	UploadAvatar(image *multipart.FileHeader, filename string) error
 }

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils"
@@ -10,6 +11,8 @@ import (
 	"path/filepath"
 	"strconv"
 )
+
+// TODO: хранить статику в /var/...
 
 const (
 	HeadAvatar = "static/avatar/"
@@ -25,7 +28,7 @@ func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
 	}
 }
 
-func (u *userUsecase) Create(newUser models.User) (int32, error) {
+func (u *userUsecase) Create(newUser models.User) (int, error) {
 
 	// TODO валидация какая нибудь
 
@@ -36,11 +39,11 @@ func (u *userUsecase) CheckUserExists(user models.UserAuth) (models.User, error)
 	return u.userRepository.CheckUserExists(user)
 }
 
-func (u *userUsecase) GetByUid(uid int32) (models.User, error) {
+func (u *userUsecase) GetByUid(uid int) (models.User, error) {
 	return u.userRepository.GetByUid(uid)
 }
 
-func (u *userUsecase) Update(newUser models.UserData, uid int32) error {
+func (u *userUsecase) Update(newUser models.UserData, uid int) error {
 	// TODO валидация
 
 	return u.userRepository.Update(newUser, uid)
@@ -60,7 +63,7 @@ func (u *userUsecase) UploadAvatar(image *multipart.FileHeader) (string, error) 
 		return "", err
 	}
 
-	return filename, nil
+	return config.Repository + filename, nil
 }
 
 func getUniqId(filename string) (string, error) {

@@ -14,7 +14,7 @@ func NewAdminUsecase(repo restaurantAdmin.AdminRepo) restaurantAdmin.AdminUsecas
 		adminRepository: repo,
 	}
 }
-func (a adminUsecase) Create(user models.Restaurant) (int32, error) {
+func (a adminUsecase) Create(user models.Restaurant) (int, error) {
 	return a.adminRepository.Create(user)
 }
 
@@ -22,6 +22,6 @@ func (a adminUsecase) CheckRestaurantExists(user models.RestaurantAuth) (models.
 	return a.adminRepository.CheckRestaurantExists(user)
 }
 
-func (a adminUsecase) GetByRid(rid int32) (models.Restaurant, error) {
+func (a adminUsecase) GetByRid(rid int) (models.Restaurant, error) {
 	return a.adminRepository.GetByRid(rid)
 }

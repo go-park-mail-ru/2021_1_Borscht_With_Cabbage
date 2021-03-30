@@ -2,16 +2,15 @@ package http
 
 import (
 	"fmt"
-	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
-	"net/http"
-	"time"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
+	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"time"
 )
 
 type Handler struct {
@@ -53,7 +52,7 @@ func deleteResponseCookie(c echo.Context) {
 func (h *Handler) Create(c echo.Context) error {
 	newUser := new(models.User)
 	if err := c.Bind(newUser); err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -79,7 +78,7 @@ func (h *Handler) Login(c echo.Context) error {
 	newUser := new(models.UserAuth)
 
 	if err := c.Bind(newUser); err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -116,7 +115,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	// TODO убрать часть логики в usecase
 	formParams, err := c.FormParams()
 	if err != nil {
-		return errors.NewCustomError(http.StatusBadRequest, "invalid data form")
+		return errors.BadRequest("invalid data form")
 	}
 
 	profileEdits := models.UserData{
@@ -140,13 +139,24 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	profileEdits.Avatar = filename
 	user := c.Get("User")
 
-	if user == nil {
-		userError := errors.Authorization("not authorization")
-		return models.SendResponseWithError(c, userError)
+	fmt.Println("FILE DELIVERY: ", err)
+
+	if file != nil {
+		if err != nil {
+			return models.SendResponseWithError(c, errors.BadRequest(err.Error()))
+		}
+
+		filename, err := h.UserUcase.UploadAvatar(file)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+
+		fmt.Println("FILENAME: ", filename)
+
+		profileEdits.Avatar = filename
 	}
 
 	err = h.UserUcase.Update(profileEdits, user.(models.User).Uid)
-
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -195,10 +205,9 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 }
 
 func (h *Handler) Logout(c echo.Context) error {
-
 	cook, err := c.Cookie(config.SessionCookie)
 	if err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 

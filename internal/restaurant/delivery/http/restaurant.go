@@ -42,13 +42,9 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
 	id := c.Param("id")
 
-	restaurant, isItExists, err := h.restaurantUsecase.GetById(id)
+	restaurant, err := h.restaurantUsecase.GetById(id)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
-	}
-
-	if !isItExists {
-		return models.SendResponseWithError(c, errors.BadRequest("error with request data"))
 	}
 
 	return models.SendResponse(c, restaurant)

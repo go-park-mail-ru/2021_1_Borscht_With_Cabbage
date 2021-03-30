@@ -19,8 +19,8 @@ func NewAdminRepo(db *sql.DB) restaurantAdmin.AdminRepo {
 	}
 }
 
-func (a adminRepo) checkExistingRestaurant(email, number, name string, currentRestId int32) error {
-	var userInDB int32
+func (a adminRepo) checkExistingRestaurant(email, number, name string, currentRestId int) error {
+	var userInDB int
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this email already exists")
@@ -39,13 +39,13 @@ func (a adminRepo) checkExistingRestaurant(email, number, name string, currentRe
 	return nil
 }
 
-func (a adminRepo) Create(newRestaurant models.Restaurant) (int32, error) {
+func (a adminRepo) Create(newRestaurant models.Restaurant) (int, error) {
 	err := a.checkExistingRestaurant(newRestaurant.AdminEmail, newRestaurant.AdminPhone, newRestaurant.Name, -1)
 	if err != nil {
 		return 0, _errors.FailServer(err.Error())
 	}
 
-	var rid int32
+	var rid int
 	err = a.DB.QueryRow("insert into restaurants (name, adminphone, adminemail, adminpassword, avatar) values ($1, $2, $3, $4, $5) returning rid",
 		newRestaurant.Name, newRestaurant.AdminPhone, newRestaurant.AdminEmail, newRestaurant.AdminPassword, config.DefaultAvatar).Scan(&rid)
 	if err != nil {
@@ -70,7 +70,7 @@ func (a adminRepo) CheckRestaurantExists(restaurantToCheck models.RestaurantAuth
 	return *restaurant, nil
 }
 
-func (a adminRepo) GetByRid(rid int32) (models.Restaurant, error) {
+func (a adminRepo) GetByRid(rid int) (models.Restaurant, error) {
 	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
 	if err != nil {
 		return models.Restaurant{}, _errors.Authorization("user not found")

@@ -13,13 +13,13 @@ type AdminHandler interface {
 }
 
 type AdminUsecase interface {
-	Create(user models.Restaurant) (int32, error)
+	Create(user models.Restaurant) (int, error)
 	CheckRestaurantExists(user models.RestaurantAuth) (models.Restaurant, error)
-	GetByRid(rid int32) (models.Restaurant, error)
+	GetByRid(rid int) (models.Restaurant, error)
 }
 
 type AdminRepo interface {
-	Create(user models.Restaurant) (int32, error)
+	Create(user models.Restaurant) (int, error)
 	CheckRestaurantExists(user models.RestaurantAuth) (models.Restaurant, error)
-	GetByRid(rid int32) (models.Restaurant, error)
+	GetByRid(rid int) (models.Restaurant, error)
 }
