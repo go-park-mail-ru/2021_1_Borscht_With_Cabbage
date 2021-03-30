@@ -81,7 +81,7 @@ func main() {
 	defer redisConn.Close()
 
 	userRepo := userRepo.NewUserRepo(db)
-	sessionRepo := sessionRepo.NewSessionRepo(db, redisConn)
+	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	userUcase := userUcase.NewUserUsecase(userRepo)

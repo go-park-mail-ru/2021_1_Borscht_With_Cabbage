@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"database/sql"
-
 	"github.com/borscht/backend/config"
 	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
@@ -23,13 +21,11 @@ type sessionID struct {
 	ID string
 }
 type sessionRepo struct {
-	DB        *sql.DB
 	redisConn redis.Conn
 }
 
-func NewSessionRepo(db *sql.DB, conn redis.Conn) sessionModel.SessionRepo {
+func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
 	return &sessionRepo{
-		DB:        db,
 		redisConn: conn,
 	}
 }
