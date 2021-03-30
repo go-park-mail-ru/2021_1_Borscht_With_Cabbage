@@ -13,7 +13,7 @@ import (
 const headKey = "sessions:"
 
 type sessionData struct {
-	Uid  int32  `json:"uid"`
+	Uid  int    `json:"uid"`
 	Role string `json:"role"`
 }
 
@@ -31,9 +31,7 @@ func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-<<<<<<< HEAD:internal/session/repository/local.go
-
-func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool, string) {
+func (repo *sessionRepo) Check(sessionToCheck string) (int, bool, string) {
 	mkey := headKey + sessionToCheck
 	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
 	if err != nil {
@@ -48,26 +46,12 @@ func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool, string) {
 }
 
 // создание уникальной сессии
-<<<<<<< HEAD:internal/session/repository/local.go
-func (repo *sessionRepo) Create(session string, uid int32, role string) error {
+func (repo *sessionRepo) Create(session string, uid int, role string) error {
 	id := sessionID{session}
 	dataSerialized, err := json.Marshal(sessionData{
 		Uid:  uid,
 		Role: role,
 	})
-
-=======
-func (repo *sessionRepo) Create(session string, id int, role string) error {
-	var err error
-	switch role {
-	case config.RoleUser:
-		err = repo.DB.QueryRow("insert into usersessions (session, uid) values ($1, $2)", session, id).Scan()
-	case config.RoleAdmin:
-		err = repo.DB.QueryRow("insert into adminsessions (session, rid) values ($1, $2)", session, id).Scan()
-	default:
-		return errors.FailServer("role error")
-	}
->>>>>>> restaurantAuth:internal/session/repository/session.go
 	if err != nil {
 		return errors.FailServer(err.Error())
 	}

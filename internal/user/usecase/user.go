@@ -1,15 +1,16 @@
 package usecase
 
 import (
-	"github.com/borscht/backend/config"
-	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/user"
-	errors "github.com/borscht/backend/utils"
 	"hash/fnv"
 	"math/rand"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
+
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/internal/user"
+	errors "github.com/borscht/backend/utils"
 )
 
 // TODO: хранить статику в /var/...
@@ -31,6 +32,7 @@ func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
 func (u *userUsecase) Create(newUser models.User) (int, error) {
 
 	// TODO валидация какая нибудь
+	newUser.Avatar = config.DefaultAvatar
 
 	return u.userRepository.Create(newUser)
 }
