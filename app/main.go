@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
@@ -21,7 +23,8 @@ import (
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
-	"log"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 type initRoute struct {
@@ -56,6 +59,7 @@ func main() {
 
 	e.Use(custMiddleware.CORS)
 
+	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open(config.PostgresDB, dsn)
 	if err != nil {
@@ -70,8 +74,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// подключение redis
+	redisConn, err := redis.Dial("tcp", config.RedisHost)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer redisConn.Close()
+
 	userRepo := userRepo.NewUserRepo(db)
-	sessionRepo := sessionRepo.NewSessionRepo(db)
+	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	userUcase := userUcase.NewUserUsecase(userRepo)

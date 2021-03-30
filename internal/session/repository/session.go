@@ -1,39 +1,62 @@
 package repository
 
 import (
-	"database/sql"
 	"github.com/borscht/backend/config"
 	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
+
+	"encoding/json"
+
+	"github.com/gomodule/redigo/redis"
 )
 
-type sessionRepo struct {
-	DB *sql.DB
+const headKey = "sessions:"
+
+type sessionData struct {
+	Uid  int32  `json:"uid"`
+	Role string `json:"role"`
 }
 
-func NewSessionRepo(db *sql.DB) sessionModel.SessionRepo {
+type sessionID struct {
+	ID string
+}
+type sessionRepo struct {
+	redisConn redis.Conn
+}
+
+func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
 	return &sessionRepo{
-		DB: db,
+		redisConn: conn,
 	}
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (repo *sessionRepo) Check(sessionToCheck string) (int, bool, string) {
-	var id int
-	err := repo.DB.QueryRow("select uid from usersessions where session=$1", sessionToCheck).Scan(&id)
-	if err != sql.ErrNoRows { // если она не уникальная
-		return id, true, config.RoleUser
-	}
+<<<<<<< HEAD:internal/session/repository/local.go
 
-	err = repo.DB.QueryRow("select rid from adminsessions where session=$1", sessionToCheck).Scan(&id)
-	if err != sql.ErrNoRows {
-		return id, true, config.RoleAdmin
+func (repo *sessionRepo) Check(sessionToCheck string) (int32, bool, string) {
+	mkey := headKey + sessionToCheck
+	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
+	if err != nil {
+		return 0, false, ""
 	}
-
-	return 0, false, ""
+	sess := &sessionData{}
+	err = json.Unmarshal(data, sess)
+	if err != nil {
+		return 0, false, ""
+	}
+	return sess.Uid, true, sess.Role
 }
 
 // создание уникальной сессии
+<<<<<<< HEAD:internal/session/repository/local.go
+func (repo *sessionRepo) Create(session string, uid int32, role string) error {
+	id := sessionID{session}
+	dataSerialized, err := json.Marshal(sessionData{
+		Uid:  uid,
+		Role: role,
+	})
+
+=======
 func (repo *sessionRepo) Create(session string, id int, role string) error {
 	var err error
 	switch role {
@@ -44,19 +67,28 @@ func (repo *sessionRepo) Create(session string, id int, role string) error {
 	default:
 		return errors.FailServer("role error")
 	}
+>>>>>>> restaurantAuth:internal/session/repository/session.go
 	if err != nil {
-		return nil
+		return errors.FailServer(err.Error())
 	}
 
-	return errors.FailServer("session saving failed")
+	mkey := headKey + id.ID
+
+	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSecond))
+	if err != nil {
+		return errors.FailServer(err.Error())
+	}
+	if result != "OK" {
+		return errors.FailServer("result not OK")
+	}
+	return nil
 }
 
 func (repo *sessionRepo) Delete(session string) error {
-	_, err := repo.DB.Exec("delete from usersessions where session=$1", session)
-	_, errr := repo.DB.Exec("delete from adminsessions where session=$1", session)
-
-	if err != nil || errr != nil {
-		return errors.FailServer("session not found")
+	mkey := headKey + session
+	_, err := redis.Int(repo.redisConn.Do("DEL", mkey))
+	if err != nil {
+		return errors.FailServer("redis error:" + err.Error())
 	}
 
 	return nil
