@@ -1,17 +1,15 @@
 package usecase
 
 import (
-	"context"
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/internal/user"
+	errors "github.com/borscht/backend/utils"
 	"hash/fnv"
 	"math/rand"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
-
-	"github.com/borscht/backend/config"
-	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/user"
-	errors "github.com/borscht/backend/utils"
 )
 
 // TODO: хранить статику в /var/...
@@ -30,28 +28,28 @@ func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
 	}
 }
 
-func (u *userUsecase) Create(ctx context.Context, newUser models.User) error {
+func (u *userUsecase) Create(newUser models.User) (int, error) {
+
 	// TODO валидация какая нибудь
-	newUser.Avatar = config.DefaultAvatar
 
-	return u.userRepository.Create(ctx, newUser)
+	return u.userRepository.Create(newUser)
 }
 
-func (u *userUsecase) GetByLogin(ctx context.Context, user models.UserAuth) (models.User, error) {
-	return u.userRepository.GetByLogin(ctx, user)
+func (u *userUsecase) CheckUserExists(user models.UserAuth) (models.User, error) {
+	return u.userRepository.CheckUserExists(user)
 }
 
-func (u *userUsecase) GetByNumber(ctx context.Context, number string) (models.User, error) {
-	return u.userRepository.GetByNumber(ctx, number)
+func (u *userUsecase) GetByUid(uid int) (models.User, error) {
+	return u.userRepository.GetByUid(uid)
 }
 
-func (u *userUsecase) Update(ctx context.Context, newUser models.UserData) error {
+func (u *userUsecase) Update(newUser models.UserData, uid int) error {
 	// TODO валидация
 
-	return u.userRepository.Update(ctx, newUser)
+	return u.userRepository.Update(newUser, uid)
 }
 
-func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHeader) (string, error) {
+func (u *userUsecase) UploadAvatar(image *multipart.FileHeader) (string, error) {
 	// парсим расширение
 	expansion := filepath.Ext(image.Filename)
 

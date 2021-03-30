@@ -23,12 +23,14 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		phone, ok := m.SessionUcase.Check(c.Request().Context(), session.Value)
+		uid, ok := m.SessionUcase.Check(session.Value)
+
 		if !ok {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		user, err := m.UserUcase.GetByNumber(c.Request().Context(), phone)
+		user, err := m.UserUcase.GetByUid(uid)
+		user.Uid = uid
 		c.Set("User", user)
 
 		fmt.Println("THIS USER:", c.Get("User"))

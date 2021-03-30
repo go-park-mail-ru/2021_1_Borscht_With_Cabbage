@@ -48,19 +48,19 @@ func deleteResponseCookie(c echo.Context) {
 }
 
 func (h *Handler) Create(c echo.Context) error {
-	ctx := models.GetContext(c)
-
 	newUser := new(models.User)
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	if err := h.UserUcase.Create(ctx, *newUser); err != nil {
+	uid, err := h.UserUcase.Create(*newUser)
+	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(ctx, newUser.Phone)
+	session, err := h.SessionUcase.Create(uid)
+
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -73,27 +73,28 @@ func (h *Handler) Create(c echo.Context) error {
 }
 
 func (h *Handler) Login(c echo.Context) error {
-	ctx := models.GetContext(c)
-
 	newUser := new(models.UserAuth)
+
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	oldUser, err := h.UserUcase.GetByLogin(ctx, *newUser)
+	oldUser, err := h.UserUcase.CheckUserExists(*newUser)
+
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(ctx, oldUser.Phone)
+	session, err := h.SessionUcase.Create(oldUser.Uid)
+
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
 	setResponseCookie(c, session)
 
 	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
+
 	return models.SendResponse(c, response)
 }
 
@@ -109,8 +110,6 @@ func (h *Handler) GetUserData(c echo.Context) error {
 }
 
 func (h *Handler) EditProfile(c echo.Context) error {
-	ctx := models.GetContext(c)
-
 	// TODO убрать часть логики в usecase
 	formParams, err := c.FormParams()
 	if err != nil {
@@ -127,6 +126,16 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	fmt.Println(profileEdits)
 
 	file, err := c.FormFile("avatar")
+	var filename string
+	if err == nil { // если аватарка прикреплена
+		filename, err = h.UserUcase.UploadAvatar(file)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+	}
+
+	profileEdits.Avatar = filename
+	user := c.Get("User")
 
 	fmt.Println("FILE DELIVERY: ", err)
 
@@ -135,7 +144,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 			return models.SendResponseWithError(c, errors.BadRequest(err.Error()))
 		}
 
-		filename, err := h.UserUcase.UploadAvatar(ctx, file)
+		filename, err := h.UserUcase.UploadAvatar(file)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -145,13 +154,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 		profileEdits.Avatar = filename
 	}
 
-	user := c.Get("User")
-
-	err = h.UserUcase.Update(ctx, profileEdits)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
-	err = h.SessionUcase.Update(ctx, profileEdits.Phone, user.(models.User).Phone)
+	err = h.UserUcase.Update(profileEdits, user.(models.User).Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -171,15 +174,16 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 }
 
 func (h *Handler) Logout(c echo.Context) error {
-	ctx := models.GetContext(c)
-
 	cook, err := c.Cookie(config.SessionCookie)
 	if err != nil {
 		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	h.SessionUcase.Delete(ctx, cook.Value)
+	err = h.SessionUcase.Delete(cook.Value)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
 
 	deleteResponseCookie(c)
 

@@ -14,11 +14,11 @@ type Restaurant struct {
 	ID           int     `json:"id"`
 	AvgCheck     int     `json:"cost"`
 	Name         string  `json:"title"`
-	DeliveryTime int     `json:"time"`
 	Description  string  `json:"description"`
 	Dishes       []Dish  `json:"foods"`
 	DeliveryCost int     `json:"deliveryCost"`
 	Rating       float64 `json:"rating"`
+	Avatar       string  `json:"avatar"`
 }
 
 type RestaurantResponse struct {
@@ -29,4 +29,5 @@ type RestaurantResponse struct {
 	DeliveryTime int     `json:"time"`
 	AvgCheck     int     `json:"cost"`
 	DeliveryCost int     `json:"deliveryCost"`
+	Avatar       string  `json:"avatar"`
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
@@ -14,6 +16,8 @@ import (
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/labstack/echo/v4"
+	_ "github.com/lib/pq"
+	"log"
 )
 
 type initRoute struct {
@@ -42,12 +46,25 @@ func main() {
 	e.Static("/static", config.Static)
 	e.Static("/default", config.DefaultStatic)
 
-	// TODO убрать мидлвар в отедльный файл
 	e.Use(custMiddleware.CORS)
 
-	userRepo := userRepo.NewUserRepo()
-	sessionRepo := sessionRepo.NewSessionRepo()
-	restaurantRepo := restaurantRepo.NewRestaurantRepo()
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
+	db, err := sql.Open(config.PostgresDB, dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(3)
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	userRepo := userRepo.NewUserRepo(db)
+	sessionRepo := sessionRepo.NewSessionRepo(db)
+	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	userUcase := userUcase.NewUserUsecase(userRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)

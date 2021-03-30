@@ -1,117 +1,144 @@
 package repository
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/internal/user"
+	_errors "github.com/borscht/backend/utils"
+	"net/http"
+
 	"io"
 	"mime/multipart"
 	"os"
-
-	"github.com/borscht/backend/database/local"
-	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/user"
-	errors "github.com/borscht/backend/utils"
 )
 
 type userRepo struct {
-	db local.Database
+	DB *sql.DB
 }
 
-func NewUserRepo() user.UserRepo {
+func NewUserRepo(db *sql.DB) user.UserRepo {
 	return &userRepo{
-		db: local.GetInstance(),
+		DB: db,
 	}
 }
 
-func (u *userRepo) Create(ctx context.Context, newUser models.User) error {
-	for _, curUser := range *u.db.GetModels().Users {
-		if (curUser.Phone == newUser.Phone) && curUser.Password == newUser.Password {
-			return errors.Authorization("User with this number already exists") // такой юзер уже есть
-		}
+func (u *userRepo) checkExistingUser(email, number string) error {
+	var userInDB int
+	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
+	if err != sql.ErrNoRows {
+		return _errors.BadRequest("User with this email already exists")
 	}
 
-	// записываем нового
-	*u.db.GetModels().Users = append(*u.db.GetModels().Users, newUser)
+	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	if err != sql.ErrNoRows {
+		return _errors.BadRequest("User with this number already exists")
+	}
+
 	return nil
 }
 
-func (u *userRepo) GetByLogin(ctx context.Context, check models.UserAuth) (models.User, error) {
-	for _, curUser := range *u.db.GetModels().Users {
-		if (curUser.Email == check.Login || curUser.Phone == check.Login) && curUser.Password == check.Password {
-			return curUser, nil
-		}
+func (u *userRepo) checkUserWithThisData(email, number string, currentUserId int) error {
+	var userInDB int
+	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != currentUserId {
+		return _errors.BadRequest("User with this email already exists")
 	}
 
-	return models.User{}, errors.Authorization("not curUser bd")
+	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != currentUserId {
+		return _errors.BadRequest("User with this number already exists")
+	}
+
+	return nil
 }
 
-func (u *userRepo) GetByNumber(ctx context.Context, number string) (models.User, error) {
-	for _, curUser := range *u.db.GetModels().Users {
-		if curUser.Phone == number {
-			return curUser, nil
-		}
+func (u *userRepo) Create(newUser models.User) (int, error) {
+	err := u.checkExistingUser(newUser.Email, newUser.Phone)
+	if err != nil {
+		return 0, _errors.FailServer(err.Error())
+	}
+	fmt.Println(newUser)
+
+	var uid int
+	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
+		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultAvatar).Scan(&uid)
+	if err != nil {
+		return 0, _errors.FailServer(err.Error())
 	}
 
-	return models.User{}, errors.Authorization("curUser not found")
+	return uid, nil
 }
 
-func (u *userRepo) Update(ctx context.Context, newUser models.UserData) error {
-	fmt.Println("REPO------", ctx)
-	fmt.Println("USER REPO:", newUser)
-	user := ctx.Value("User").(models.User)
+func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, error) {
+	user := new(models.User)
 
-	for i, curUser := range *u.db.GetModels().Users {
-		if curUser.Email == newUser.Email && curUser.Phone != user.Phone { // если у кого-то другого уже есть такой email
-			return errors.BadRequest("curUser with this email already exists")
-		}
-		if curUser.Phone == newUser.Phone && curUser.Phone != user.Phone { // если у кого-то другого уже есть такой телефон
-			return errors.Authorization("User with this number already exists")
-		}
-
-		if curUser.Phone == user.Phone {
-			if newUser.Password != "" {
-				if newUser.PasswordOld != curUser.Password {
-					fmt.Println(newUser.PasswordOld, " ", curUser.Password)
-					return errors.Authorization("invalid old password")
-				}
-				(*u.db.GetModels().Users)[i].Password = newUser.Password
-			}
-
-			userDb := &(*u.db.GetModels().Users)[i]
-
-			userDb.Phone = newUser.Phone
-			userDb.Email = newUser.Email
-			userDb.Name = newUser.Name
-			userDb.Avatar = newUser.Avatar
-
-			fmt.Println(*u.db.GetModels().Users)
-			//return cc.SendResponse(profileEdits)
-			return nil
-		}
+	err := u.DB.QueryRow("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
+		userToCheck.Login, userToCheck.Password).Scan(&user.Uid, &user.Name, &user.Avatar)
+	if err == sql.ErrNoRows {
+		return models.User{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
+	}
+	if err != nil {
+		return models.User{}, _errors.FailServer(err.Error())
 	}
 
-	return errors.Authorization("curUser not found")
+	return *user, nil
+}
+
+func (u *userRepo) GetByUid(uid int) (models.User, error) {
+	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
+	if err != nil {
+		return models.User{}, _errors.Authorization("user not found")
+	}
+	user := new(models.User)
+	for DBuser.Next() {
+		err = DBuser.Scan(
+			&user.Name,
+			&user.Phone,
+			&user.Email,
+			&user.Avatar,
+		)
+		if err != nil {
+			return models.User{}, _errors.FailServer(err.Error())
+		}
+	}
+	return *user, nil
+}
+
+func (u *userRepo) Update(newUser models.UserData, uid int) error {
+	err := u.checkUserWithThisData(newUser.Phone, newUser.Email, uid)
+	if err != nil {
+		return _errors.FailServer(err.Error())
+	}
+
+	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3, photo = $4 where uid = $5",
+		newUser.Phone, newUser.Email, newUser.Name, newUser.Avatar, uid)
+	if err != nil {
+		return _errors.Authorization("curUser not found")
+	}
+
+	return nil
 }
 
 func (u *userRepo) UploadAvatar(image *multipart.FileHeader, filename string) error {
 	// Читаем файл из пришедшего запроса
 	src, err := image.Open()
 	if err != nil {
-		return errors.FailServer(err.Error())
+		return _errors.FailServer(err.Error())
 	}
 	defer src.Close()
 
 	// создаем файл у себя
 	dst, err := os.Create(filename)
 	if err != nil {
-		fmt.Println("ERROR:", err.Error())
-		return errors.FailServer(err.Error())
+		return _errors.FailServer(err.Error())
 	}
 	defer dst.Close()
 
 	// копируем один в другой
 	if _, err = io.Copy(dst, src); err != nil {
-		return errors.FailServer(err.Error())
+		return _errors.FailServer(err.Error())
 	}
 
 	return nil
