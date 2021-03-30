@@ -2,4 +2,4 @@
 .vscode
 send.http
 static/avatar/*
-config.go
+config/config.go
