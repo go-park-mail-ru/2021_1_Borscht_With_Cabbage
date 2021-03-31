@@ -4,6 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/internal/order/delivery/http"
+	"github.com/borscht/backend/internal/order/repository"
+	"github.com/borscht/backend/internal/order/usecase"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
 	restaurantRepo "github.com/borscht/backend/internal/restaurant/repository"
@@ -24,6 +28,7 @@ type initRoute struct {
 	e          *echo.Echo
 	user       user.UserHandler
 	restaurant restaurant.RestaurantHandler
+	order      order.OrderHandler
 	middleware custMiddleware.AuthMiddleware
 }
 
@@ -35,6 +40,7 @@ func route(data initRoute) {
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
 	user.GET("/auth", data.user.CheckAuth)
+	user.GET("/user/orders", data.order.GetUserOrder)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
@@ -65,12 +71,16 @@ func main() {
 	userRepo := userRepo.NewUserRepo(db)
 	sessionRepo := sessionRepo.NewSessionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
+	orderRepo := repository.NewOrderRepo(db)
+
 	userUcase := userUcase.NewUserUsecase(userRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, sessionUcase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
+	orderHandler := http.NewOrderHandler(orderUsecase)
 
 	initMiddleware := custMiddleware.InitMiddleware(userUcase, sessionUcase)
 
@@ -78,6 +88,7 @@ func main() {
 		e:          e,
 		user:       userHandler,
 		restaurant: restaurantHandler,
+		order:      orderHandler,
 		middleware: *initMiddleware,
 	})
 

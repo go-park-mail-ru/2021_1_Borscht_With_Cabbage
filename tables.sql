@@ -42,4 +42,16 @@ CREATE TABLE dishes (
     weight INTEGER,
     description TEXT,
     image TEXT
+);
+
+CREATE TABLE orders (
+    oid SERIAL PRIMARY KEY,
+    restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+    "user" INTEGER REFERENCES  users(uid) ON DELETE CASCADE,
+    date TIMESTAMP,
+    address TEXT,
+    deliveryCost INTEGER,
+    sun INTEGER,
+    status TEXT,
+    deliveryTime TIME
 )
