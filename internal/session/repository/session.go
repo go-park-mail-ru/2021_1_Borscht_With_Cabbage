@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
 
@@ -13,11 +14,6 @@ import (
 )
 
 const headKey = "sessions:"
-
-type sessionData struct {
-	Uid  int    `json:"uid"`
-	Role string `json:"role"`
-}
 
 type sessionID struct {
 	ID string
@@ -33,26 +29,26 @@ func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (repo *sessionRepo) Check(ctx context.Context, sessionToCheck string) (int, bool, string) {
+func (repo *sessionRepo) Check(ctx context.Context, sessionToCheck string) (models.SessionInfo, bool, error) {
 	mkey := headKey + sessionToCheck
 	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
 	if err != nil {
-		return 0, false, ""
+		return models.SessionInfo{}, false, err
 	}
-	sess := &sessionData{}
+	sess := &models.SessionInfo{}
 	err = json.Unmarshal(data, sess)
 	if err != nil {
-		return 0, false, ""
+		return models.SessionInfo{}, false, err
 	}
-	return sess.Uid, true, sess.Role
+	return *sess, true, nil
 }
 
 // создание уникальной сессии
-func (repo *sessionRepo) Create(ctx context.Context, session string, uid int, role string) error {
-	id := sessionID{session}
-	dataSerialized, err := json.Marshal(sessionData{
-		Uid:  uid,
-		Role: role,
+func (repo *sessionRepo) Create(ctx context.Context, sessionData models.SessionData) error {
+	id := sessionID{sessionData.Session}
+	dataSerialized, err := json.Marshal(models.SessionInfo{
+		Id:   sessionData.Id,
+		Role: sessionData.Role,
 	})
 	if err != nil {
 		return errors.FailServer(ctx, err.Error())

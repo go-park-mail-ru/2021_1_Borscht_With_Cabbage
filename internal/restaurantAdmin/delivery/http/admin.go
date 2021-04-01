@@ -48,7 +48,11 @@ func (a AdminHandler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := a.SessionUcase.Create(ctx, rid, config.RoleAdmin)
+	sessionInfo := models.SessionInfo{
+		Id:   rid,
+		Role: config.RoleAdmin,
+	}
+	session, err := a.SessionUcase.Create(ctx, sessionInfo)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -78,7 +82,11 @@ func (a AdminHandler) Login(c echo.Context) error {
 
 	fmt.Println(existingRest)
 
-	session, err := a.SessionUcase.Create(ctx, existingRest.ID, config.RoleAdmin)
+	sessionInfo := models.SessionInfo{
+		Id:   existingRest.ID,
+		Role: config.RoleAdmin,
+	}
+	session, err := a.SessionUcase.Create(ctx, sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -90,9 +98,11 @@ func (a AdminHandler) Login(c echo.Context) error {
 }
 
 func (a AdminHandler) GetUserData(c echo.Context) error {
-	panic("implement me") // TODO
+	ctx := models.GetContext(c)
+	return models.SendResponseWithError(c, errors.NewCustomError(ctx, 500, "не реализовано")) // TODO
 }
 
 func (a AdminHandler) EditProfile(c echo.Context) error {
-	panic("implement me") // TODO
+	ctx := models.GetContext(c)
+	return models.SendResponseWithError(c, errors.NewCustomError(ctx, 500, "не реализовано")) // TODO
 }

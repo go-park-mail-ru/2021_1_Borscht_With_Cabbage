@@ -17,28 +17,31 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := models.GetContext(c)
 		session, err := c.Cookie(config.SessionCookie)
-
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		uid, ok, role := m.SessionUcase.Check(ctx, session.Value)
-
-		if !ok {
+		sessionData := new(models.SessionInfo)
+		var exists bool
+		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		if !exists {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		if role == config.RoleUser { // тут проверяются права именно на обычного юзера
-			user, err := m.UserUcase.GetByUid(ctx, uid)
-			if err != nil {
-				return models.SendRedirectLogin(c)
-			}
-			user.Uid = uid
-			c.Set("User", user)
-			return next(c)
+		if sessionData.Role != config.RoleUser { // тут проверяются права именно на обычного юзера
+			return models.SendRedirectLogin(c)
 		}
 
-		return models.SendRedirectLogin(c)
+		user, err := m.UserUcase.GetByUid(ctx, sessionData.Id)
+		if err != nil {
+			return models.SendRedirectLogin(c)
+		}
+		user.Uid = sessionData.Id
+		c.Set("User", user)
+		return next(c)
 	}
 }
 

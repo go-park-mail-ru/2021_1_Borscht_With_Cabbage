@@ -37,11 +37,6 @@ CREATE TABLE restaurants (
     avatar TEXT
 );
 
-CREATE TABLE adminSessions (
-    session TEXT NOT NULL PRIMARY KEY,
-    rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
-);
-
 CREATE TABLE dishes (
     did SERIAL PRIMARY KEY,
     restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,

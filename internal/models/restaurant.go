@@ -39,3 +39,10 @@ type RestaurantResponse struct {
 	DeliveryCost int     `json:"deliveryCost"`
 	Avatar       string  `json:"avatar"`
 }
+
+type CheckRestaurantExists struct {
+	Email         string
+	Number        string
+	Name          string
+	CurrentRestId int
+}

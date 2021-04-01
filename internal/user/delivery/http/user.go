@@ -64,7 +64,11 @@ func (h *Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(ctx, uid, config.RoleUser)
+	sessionInfo := models.SessionInfo{
+		Id:   uid,
+		Role: config.RoleUser,
+	}
+	session, err := h.SessionUcase.Create(ctx, sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -93,7 +97,11 @@ func (h *Handler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(ctx, oldUser.Uid, config.RoleUser)
+	sessionInfo := models.SessionInfo{
+		Id:   oldUser.Uid,
+		Role: config.RoleUser,
+	}
+	session, err := h.SessionUcase.Create(ctx, sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -183,35 +191,43 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 
 	authResponse := new(models.Auth)
 
-	id, exists, role := h.SessionUcase.Check(ctx, cookie.Value)
-	if exists {
-		switch role {
-		case config.RoleAdmin:
-			restaurant, err := h.AdminUcase.GetByRid(ctx, id)
-			if err != nil {
-				sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, err.Error())
-				return models.SendResponseWithError(c, sendErr)
-			}
-			authResponse.Name = restaurant.Name
-			authResponse.Avatar = restaurant.Avatar
-			authResponse.Role = config.RoleAdmin
-			return models.SendResponse(c, authResponse)
-
-		case config.RoleUser:
-			user, err := h.UserUcase.GetByUid(ctx, id)
-			if err != nil {
-				sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, err.Error())
-				return models.SendResponseWithError(c, sendErr)
-			}
-			authResponse.Name = user.Name
-			authResponse.Avatar = user.Avatar
-			authResponse.Role = config.RoleUser
-			return models.SendResponse(c, authResponse)
-		}
+	sessionData := new(models.SessionInfo)
+	var exist bool
+	*sessionData, exist, err = h.SessionUcase.Check(ctx, cookie.Value)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+	if !exist {
+		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
+		return models.SendResponseWithError(c, sendErr)
 	}
 
-	sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
-	return models.SendResponseWithError(c, sendErr)
+	switch sessionData.Role {
+	case config.RoleAdmin:
+		restaurant, err := h.AdminUcase.GetByRid(ctx, sessionData.Id)
+		if err != nil {
+			sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, err.Error())
+			return models.SendResponseWithError(c, sendErr)
+		}
+		authResponse.Name = restaurant.Name
+		authResponse.Avatar = restaurant.Avatar
+		authResponse.Role = config.RoleAdmin
+		return models.SendResponse(c, authResponse)
+
+	case config.RoleUser:
+		user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
+		if err != nil {
+			sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, err.Error())
+			return models.SendResponseWithError(c, sendErr)
+		}
+		authResponse.Name = user.Name
+		authResponse.Avatar = user.Avatar
+		authResponse.Role = config.RoleUser
+		return models.SendResponse(c, authResponse)
+	default:
+		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with roles")
+		return models.SendResponseWithError(c, sendErr)
+	}
 }
 
 func (h *Handler) Logout(c echo.Context) error {
