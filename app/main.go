@@ -33,19 +33,22 @@ type initRoute struct {
 	restaurant      restaurant.RestaurantHandler
 	restaurantAdmin restaurantAdmin.AdminHandler
 	authMiddleware  custMiddleware.AuthMiddleware
+	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
 }
 
 func route(data initRoute) {
-	user := data.e.Group("/user", data.authMiddleware.Auth)
+	user := data.e.Group("/user", data.userMiddleware.Auth)
+	// restaurant := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	auth := data.e.Group("", data.authMiddleware.Auth)
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
-	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
-	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
+	data.e.POST("/signin", data.restaurantAdmin.Login)
+	data.e.POST("/signup", data.restaurantAdmin.Create)
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
-	user.GET("/auth", data.user.CheckAuth)
+	auth.GET("/auth", data.user.CheckAuth)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
@@ -94,16 +97,18 @@ func main() {
 	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 
-	initAuthMiddleware := custMiddleware.InitMiddleware(userUcase, sessionUcase)
+	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(restaurantAdminUsecase, sessionUcase)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, restaurantAdminUsecase, sessionUcase)
 
 	route(initRoute{
 		e:               e,
 		user:            userHandler,
 		restaurantAdmin: restaurantAdminHandler,
 		restaurant:      restaurantHandler,
-		authMiddleware:  *initAuthMiddleware,
+		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
+		authMiddleware:  *initAuthMiddleware,
 	})
 
 	e.Logger.Fatal(e.Start(":5000"))
