@@ -2,25 +2,27 @@ package http
 
 import (
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
+	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"time"
 )
 
 type Handler struct {
 	UserUcase    userModel.UserUsecase
+	AdminUcase   adminModel.AdminUsecase
 	SessionUcase sessionModel.SessionUsecase
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
 	handler := &Handler{
 		UserUcase:    userUcase,
+		AdminUcase:   adminUcase,
 		SessionUcase: sessionUcase,
 	}
 
@@ -59,7 +61,11 @@ func (h *Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(uid)
+	sessionInfo := models.SessionInfo{
+		Id:   uid,
+		Role: config.RoleUser,
+	}
+	session, err := h.SessionUcase.Create(sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -68,7 +74,7 @@ func (h *Handler) Create(c echo.Context) error {
 	fmt.Println("SESSION:", session)
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: newUser.Name, Avatar: config.DefaultAvatar} // TODO убрать config отсюда
+	response := models.SuccessResponse{Name: newUser.Name, Avatar: config.DefaultAvatar, Role: config.RoleUser} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -86,14 +92,18 @@ func (h *Handler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := h.SessionUcase.Create(oldUser.Uid)
+	sessionInfo := models.SessionInfo{
+		Id:   oldUser.Uid,
+		Role: config.RoleUser,
+	}
+	session, err := h.SessionUcase.Create(sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar}
+	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar, Role: config.RoleUser}
 
 	return models.SendResponse(c, response)
 }
@@ -163,14 +173,51 @@ func (h *Handler) EditProfile(c echo.Context) error {
 }
 
 func (h *Handler) CheckAuth(c echo.Context) error {
-	user := c.Get("User")
-
-	if user == nil {
-		sendErr := errors.Authorization("error with request data")
+	cookie, err := c.Cookie(config.SessionCookie)
+	if err != nil {
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	return models.SendResponse(c, user)
+	authResponse := new(models.Auth)
+
+	sessionData := new(models.SessionInfo)
+	var exist bool
+	*sessionData, exist, err = h.SessionUcase.Check(cookie.Value)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+	if !exist {
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	switch sessionData.Role {
+	case config.RoleAdmin:
+		restaurant, err := h.AdminUcase.GetByRid(sessionData.Id)
+		if err != nil {
+			sendErr := errors.NewCustomError(http.StatusUnauthorized, err.Error())
+			return models.SendResponseWithError(c, sendErr)
+		}
+		authResponse.Name = restaurant.Name
+		authResponse.Avatar = restaurant.Avatar
+		authResponse.Role = config.RoleAdmin
+		return models.SendResponse(c, authResponse)
+
+	case config.RoleUser:
+		user, err := h.UserUcase.GetByUid(sessionData.Id)
+		if err != nil {
+			sendErr := errors.NewCustomError(http.StatusUnauthorized, err.Error())
+			return models.SendResponseWithError(c, sendErr)
+		}
+		authResponse.Name = user.Name
+		authResponse.Avatar = user.Avatar
+		authResponse.Role = config.RoleUser
+		return models.SendResponse(c, authResponse)
+	default:
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with roles")
+		return models.SendResponseWithError(c, sendErr)
+	}
 }
 
 func (h *Handler) Logout(c echo.Context) error {

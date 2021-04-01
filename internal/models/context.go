@@ -42,5 +42,6 @@ func SendResponseWithError(c echo.Context, err error) error {
 	}
 
 	customErr := errors.FailServer(err.Error())
+
 	return c.JSON(http.StatusOK, customErr.SendError)
 }

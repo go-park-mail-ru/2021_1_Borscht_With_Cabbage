@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -59,7 +58,6 @@ func (u *userRepo) Create(newUser models.User) (int, error) {
 	if err != nil {
 		return 0, _errors.FailServer(err.Error())
 	}
-	fmt.Println(newUser)
 
 	var uid int
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
@@ -77,6 +75,7 @@ func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, er
 	err := u.DB.QueryRow("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
 		userToCheck.Login, userToCheck.Password).Scan(&user.Uid, &user.Name, &user.Avatar)
 	if err == sql.ErrNoRows {
+
 		return models.User{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
 	if err != nil {
