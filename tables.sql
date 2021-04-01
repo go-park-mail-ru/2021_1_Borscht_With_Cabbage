@@ -15,6 +15,7 @@ CREATE TABLE users (
                        photo TEXT,
     -- mainAddress text references addresses(address) on delete cascade ,
                        password TEXT
+
 );
 
 CREATE TABLE addresses (
