@@ -14,11 +14,6 @@ CREATE TABLE users (
     password TEXT
 );
 
-CREATE TABLE userSessions (
-    session TEXT NOT NULL PRIMARY KEY,
-    uid INTEGER REFERENCES users(uid) ON DELETE CASCADE
-);
-
 CREATE TABLE addresses (
     address TEXT,
     "user" INTEGER REFERENCES users(uid) ON DELETE CASCADE
