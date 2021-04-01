@@ -42,17 +42,39 @@ func (h Handler) Create(c echo.Context) error {
 }
 
 func (h Handler) GetUserOrders(c echo.Context) error {
-	user := c.Get("User")
-	if user == nil {
-		userError := errors.Authorization("not authorized")
-		return models.SendResponseWithError(c, userError)
+	orders := make([]models.Order, 0)
+	dishes := make([]models.Dish, 0)
+	dish := models.Dish{
+		Name:  "Солянка",
+		Price: 200,
 	}
+	dishes = append(dishes, dish)
 
-	userStruct := user.(models.User)
-	orders, err := h.OrderUcase.GetUserOrders(userStruct.Uid)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
+	testOrder1 := models.Order{
+		OID:          1,
+		Restaurant:   "rest1",
+		Address:      "Проспект мира 15,56",
+		OrderTime:    "12.10.2021 15:45",
+		DeliveryCost: 200,
+		DeliveryTime: "1 час",
+		Summary:      "1900",
+		Status:       models.StatusOrderAdded,
+		Foods:        dishes,
 	}
+	orders = append(orders, testOrder1)
+	orders = append(orders, testOrder1)
+
+	//user := c.Get("User")
+	//if user == nil {
+	//	userError := errors.Authorization("not authorized")
+	//	return models.SendResponseWithError(c, userError)
+	//}
+	//
+	//userStruct := user.(models.User)
+	//orders, err := h.OrderUcase.GetUserOrders(userStruct.Uid)
+	//if err != nil {
+	//	return models.SendResponseWithError(c, err)
+	//}
 
 	return models.SendResponse(c, orders)
 }
