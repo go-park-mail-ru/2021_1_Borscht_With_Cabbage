@@ -55,8 +55,7 @@ func route(data initRoute) {
 	data.e.GET("/restaurants", data.restaurant.GetVendor)
 }
 
-func main() {
-	e := echo.New()
+func initServer(e *echo.Echo) {
 	e.Static("/static", config.Static)
 	e.Static("/default", config.DefaultStatic)
 
@@ -66,6 +65,11 @@ func main() {
 	e.Use(custMiddleware.PanicConfig)
 
 	e.HTTPErrorHandler = custMiddleware.ErrorHandler
+}
+
+func main() {
+	e := echo.New()
+	initServer(e)
 
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
@@ -114,5 +118,5 @@ func main() {
 		adminMiddleware: *initAdminMiddleware,
 	})
 
-	e.Start(":5000")
+	e.Logger.Fatal(e.Start(":5000"))
 }
