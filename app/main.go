@@ -21,6 +21,7 @@ import (
 	userRepo "github.com/borscht/backend/internal/user/repository"
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
+	"github.com/borscht/backend/utils"
 
 	// "github.com/labstack/echo/middleware"
 	"github.com/labstack/echo/v4"
@@ -59,9 +60,8 @@ func main() {
 	e.Static("/static", config.Static)
 	e.Static("/default", config.DefaultStatic)
 
-	e.Use(custMiddleware.RequestIDMiddleware)
-	logMiddleware := custMiddleware.InitLoggerMiddleware()
-	e.Use(logMiddleware.Log)
+	utils.InitLogger()
+	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
 	e.Use(custMiddleware.PanicConfig)
 

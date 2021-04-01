@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"net/http"
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
@@ -78,7 +77,7 @@ func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserA
 		userToCheck.Login, userToCheck.Password).Scan(&user.Uid, &user.Name, &user.Avatar)
 	if err == sql.ErrNoRows {
 
-		return models.User{}, _errors.NewCustomError(ctx, http.StatusBadRequest, "user not found")
+		return models.User{}, _errors.Authorization(ctx, "user not found")
 	}
 	if err != nil {
 		return models.User{}, _errors.FailServer(ctx, err.Error())

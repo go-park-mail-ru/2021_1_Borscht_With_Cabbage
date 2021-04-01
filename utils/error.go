@@ -1,10 +1,8 @@
-package errors
+package utils
 
 import (
 	"context"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
 )
 
 type CustomError struct {
@@ -22,12 +20,20 @@ func (err *CustomError) Error() string {
 	return err.Description
 }
 
-func (err *CustomError) logError() {
-	logrus.WithFields(logrus.Fields{
+func (err *CustomError) logWarn() {
+	WarnLog(err.ctx, Fields{
 		"code":        err.Code,
 		"message":     err.Message,
 		"description": err.Description,
-	}).Warn("request_id: ", err.ctx.Value("request_id"))
+	})
+}
+
+func (err *CustomError) logInfo() {
+	InfoLog(err.ctx, Fields{
+		"code":        err.Code,
+		"message":     err.Message,
+		"description": err.Description,
+	})
 }
 
 func NewCustomError(ctx context.Context, code int, mess string) *CustomError {
@@ -40,7 +46,7 @@ func NewCustomError(ctx context.Context, code int, mess string) *CustomError {
 		ctx:         ctx,
 	}
 
-	err.logError()
+	err.logWarn()
 	return &err
 }
 
@@ -54,7 +60,7 @@ func BadRequest(ctx context.Context, desc string) *CustomError {
 		ctx:         ctx,
 	}
 
-	err.logError()
+	err.logInfo()
 	return &err
 }
 
@@ -68,7 +74,7 @@ func FailServer(ctx context.Context, desc string) *CustomError {
 		ctx:         ctx,
 	}
 
-	err.logError()
+	err.logWarn()
 	return &err
 }
 
@@ -82,6 +88,6 @@ func Authorization(ctx context.Context, desc string) *CustomError {
 		ctx:         ctx,
 	}
 
-	err.logError()
+	err.logInfo()
 	return &err
 }
