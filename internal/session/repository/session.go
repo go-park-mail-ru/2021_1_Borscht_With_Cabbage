@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/borscht/backend/config"
 	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
@@ -31,7 +33,7 @@ func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (repo *sessionRepo) Check(sessionToCheck string) (int, bool, string) {
+func (repo *sessionRepo) Check(ctx context.Context, sessionToCheck string) (int, bool, string) {
 	mkey := headKey + sessionToCheck
 	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
 	if err != nil {
@@ -46,33 +48,33 @@ func (repo *sessionRepo) Check(sessionToCheck string) (int, bool, string) {
 }
 
 // создание уникальной сессии
-func (repo *sessionRepo) Create(session string, uid int, role string) error {
+func (repo *sessionRepo) Create(ctx context.Context, session string, uid int, role string) error {
 	id := sessionID{session}
 	dataSerialized, err := json.Marshal(sessionData{
 		Uid:  uid,
 		Role: role,
 	})
 	if err != nil {
-		return errors.FailServer(err.Error())
+		return errors.FailServer(ctx, err.Error())
 	}
 
 	mkey := headKey + id.ID
 
 	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSecond))
 	if err != nil {
-		return errors.FailServer(err.Error())
+		return errors.FailServer(ctx, err.Error())
 	}
 	if result != "OK" {
-		return errors.FailServer("result not OK")
+		return errors.FailServer(ctx, "result not OK")
 	}
 	return nil
 }
 
-func (repo *sessionRepo) Delete(session string) error {
+func (repo *sessionRepo) Delete(ctx context.Context, session string) error {
 	mkey := headKey + session
 	_, err := redis.Int(repo.redisConn.Do("DEL", mkey))
 	if err != nil {
-		return errors.FailServer("redis error:" + err.Error())
+		return errors.FailServer(ctx, "redis error:"+err.Error())
 	}
 
 	return nil

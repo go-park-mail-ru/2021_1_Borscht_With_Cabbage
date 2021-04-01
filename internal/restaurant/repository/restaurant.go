@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	_errors "github.com/borscht/backend/utils"
@@ -17,11 +19,11 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
-func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantResponse, error) {
+func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantResponse, error) {
 	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
 		"where rid >= $1 and rid <= $2", offset, limit+offset)
 	if err != nil {
-		return []models.RestaurantResponse{}, _errors.FailServer(err.Error())
+		return []models.RestaurantResponse{}, _errors.FailServer(ctx, err.Error())
 	}
 
 	var restaurants []models.RestaurantResponse
@@ -42,17 +44,17 @@ func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantRespon
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(id string) (models.Restaurant, error) {
+func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaurant, error) {
 	restaurant := new(models.Restaurant)
 	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
 		id).Scan(&restaurant.Name, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
-		return models.Restaurant{}, _errors.FailServer(err.Error())
+		return models.Restaurant{}, _errors.FailServer(ctx, err.Error())
 	}
 
 	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
 	if errr != nil {
-		return models.Restaurant{}, _errors.FailServer(errr.Error())
+		return models.Restaurant{}, _errors.FailServer(ctx, errr.Error())
 	}
 
 	dishes := make([]models.Dish, 0)
@@ -66,14 +68,14 @@ func (r *restaurantRepo) GetById(id string) (models.Restaurant, error) {
 			&dish.Image,
 		)
 		if err != nil {
-			return models.Restaurant{}, _errors.FailServer(err.Error())
+			return models.Restaurant{}, _errors.FailServer(ctx, err.Error())
 		}
 
 		dishes = append(dishes, *dish)
 	}
 	err = dishesDB.Close()
 	if err != nil {
-		return models.Restaurant{}, _errors.FailServer(err.Error())
+		return models.Restaurant{}, _errors.FailServer(ctx, err.Error())
 	}
 
 	restaurant.Dishes = dishes

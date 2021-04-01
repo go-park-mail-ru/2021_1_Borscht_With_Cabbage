@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -16,26 +15,26 @@ type AdminAuthMiddleware struct {
 
 func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		ctx := models.GetContext(c)
 		session, err := c.Cookie(config.SessionCookie)
 
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		id, ok, role := m.SessionUcase.Check(session.Value)
+		id, ok, role := m.SessionUcase.Check(ctx, session.Value)
 
 		if !ok {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
 		if role == config.RoleAdmin { // тут проверяются права именно на обычного юзера
-			restaurant, err := m.AdminUcase.GetByRid(id)
+			restaurant, err := m.AdminUcase.GetByRid(ctx, id)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
 			restaurant.ID = id
 			c.Set("Restaurant", restaurant)
-			fmt.Println("THIS RESTAURANT:", c.Get("Restaurant"))
 			return next(c)
 		}
 

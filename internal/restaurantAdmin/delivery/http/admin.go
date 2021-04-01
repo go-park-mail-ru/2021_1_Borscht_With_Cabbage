@@ -2,14 +2,15 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"time"
 )
 
 type AdminHandler struct {
@@ -35,18 +36,19 @@ func setResponseCookie(c echo.Context, session string) {
 }
 
 func (a AdminHandler) Create(c echo.Context) error {
+	ctx := models.GetContext(c)
 	newRestaurant := new(models.Restaurant)
 	if err := c.Bind(newRestaurant); err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	rid, err := a.AdminUsecase.Create(*newRestaurant)
+	rid, err := a.AdminUsecase.Create(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	session, err := a.SessionUcase.Create(rid, config.RoleAdmin)
+	session, err := a.SessionUcase.Create(ctx, rid, config.RoleAdmin)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -58,16 +60,17 @@ func (a AdminHandler) Create(c echo.Context) error {
 }
 
 func (a AdminHandler) Login(c echo.Context) error {
+	ctx := models.GetContext(c)
 	newRest := new(models.RestaurantAuth)
 
 	if err := c.Bind(newRest); err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
 		return models.SendResponseWithError(c, sendErr)
 	}
 
 	fmt.Println(newRest)
 
-	existingRest, err := a.AdminUsecase.CheckRestaurantExists(*newRest)
+	existingRest, err := a.AdminUsecase.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
 		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
@@ -75,7 +78,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 
 	fmt.Println(existingRest)
 
-	session, err := a.SessionUcase.Create(existingRest.ID, config.RoleAdmin)
+	session, err := a.SessionUcase.Create(ctx, existingRest.ID, config.RoleAdmin)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)

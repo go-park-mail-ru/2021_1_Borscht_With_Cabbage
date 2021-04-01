@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	sessionModel "github.com/borscht/backend/internal/session"
 	"github.com/google/uuid"
 )
@@ -16,23 +18,23 @@ func NewSessionUsecase(repo sessionModel.SessionRepo) sessionModel.SessionUsecas
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *sessionUsecase) Check(session string) (int, bool, string) {
-	return s.sessionRepo.Check(session)
+func (s *sessionUsecase) Check(ctx context.Context, session string) (int, bool, string) {
+	return s.sessionRepo.Check(ctx, session)
 }
 
 // создание уникальной сессии
-func (s *sessionUsecase) Create(uid int, role string) (string, error) {
+func (s *sessionUsecase) Create(ctx context.Context, uid int, role string) (string, error) {
 	session := ""
 	for {
 		session = uuid.New().String()
 
-		_, isItExists, _ := s.sessionRepo.Check(session) // далее в цикле - проверка на уникальность
-		if isItExists == false {                         // не получили привязанного к сессии пользователя, следовательно, не существует
+		_, isItExists, _ := s.sessionRepo.Check(ctx, session) // далее в цикле - проверка на уникальность
+		if isItExists == false {                              // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}
 
-	err := s.sessionRepo.Create(session, uid, role)
+	err := s.sessionRepo.Create(ctx, session, uid, role)
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +42,7 @@ func (s *sessionUsecase) Create(uid int, role string) (string, error) {
 	return session, nil
 }
 
-func (s *sessionUsecase) Delete(session string) error {
-	return s.sessionRepo.Delete(session)
+func (s *sessionUsecase) Delete(ctx context.Context, session string) error {
+	return s.sessionRepo.Delete(ctx, session)
 
 }

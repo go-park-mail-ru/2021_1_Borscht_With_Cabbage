@@ -6,6 +6,7 @@ import (
 
 	errors "github.com/borscht/backend/utils"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 type message struct {
@@ -28,11 +29,20 @@ func SendRedirectLogin(c echo.Context) error {
 func GetContext(c echo.Context) context.Context {
 	ctx := c.Request().Context()
 
-	return context.WithValue(ctx, "User", c.Get("User"))
+	ctx = context.WithValue(ctx, "User", c.Get("User"))
+	return context.WithValue(ctx, "request_id", c.Get("request_id"))
 }
 
 func SendResponse(c echo.Context, data interface{}) error {
-	return c.JSON(http.StatusOK, message{http.StatusOK, data})
+
+	serverMessage := message{http.StatusOK, data}
+
+	logrus.WithFields(logrus.Fields{
+		"code":     http.StatusOK,
+		"response": serverMessage,
+	}).Info("request_id: ", c.Get("request_id"))
+
+	return c.JSON(http.StatusOK, serverMessage)
 }
 
 func SendResponseWithError(c echo.Context, err error) error {
@@ -41,7 +51,13 @@ func SendResponseWithError(c echo.Context, err error) error {
 		return c.JSON(http.StatusOK, customErr.SendError)
 	}
 
-	customErr := errors.FailServer(err.Error())
+	ctx := GetContext(c)
+	customErr := errors.FailServer(ctx, err.Error())
+
+	logrus.WithFields(logrus.Fields{
+		"code":     customErr.Code,
+		"response": customErr.SendError,
+	}).Info("request_id: ", c.Get("request_id"))
 
 	return c.JSON(http.StatusOK, customErr.SendError)
 }

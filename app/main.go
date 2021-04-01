@@ -21,6 +21,8 @@ import (
 	userRepo "github.com/borscht/backend/internal/user/repository"
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
+
+	// "github.com/labstack/echo/middleware"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 
@@ -57,7 +59,13 @@ func main() {
 	e.Static("/static", config.Static)
 	e.Static("/default", config.DefaultStatic)
 
+	e.Use(custMiddleware.RequestIDMiddleware)
+	logMiddleware := custMiddleware.InitLoggerMiddleware()
+	e.Use(logMiddleware.Log)
 	e.Use(custMiddleware.CORS)
+	e.Use(custMiddleware.PanicConfig)
+
+	e.HTTPErrorHandler = custMiddleware.ErrorHandler
 
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
@@ -106,5 +114,5 @@ func main() {
 		adminMiddleware: *initAdminMiddleware,
 	})
 
-	e.Logger.Fatal(e.Start(":5000"))
+	e.Start(":5000")
 }

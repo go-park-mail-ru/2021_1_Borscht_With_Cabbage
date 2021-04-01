@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
@@ -17,26 +15,26 @@ type AuthMiddleware struct {
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		ctx := models.GetContext(c)
 		session, err := c.Cookie(config.SessionCookie)
 
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		uid, ok, role := m.SessionUcase.Check(session.Value)
+		uid, ok, role := m.SessionUcase.Check(ctx, session.Value)
 
 		if !ok {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
 		if role == config.RoleUser { // тут проверяются права именно на обычного юзера
-			user, err := m.UserUcase.GetByUid(uid)
+			user, err := m.UserUcase.GetByUid(ctx, uid)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
 			user.Uid = uid
 			c.Set("User", user)
-			fmt.Println("THIS USER:", c.Get("User"))
 			return next(c)
 		}
 
