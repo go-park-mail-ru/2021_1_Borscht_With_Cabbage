@@ -1,47 +1,74 @@
 package repository
 
 import (
-	"database/sql"
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils"
+
+	"encoding/json"
+
+	"github.com/gomodule/redigo/redis"
 )
 
+const headKey = "sessions:"
+
+type sessionID struct {
+	ID string
+}
 type sessionRepo struct {
-	DB *sql.DB
+	redisConn redis.Conn
 }
 
-func NewSessionRepo(db *sql.DB) sessionModel.SessionRepo {
+func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
 	return &sessionRepo{
-		DB: db,
+		redisConn: conn,
 	}
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (repo *sessionRepo) Check(sessionToCheck string) (int, bool) {
-	var uid int
-	err := repo.DB.QueryRow("select uid from sessions where session=$1", sessionToCheck).Scan(&uid)
-
-	if err != sql.ErrNoRows { // если она не уникальная
-		return uid, true
+func (repo *sessionRepo) Check(sessionToCheck string) (models.SessionInfo, bool, error) {
+	mkey := headKey + sessionToCheck
+	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
+	if err != nil {
+		return models.SessionInfo{}, false, err
 	}
-
-	return 0, false
+	sess := &models.SessionInfo{}
+	err = json.Unmarshal(data, sess)
+	if err != nil {
+		return models.SessionInfo{}, false, err
+	}
+	return *sess, true, nil
 }
 
 // создание уникальной сессии
-func (repo *sessionRepo) Create(session string, uid int) error {
-	err := repo.DB.QueryRow("insert into sessions (session, uid) values ($1, $2)", session, uid)
+func (repo *sessionRepo) Create(sessionData models.SessionData) error {
+	id := sessionID{sessionData.Session}
+	dataSerialized, err := json.Marshal(models.SessionInfo{
+		Id:   sessionData.Id,
+		Role: sessionData.Role,
+	})
 	if err != nil {
-		return nil
+		return errors.FailServer(err.Error())
 	}
 
-	return errors.FailServer("session saving failed")
+	mkey := headKey + id.ID
+
+	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSecond))
+	if err != nil {
+		return errors.FailServer(err.Error())
+	}
+	if result != "OK" {
+		return errors.FailServer("result not OK")
+	}
+	return nil
 }
 
 func (repo *sessionRepo) Delete(session string) error {
-	_, err := repo.DB.Exec("delete from sessions where session=$1", session)
+	mkey := headKey + session
+	_, err := redis.Int(repo.redisConn.Do("DEL", mkey))
 	if err != nil {
-		return errors.FailServer("session not found")
+		return errors.FailServer("redis error:" + err.Error())
 	}
 
 	return nil

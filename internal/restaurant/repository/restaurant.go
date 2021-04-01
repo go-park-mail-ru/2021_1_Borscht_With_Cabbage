@@ -19,7 +19,7 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 
 func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantResponse, error) {
 	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
-		"where rid >= $1 and rid <= $2", limit, limit+offset)
+		"where rid >= $1 and rid <= $2", offset, limit+offset)
 	if err != nil {
 		return []models.RestaurantResponse{}, _errors.FailServer(err.Error())
 	}
