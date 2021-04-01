@@ -19,20 +19,20 @@ func NewAdminRepo(db *sql.DB) restaurantAdmin.AdminRepo {
 	}
 }
 
-func (a adminRepo) checkExistingRestaurant(email, number, name string, currentRestId int) error {
+func (a adminRepo) checkExistingRestaurant(restaurantData models.CheckRestaurantExists) error {
 	var userInDB int
-	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", email).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentRestId {
+	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", restaurantData.Email).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this email already exists")
 	}
 
-	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", number).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentRestId {
+	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", restaurantData.Number).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this number already exists")
 	}
 
-	err = a.DB.QueryRow("select rid from restaurants where name = $1", name).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != currentRestId {
+	err = a.DB.QueryRow("select rid from restaurants where name = $1", restaurantData.Name).Scan(&userInDB)
+	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
 		return _errors.NewCustomError(http.StatusBadRequest, "Restaurant with this name already exists")
 	}
 
@@ -40,7 +40,12 @@ func (a adminRepo) checkExistingRestaurant(email, number, name string, currentRe
 }
 
 func (a adminRepo) Create(newRestaurant models.Restaurant) (int, error) {
-	err := a.checkExistingRestaurant(newRestaurant.AdminEmail, newRestaurant.AdminPhone, newRestaurant.Name, -1)
+	dataToExistingCheck := models.CheckRestaurantExists{
+		Email:  newRestaurant.AdminEmail,
+		Number: newRestaurant.AdminPhone,
+		Name:   newRestaurant.Name,
+	}
+	err := a.checkExistingRestaurant(dataToExistingCheck)
 	if err != nil {
 		return 0, _errors.FailServer(err.Error())
 	}

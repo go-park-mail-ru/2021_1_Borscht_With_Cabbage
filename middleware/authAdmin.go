@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -17,29 +16,31 @@ type AdminAuthMiddleware struct {
 func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		session, err := c.Cookie(config.SessionCookie)
-
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		id, ok, role := m.SessionUcase.Check(session.Value)
-
-		if !ok {
+		sessionData := new(models.SessionInfo)
+		var exists bool
+		*sessionData, exists, err = m.SessionUcase.Check(session.Value)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		if !exists {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		if role == config.RoleAdmin { // тут проверяются права именно на обычного юзера
-			restaurant, err := m.AdminUcase.GetByRid(id)
-			if err != nil {
-				return models.SendRedirectLogin(c)
-			}
-			restaurant.ID = id
-			c.Set("Restaurant", restaurant)
-			fmt.Println("THIS RESTAURANT:", c.Get("Restaurant"))
-			return next(c)
+		if sessionData.Role != config.RoleAdmin { // тут проверяются права именно на обычного юзера
+			return models.SendRedirectLogin(c)
 		}
 
-		return models.SendRedirectLogin(c)
+		restaurant, err := m.AdminUcase.GetByRid(sessionData.Id)
+		if err != nil {
+			return models.SendRedirectLogin(c)
+		}
+		restaurant.ID = sessionData.Id
+		c.Set("Restaurant", restaurant)
+		return next(c)
 	}
 }
 

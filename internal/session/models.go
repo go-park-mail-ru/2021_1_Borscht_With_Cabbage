@@ -1,13 +1,15 @@
 package session
 
+import "github.com/borscht/backend/internal/models"
+
 type SessionUsecase interface {
-	Create(uid int, role string) (string, error)
-	Check(sessionToCheck string) (int, bool, string)
+	Create(sessionInfo models.SessionInfo) (string, error)
+	Check(sessionToCheck string) (models.SessionInfo, bool, error)
 	Delete(session string) error
 }
 
 type SessionRepo interface {
-	Create(session string, uid int, role string) error
-	Check(sessionToCheck string) (int, bool, string)
+	Create(sessionData models.SessionData) error
+	Check(sessionToCheck string) (models.SessionInfo, bool, error)
 	Delete(session string) error
 }

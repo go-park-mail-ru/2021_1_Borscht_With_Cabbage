@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
 	"github.com/google/uuid"
 )
@@ -16,12 +17,12 @@ func NewSessionUsecase(repo sessionModel.SessionRepo) sessionModel.SessionUsecas
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *sessionUsecase) Check(session string) (int, bool, string) {
+func (s *sessionUsecase) Check(session string) (models.SessionInfo, bool, error) {
 	return s.sessionRepo.Check(session)
 }
 
 // создание уникальной сессии
-func (s *sessionUsecase) Create(uid int, role string) (string, error) {
+func (s *sessionUsecase) Create(sessionInfo models.SessionInfo) (string, error) {
 	session := ""
 	for {
 		session = uuid.New().String()
@@ -32,7 +33,12 @@ func (s *sessionUsecase) Create(uid int, role string) (string, error) {
 		}
 	}
 
-	err := s.sessionRepo.Create(session, uid, role)
+	sessionData := models.SessionData{
+		Session: session,
+		Id:      sessionInfo.Id,
+		Role:    sessionInfo.Role,
+	}
+	err := s.sessionRepo.Create(sessionData)
 	if err != nil {
 		return "", err
 	}

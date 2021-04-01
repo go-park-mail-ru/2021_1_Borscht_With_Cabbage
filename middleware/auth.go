@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
@@ -18,29 +16,31 @@ type AuthMiddleware struct {
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		session, err := c.Cookie(config.SessionCookie)
-
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		uid, ok, role := m.SessionUcase.Check(session.Value)
-
-		if !ok {
+		sessionData := new(models.SessionInfo)
+		var exists bool
+		*sessionData, exists, err = m.SessionUcase.Check(session.Value)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		if !exists {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		if role == config.RoleUser { // тут проверяются права именно на обычного юзера
-			user, err := m.UserUcase.GetByUid(uid)
-			if err != nil {
-				return models.SendRedirectLogin(c)
-			}
-			user.Uid = uid
-			c.Set("User", user)
-			fmt.Println("THIS USER:", c.Get("User"))
-			return next(c)
+		if sessionData.Role != config.RoleUser { // тут проверяются права именно на обычного юзера
+			return models.SendRedirectLogin(c)
 		}
 
-		return models.SendRedirectLogin(c)
+		user, err := m.UserUcase.GetByUid(sessionData.Id)
+		if err != nil {
+			return models.SendRedirectLogin(c)
+		}
+		user.Uid = sessionData.Id
+		c.Set("User", user)
+		return next(c)
 	}
 }
 
