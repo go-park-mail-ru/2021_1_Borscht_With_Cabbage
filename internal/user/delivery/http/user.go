@@ -183,7 +183,10 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 
 	sessionData := new(models.SessionInfo)
 	var exist bool
-	*sessionData, exist = h.SessionUcase.Check(cookie.Value)
+	*sessionData, exist, err = h.SessionUcase.Check(cookie.Value)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
 	if !exist {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		return models.SendResponseWithError(c, sendErr)
