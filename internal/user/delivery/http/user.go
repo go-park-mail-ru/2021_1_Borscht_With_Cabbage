@@ -54,6 +54,7 @@ func (h *Handler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	newUser := new(models.User)
+
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Authorization(ctx, "error with request data")
 		return models.SendResponseWithError(c, sendErr)
