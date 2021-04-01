@@ -51,6 +51,7 @@ func deleteResponseCookie(c echo.Context) {
 
 func (h *Handler) Create(c echo.Context) error {
 	newUser := new(models.User)
+
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.Authorization("error with request data")
 		return models.SendResponseWithError(c, sendErr)

@@ -49,8 +49,8 @@ func route(data initRoute) {
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
-	data.e.POST("/signin", data.restaurantAdmin.Login)
-	data.e.POST("/signup", data.restaurantAdmin.Create)
+	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
+	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
 	user.GET("/orders", data.order.GetUserOrders)
