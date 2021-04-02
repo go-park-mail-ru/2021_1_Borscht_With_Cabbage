@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/utils"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,7 +20,7 @@ func LogMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		result := next(c)
 
-		utils.InfoLog(ctx, utils.Fields{
+		logger.MiddleLevel().InfoLog(ctx, logger.Fields{
 			"url":           c.Request().URL,
 			"method":        c.Request().Method,
 			"remote_addr":   c.Request().RemoteAddr,

@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -9,8 +8,8 @@ import (
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
-	"github.com/borscht/backend/utils"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -31,7 +30,8 @@ func (a AdminHandler) Update(c echo.Context) error {
 
 	restaurant := new(models.RestaurantUpdate)
 	if err := c.Bind(restaurant); err != nil {
-		sendErr := utils.BadRequest(ctx, err.Error())
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -48,7 +48,8 @@ func (a AdminHandler) UpdateDish(c echo.Context) error {
 
 	updateDish := new(models.Dish)
 	if err := c.Bind(updateDish); err != nil {
-		sendErr := utils.BadRequest(ctx, err.Error())
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -65,7 +66,8 @@ func (a AdminHandler) DeleteDish(c echo.Context) error {
 
 	idDish := new(models.DishDelete)
 	if err := c.Bind(idDish); err != nil {
-		sendErr := utils.BadRequest(ctx, err.Error())
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -82,7 +84,8 @@ func (a AdminHandler) AddDish(c echo.Context) error {
 
 	newDish := new(models.Dish)
 	if err := c.Bind(newDish); err != nil {
-		sendErr := utils.BadRequest(ctx, err.Error())
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -108,7 +111,8 @@ func (a AdminHandler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 	newRestaurant := new(models.Restaurant)
 	if err := c.Bind(newRestaurant); err != nil {
-		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -137,19 +141,15 @@ func (a AdminHandler) Login(c echo.Context) error {
 	newRest := new(models.RestaurantAuth)
 
 	if err := c.Bind(newRest); err != nil {
-		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	fmt.Println(newRest)
-
 	existingRest, err := a.AdminUsecase.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
-		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
-
-	fmt.Println(existingRest)
 
 	sessionInfo := models.SessionInfo{
 		Id:   existingRest.ID,
@@ -168,10 +168,14 @@ func (a AdminHandler) Login(c echo.Context) error {
 
 func (a AdminHandler) GetUserData(c echo.Context) error {
 	ctx := models.GetContext(c)
-	return models.SendResponseWithError(c, errors.NewCustomError(ctx, 500, "не реализовано")) // TODO
+	sendErr := errors.NewCustomError(500, "не реализовано")
+	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+	return models.SendResponseWithError(c, sendErr) // TODO
 }
 
 func (a AdminHandler) EditProfile(c echo.Context) error {
 	ctx := models.GetContext(c)
-	return models.SendResponseWithError(c, errors.NewCustomError(ctx, 500, "не реализовано")) // TODO
+	sendErr := errors.NewCustomError(500, "не реализовано")
+	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+	return models.SendResponseWithError(c, sendErr) // TODO
 }

@@ -5,7 +5,8 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
-	"github.com/borscht/backend/utils"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type adminUsecase struct {
@@ -24,7 +25,9 @@ func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUp
 
 	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
-		return nil, utils.FailServer(ctx, "failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
 	}
 
 	restaurant.ID = restaurantAdmin.ID
@@ -50,7 +53,9 @@ func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models
 	//TODO: добавление изображения блюда в хранилище
 
 	if dish.ID == 0 {
-		return nil, utils.BadRequest(ctx, "No id at the dish")
+		requestError := errors.BadRequestError("No id at the dish")
+		logger.UsecaseLevel().ErrorLog(ctx, requestError)
+		return nil, requestError
 	}
 
 	// проверка прав на update
@@ -60,10 +65,14 @@ func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models
 	}
 	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
-		return nil, utils.FailServer(ctx, "failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
 	}
 	if oldDish.Restaurant != restaurant.ID {
-		return nil, utils.BadRequest(ctx, "No rights to update a dish")
+		requestError := errors.BadRequestError("No rights to update a dish")
+		logger.UsecaseLevel().ErrorLog(ctx, requestError)
+		return nil, requestError
 	}
 
 	err = a.adminRepository.UpdateDish(ctx, dish)
@@ -88,11 +97,15 @@ func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
 
 	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
-		return utils.FailServer(ctx, "failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
 	}
 
 	if restaurant.ID != dish.Restaurant {
-		return utils.BadRequest(ctx, "No rights to delete a dish")
+		requestError := errors.BadRequestError("No rights to delete a dish")
+		logger.UsecaseLevel().ErrorLog(ctx, requestError)
+		return requestError
 	}
 
 	return a.adminRepository.DeleteDish(ctx, did)

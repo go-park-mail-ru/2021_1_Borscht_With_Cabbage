@@ -8,7 +8,8 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
-	"github.com/borscht/backend/utils"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type adminRepo struct {
@@ -22,10 +23,6 @@ func NewAdminRepo(db *sql.DB) restaurantAdmin.AdminRepo {
 }
 
 func (a adminRepo) Update(ctx context.Context, restaurant models.RestaurantUpdate) error {
-	utils.DebagLog(ctx, utils.Fields{
-		"Restaurant update in bd": restaurant,
-	})
-
 	dataToExistingCheck := models.CheckRestaurantExists{
 		CurrentRestId: restaurant.ID,
 		Email:         restaurant.AdminEmail,
@@ -34,7 +31,7 @@ func (a adminRepo) Update(ctx context.Context, restaurant models.RestaurantUpdat
 	}
 	err := a.checkExistingRestaurant(ctx, dataToExistingCheck)
 	if err != nil {
-		return utils.FailServer(ctx, err.Error())
+		return err
 	}
 
 	_, err = a.DB.Exec(
@@ -44,7 +41,9 @@ func (a adminRepo) Update(ctx context.Context, restaurant models.RestaurantUpdat
 		restaurant.Title, restaurant.AdminEmail, restaurant.AdminPhone, restaurant.AdminPassword,
 		restaurant.DeliveryCost, restaurant.Description, restaurant.Avatar, restaurant.ID)
 	if err != nil {
-		return utils.FailServer(ctx, err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
 	}
 
 	return nil
@@ -53,7 +52,9 @@ func (a adminRepo) Update(ctx context.Context, restaurant models.RestaurantUpdat
 func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
-		return utils.FailServer(ctx, "failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
 	}
 	dataToExistingCheck := models.CheckDishExists{
 		Name:         dish.Name,
@@ -62,7 +63,7 @@ func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 	}
 	err := a.checkExistingDish(ctx, dataToExistingCheck)
 	if err != nil {
-		return utils.FailServer(ctx, err.Error())
+		return err
 	}
 
 	_, err = a.DB.Exec(`update dishes set name = $1, price = $2, weight = $3, 
@@ -70,7 +71,9 @@ func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 						where did = $6`,
 		dish.Name, dish.Price, dish.Weight, dish.Description, dish.Image, dish.ID)
 	if err != nil {
-		return utils.FailServer(ctx, err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
 	}
 
 	return nil
@@ -79,7 +82,7 @@ func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 func (a adminRepo) GetDish(ctx context.Context, did int) (models.Dish, error) {
 	DBdish, err := a.DB.Query("select did, restaurant, name, price, weight, description, image from dishes where did=$1", did)
 	if err != nil {
-		return models.Dish{}, utils.Authorization(ctx, "dish not found")
+		return models.Dish{}, errors.AuthorizationError("dish not found")
 	}
 
 	dish := new(models.Dish)
@@ -94,20 +97,21 @@ func (a adminRepo) GetDish(ctx context.Context, did int) (models.Dish, error) {
 			&dish.Image,
 		)
 		if err != nil {
-			return models.Dish{}, utils.FailServer(ctx, err.Error())
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return models.Dish{}, failError
 		}
 	}
 
-	utils.DebagLog(ctx, utils.Fields{
-		"Get dish": *dish,
-	})
 	return *dish, nil
 }
 
 func (a adminRepo) DeleteDish(ctx context.Context, did int) error {
 	_, err := a.DB.Exec("delete from dishes where did = $1", did)
 	if err != nil {
-		return utils.FailServer(ctx, err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
 	}
 
 	return nil
@@ -116,14 +120,16 @@ func (a adminRepo) DeleteDish(ctx context.Context, did int) error {
 func (a adminRepo) checkExistingDish(ctx context.Context, dishData models.CheckDishExists) error {
 	dishes, err := a.DB.Query("select did, name from dishes where restaurant = $1", dishData.RestaurantId)
 	if err != nil {
-		return utils.FailServer(ctx, err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
 	}
 	for dishes.Next() {
 		nameDish := new(string)
 		didDish := new(int)
 		dishes.Scan(&didDish, &nameDish)
 		if *nameDish == dishData.Name && *didDish != dishData.Id {
-			return utils.NewCustomError(ctx, http.StatusBadRequest, "There is already such a dish")
+			return errors.NewCustomError(http.StatusBadRequest, "There is already such a dish")
 		}
 	}
 
@@ -131,13 +137,11 @@ func (a adminRepo) checkExistingDish(ctx context.Context, dishData models.CheckD
 }
 
 func (a adminRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
-	utils.DebagLog(ctx, utils.Fields{
-		"restaurant in context": ctx.Value("Restaurant"),
-	})
-
 	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
-		return 0, utils.FailServer(ctx, "failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return 0, failError
 	}
 	dataToExistingCheck := models.CheckDishExists{
 		Name:         dish.Name,
@@ -145,14 +149,16 @@ func (a adminRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 	}
 	err := a.checkExistingDish(ctx, dataToExistingCheck)
 	if err != nil {
-		return 0, utils.FailServer(ctx, err.Error())
+		return 0, err
 	}
 
 	var did int
 	err = a.DB.QueryRow("insert into dishes (restaurant, name, price, weight, description, image) values ($1, $2, $3, $4, $5, $6) returning did",
 		restaurant.ID, dish.Name, dish.Price, dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
 	if err != nil {
-		return 0, utils.FailServer(ctx, err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return 0, failError
 	}
 
 	return did, nil
@@ -162,17 +168,17 @@ func (a adminRepo) checkExistingRestaurant(ctx context.Context, restaurantData m
 	var userInDB int
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", restaurantData.Email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return utils.NewCustomError(ctx, http.StatusBadRequest, "Restaurant with this email already exists")
+		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this email already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", restaurantData.Number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return utils.NewCustomError(ctx, http.StatusBadRequest, "Restaurant with this number already exists")
+		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this number already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where name = $1", restaurantData.Name).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return utils.NewCustomError(ctx, http.StatusBadRequest, "Restaurant with this name already exists")
+		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this name already exists")
 	}
 
 	return nil
@@ -186,14 +192,16 @@ func (a adminRepo) Create(ctx context.Context, newRestaurant models.Restaurant) 
 	}
 	err := a.checkExistingRestaurant(ctx, dataToExistingCheck)
 	if err != nil {
-		return 0, utils.FailServer(ctx, err.Error())
+		return 0, err
 	}
 
 	var rid int
 	err = a.DB.QueryRow("insert into restaurants (name, adminphone, adminemail, adminpassword, avatar) values ($1, $2, $3, $4, $5) returning rid",
 		newRestaurant.Title, newRestaurant.AdminPhone, newRestaurant.AdminEmail, newRestaurant.AdminPassword, config.DefaultAvatar).Scan(&rid)
 	if err != nil {
-		return 0, utils.FailServer(ctx, err.Error())
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return 0, custError
 	}
 
 	return rid, nil
@@ -205,10 +213,12 @@ func (a adminRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck 
 		restaurantToCheck.Login, restaurantToCheck.Password).Scan(&restaurant.ID, &restaurant.Title, &restaurant.Avatar)
 
 	if err == sql.ErrNoRows {
-		return models.Restaurant{}, utils.NewCustomError(ctx, http.StatusBadRequest, "user not found")
+		return models.Restaurant{}, errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
 	if err != nil {
-		return models.Restaurant{}, utils.FailServer(ctx, err.Error())
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return models.Restaurant{}, custError
 	}
 
 	return *restaurant, nil
@@ -217,7 +227,7 @@ func (a adminRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck 
 func (a adminRepo) GetByRid(ctx context.Context, rid int) (models.Restaurant, error) {
 	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
 	if err != nil {
-		return models.Restaurant{}, utils.Authorization(ctx, "restaurant not found")
+		return models.Restaurant{}, errors.AuthorizationError("user not found")
 	}
 
 	restaurant := new(models.Restaurant)
@@ -229,7 +239,9 @@ func (a adminRepo) GetByRid(ctx context.Context, rid int) (models.Restaurant, er
 			&restaurant.Avatar,
 		)
 		if err != nil {
-			return models.Restaurant{}, utils.FailServer(ctx, err.Error())
+			custError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, custError)
+			return models.Restaurant{}, custError
 		}
 	}
 	return *restaurant, nil

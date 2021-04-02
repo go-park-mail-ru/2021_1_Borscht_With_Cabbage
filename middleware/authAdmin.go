@@ -5,7 +5,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
-	"github.com/borscht/backend/utils"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -42,10 +42,8 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		restaurant.ID = sessionData.Id
 		c.Set("Restaurant", restaurant)
+		logger.MiddleLevel().DataLog(ctx, "restaurant auth", restaurant)
 
-		utils.InfoLog(ctx, utils.Fields{
-			"restaurant is autorization": restaurant.Title,
-		})
 		return next(c)
 	}
 }
