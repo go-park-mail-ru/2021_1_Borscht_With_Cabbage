@@ -40,10 +40,27 @@ func (a AdminHandler) Update(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, responseRestaurant)
+	return models.SendResponse(c, *responseRestaurant)
 }
 
-func (a *AdminHandler) DeleteDish(c echo.Context) error {
+func (a AdminHandler) UpdateDish(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	updateDish := new(models.Dish)
+	if err := c.Bind(updateDish); err != nil {
+		sendErr := utils.BadRequest(ctx, err.Error())
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	response, err := a.AdminUsecase.UpdateDish(ctx, *updateDish)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, *response)
+}
+
+func (a AdminHandler) DeleteDish(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	idDish := new(models.DishDelete)
@@ -60,7 +77,7 @@ func (a *AdminHandler) DeleteDish(c echo.Context) error {
 	return models.SendResponse(c, nil)
 }
 
-func (a *AdminHandler) AddDish(c echo.Context) error {
+func (a AdminHandler) AddDish(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	newDish := new(models.Dish)
@@ -74,7 +91,7 @@ func (a *AdminHandler) AddDish(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, response)
+	return models.SendResponse(c, *response)
 }
 
 func setResponseCookie(c echo.Context, session string) {

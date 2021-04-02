@@ -19,19 +19,18 @@ func NewAdminUsecase(repo restaurantAdmin.AdminRepo) restaurantAdmin.AdminUsecas
 }
 
 func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUpdate) (
-	models.RestaurantResponse, error) {
+	*models.RestaurantResponse, error) {
 	// TODO: сохранение фотки
 
 	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
-		return models.RestaurantResponse{},
-			utils.FailServer(ctx, "failed to convert to models.Restaurant")
+		return nil, utils.FailServer(ctx, "failed to convert to models.Restaurant")
 	}
 
 	restaurant.ID = restaurantAdmin.ID
 	err := a.adminRepository.Update(ctx, restaurant)
 	if err != nil {
-		return models.RestaurantResponse{}, err
+		return nil, err
 	}
 
 	restaurantResponse := &models.RestaurantResponse{
@@ -44,7 +43,39 @@ func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUp
 		Avatar:       restaurant.Avatar,
 	}
 
-	return *restaurantResponse, nil
+	return restaurantResponse, nil
+}
+
+func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error) {
+	//TODO: добавление изображения блюда в хранилище
+
+	if dish.ID == 0 {
+		return nil, utils.BadRequest(ctx, "No id at the dish")
+	}
+
+	// проверка прав на update
+	oldDish, err := a.adminRepository.GetDish(ctx, dish.ID)
+	if err != nil {
+		return nil, err
+	}
+	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		return nil, utils.FailServer(ctx, "failed to convert to models.Restaurant")
+	}
+	if oldDish.Restaurant != restaurant.ID {
+		return nil, utils.BadRequest(ctx, "No rights to update a dish")
+	}
+
+	err = a.adminRepository.UpdateDish(ctx, dish)
+	if err != nil {
+		return nil, err
+	}
+	responseDish := &models.DishResponse{
+		ID:    dish.ID,
+		Name:  dish.Name,
+		Image: dish.Image,
+	}
+	return responseDish, nil
 }
 
 func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {

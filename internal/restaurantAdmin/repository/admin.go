@@ -50,6 +50,32 @@ func (a adminRepo) Update(ctx context.Context, restaurant models.RestaurantUpdat
 	return nil
 }
 
+func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
+	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		return utils.FailServer(ctx, "failed to convert to models.Restaurant")
+	}
+	dataToExistingCheck := models.CheckDishExists{
+		Name:         dish.Name,
+		RestaurantId: restaurant.ID,
+		Id:           dish.ID,
+	}
+	err := a.checkExistingDish(ctx, dataToExistingCheck)
+	if err != nil {
+		return utils.FailServer(ctx, err.Error())
+	}
+
+	_, err = a.DB.Exec(`update dishes set name = $1, price = $2, weight = $3, 
+						description = $4, image = $5
+						where did = $6`,
+		dish.Name, dish.Price, dish.Weight, dish.Description, dish.Image, dish.ID)
+	if err != nil {
+		return utils.FailServer(ctx, err.Error())
+	}
+
+	return nil
+}
+
 func (a adminRepo) GetDish(ctx context.Context, did int) (models.Dish, error) {
 	DBdish, err := a.DB.Query("select did, restaurant, name, price, weight, description, image from dishes where did=$1", did)
 	if err != nil {
@@ -88,14 +114,15 @@ func (a adminRepo) DeleteDish(ctx context.Context, did int) error {
 }
 
 func (a adminRepo) checkExistingDish(ctx context.Context, dishData models.CheckDishExists) error {
-	nameDishes, err := a.DB.Query("select name from dishes where restaurant = $1", dishData.RestaurantId)
+	dishes, err := a.DB.Query("select did, name from dishes where restaurant = $1", dishData.RestaurantId)
 	if err != nil {
 		return utils.FailServer(ctx, err.Error())
 	}
-	for nameDishes.Next() {
+	for dishes.Next() {
 		nameDish := new(string)
-		nameDishes.Scan(&nameDish)
-		if *nameDish == dishData.Name {
+		didDish := new(int)
+		dishes.Scan(&didDish, &nameDish)
+		if *nameDish == dishData.Name && *didDish != dishData.Id {
 			return utils.NewCustomError(ctx, http.StatusBadRequest, "There is already such a dish")
 		}
 	}

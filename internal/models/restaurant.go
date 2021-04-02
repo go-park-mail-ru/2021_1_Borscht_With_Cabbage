@@ -70,6 +70,7 @@ type CheckRestaurantExists struct {
 }
 
 type CheckDishExists struct {
+	Id           int
 	Name         string
 	RestaurantId int
 }
