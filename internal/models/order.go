@@ -13,7 +13,7 @@ type Order struct {
 	OrderTime    string `json:"orderTime"`
 	DeliveryCost int    `json:"ship"`
 	DeliveryTime string `json:"deliveryTime"`
-	Summary      string `json:"description"`
+	Summary      string `json:"summary"`
 	Status       string `json:"status"`
 	Foods        []Dish `json:"foods"`
 }
