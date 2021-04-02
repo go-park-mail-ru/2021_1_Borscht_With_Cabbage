@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/borscht/backend/utils"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,7 +22,7 @@ type redirect struct {
 func SendRedirectLogin(c echo.Context) error {
 	ctx := GetContext(c)
 
-	utils.InfoLog(ctx, utils.Fields{
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     http.StatusFound,
 		"response": "redirect '/login'",
 	})
@@ -45,7 +45,7 @@ func SendResponse(c echo.Context, data interface{}) error {
 	serverMessage := message{http.StatusOK, data}
 	ctx := GetContext(c)
 
-	utils.InfoLog(ctx, utils.Fields{
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     http.StatusOK,
 		"response": serverMessage,
 	})
@@ -60,9 +60,9 @@ func SendResponseWithError(c echo.Context, err error) error {
 	}
 
 	ctx := GetContext(c)
-	customErr := errors.FailServer(ctx, err.Error())
+	customErr := errors.FailServerError(err.Error())
 
-	utils.InfoLog(ctx, utils.Fields{
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     customErr.Code,
 		"response": customErr.SendError,
 	})

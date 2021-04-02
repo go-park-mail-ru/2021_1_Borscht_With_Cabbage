@@ -11,7 +11,8 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 )
 
 // TODO: хранить статику в /var/...
@@ -77,7 +78,9 @@ func getUniqId(ctx context.Context, filename string) (string, error) {
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(filename + hashingSalt))
 	if err != nil {
-		return "", errors.FailServer(ctx, err.Error())
+		custErr := errors.FailServerError(err.Error())
+		logger.UsecaseLevel().ErrorLog(ctx, custErr)
+		return "", custErr
 	}
 
 	return strconv.Itoa(int(hash.Sum32())), nil

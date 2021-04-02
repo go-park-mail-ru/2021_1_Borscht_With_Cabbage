@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -9,7 +8,8 @@ import (
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -39,7 +39,8 @@ func (a AdminHandler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 	newRestaurant := new(models.Restaurant)
 	if err := c.Bind(newRestaurant); err != nil {
-		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
@@ -68,19 +69,15 @@ func (a AdminHandler) Login(c echo.Context) error {
 	newRest := new(models.RestaurantAuth)
 
 	if err := c.Bind(newRest); err != nil {
-		sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, "error with request data")
+		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	fmt.Println(newRest)
-
 	existingRest, err := a.AdminUsecase.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
-		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
-
-	fmt.Println(existingRest)
 
 	sessionInfo := models.SessionInfo{
 		Id:   existingRest.ID,
@@ -99,10 +96,14 @@ func (a AdminHandler) Login(c echo.Context) error {
 
 func (a AdminHandler) GetUserData(c echo.Context) error {
 	ctx := models.GetContext(c)
-	return models.SendResponseWithError(c, errors.NewCustomError(ctx, 500, "не реализовано")) // TODO
+	sendErr := errors.NewCustomError(500, "не реализовано")
+	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+	return models.SendResponseWithError(c, sendErr) // TODO
 }
 
 func (a AdminHandler) EditProfile(c echo.Context) error {
 	ctx := models.GetContext(c)
-	return models.SendResponseWithError(c, errors.NewCustomError(ctx, 500, "не реализовано")) // TODO
+	sendErr := errors.NewCustomError(500, "не реализовано")
+	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+	return models.SendResponseWithError(c, sendErr) // TODO
 }

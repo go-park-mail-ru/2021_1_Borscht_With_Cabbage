@@ -5,7 +5,7 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,10 +27,10 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	if errLimit != nil {
-		return models.SendResponseWithError(c, errors.BadRequest(ctx, errLimit.Error()))
+		return models.SendResponseWithError(c, errors.BadRequestError(errLimit.Error()))
 	}
 	if errOffset != nil {
-		return models.SendResponseWithError(c, errors.BadRequest(ctx, errOffset.Error()))
+		return models.SendResponseWithError(c, errors.BadRequestError(errOffset.Error()))
 	}
 
 	result, err := h.restaurantUsecase.GetVendor(ctx, limit, offset)

@@ -5,6 +5,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -41,6 +42,7 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		user.Uid = sessionData.Id
 		c.Set("User", user)
+		logger.MiddleLevel().DataLog(ctx, "user auth", user)
 		return next(c)
 	}
 }

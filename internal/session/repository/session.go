@@ -6,7 +6,8 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 
 	"encoding/json"
 
@@ -51,17 +52,23 @@ func (repo *sessionRepo) Create(ctx context.Context, sessionData models.SessionD
 		Role: sessionData.Role,
 	})
 	if err != nil {
-		return errors.FailServer(ctx, err.Error())
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return custError
 	}
 
 	mkey := headKey + id.ID
 
 	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSecond))
 	if err != nil {
-		return errors.FailServer(ctx, err.Error())
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return custError
 	}
 	if result != "OK" {
-		return errors.FailServer(ctx, "result not OK")
+		custError := errors.FailServerError("result not OK")
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return custError
 	}
 	return nil
 }
@@ -70,7 +77,9 @@ func (repo *sessionRepo) Delete(ctx context.Context, session string) error {
 	mkey := headKey + session
 	_, err := redis.Int(repo.redisConn.Do("DEL", mkey))
 	if err != nil {
-		return errors.FailServer(ctx, "redis error:"+err.Error())
+		custError := errors.FailServerError("redis error:" + err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return custError
 	}
 
 	return nil
