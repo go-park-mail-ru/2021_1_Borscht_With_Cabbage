@@ -22,7 +22,7 @@ type Restaurant struct {
 	AdminPhone    string  `json:"number"`
 	AdminPassword string  `json:"password"`
 	AvgCheck      int     `json:"cost"`
-	Name          string  `json:"title"`
+	Title         string  `json:"title"`
 	Description   string  `json:"description"`
 	Dishes        []Dish  `json:"foods"`
 	DeliveryCost  int     `json:"deliveryCost"`
@@ -32,13 +32,24 @@ type Restaurant struct {
 
 type RestaurantResponse struct {
 	ID           int     `json:"id"`
-	Name         string  `json:"name"`
+	Title        string  `json:"title"`
 	Description  string  `json:"description"`
 	Rating       float64 `json:"rating"`
-	DeliveryTime int     `json:"time"`
+	DeliveryTime int     `json:"time"` // ????
 	AvgCheck     int     `json:"cost"`
 	DeliveryCost int     `json:"deliveryCost"`
 	Avatar       string  `json:"avatar"`
+}
+
+type RestaurantUpdate struct {
+	ID            int    `json:"id"`
+	AdminEmail    string `json:"email"`
+	AdminPhone    string `json:"number"`
+	AdminPassword string `json:"password"`
+	Title         string `json:"title"`
+	Description   string `json:"description"`
+	DeliveryCost  int    `json:"deliveryCost"`
+	Avatar        string `json:"avatar"`
 }
 
 type DishResponse struct {

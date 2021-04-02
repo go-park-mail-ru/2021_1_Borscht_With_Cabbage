@@ -31,7 +31,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 		restaurant := new(models.RestaurantResponse)
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
-			&restaurant.Name,
+			&restaurant.Title,
 			&restaurant.DeliveryCost,
 			&restaurant.AvgCheck,
 			&restaurant.Description,
@@ -47,7 +47,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaurant, error) {
 	restaurant := new(models.Restaurant)
 	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
-		id).Scan(&restaurant.Name, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
+		id).Scan(&restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
 		return models.Restaurant{}, _errors.FailServer(ctx, err.Error())
 	}

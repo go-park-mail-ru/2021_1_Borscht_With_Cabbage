@@ -18,7 +18,38 @@ func NewAdminUsecase(repo restaurantAdmin.AdminRepo) restaurantAdmin.AdminUsecas
 	}
 }
 
+func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUpdate) (
+	models.RestaurantResponse, error) {
+	// TODO: сохранение фотки
+
+	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		return models.RestaurantResponse{},
+			utils.FailServer(ctx, "failed to convert to models.Restaurant")
+	}
+
+	restaurant.ID = restaurantAdmin.ID
+	err := a.adminRepository.Update(ctx, restaurant)
+	if err != nil {
+		return models.RestaurantResponse{}, err
+	}
+
+	restaurantResponse := &models.RestaurantResponse{
+		ID:           restaurant.ID,
+		Title:        restaurant.Title,
+		Description:  restaurant.Description,
+		Rating:       restaurantAdmin.Rating,
+		AvgCheck:     restaurantAdmin.AvgCheck,
+		DeliveryCost: restaurant.DeliveryCost,
+		Avatar:       restaurant.Avatar,
+	}
+
+	return *restaurantResponse, nil
+}
+
 func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
+	//TODO: удаление изображения блюда из хранилища
+
 	dish, err := a.adminRepository.GetDish(ctx, did)
 	if err != nil {
 		return err
@@ -37,6 +68,8 @@ func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
 }
 
 func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error) {
+	//TODO: добавление изображения блюда в хранилище
+
 	id, err := a.adminRepository.AddDish(ctx, dish)
 	if err != nil {
 		return nil, err

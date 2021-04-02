@@ -26,6 +26,23 @@ func NewAdminHandler(adminUCase adminModel.AdminUsecase, sessionUcase sessionMod
 	}
 }
 
+func (a AdminHandler) Update(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	restaurant := new(models.RestaurantUpdate)
+	if err := c.Bind(restaurant); err != nil {
+		sendErr := utils.BadRequest(ctx, err.Error())
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	responseRestaurant, err := a.AdminUsecase.Update(ctx, *restaurant)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, responseRestaurant)
+}
+
 func (a *AdminHandler) DeleteDish(c echo.Context) error {
 	ctx := models.GetContext(c)
 
@@ -94,7 +111,7 @@ func (a AdminHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: newRestaurant.Name, Avatar: config.DefaultAvatar, Role: config.RoleAdmin} // TODO убрать config отсюда
+	response := models.SuccessResponse{Name: newRestaurant.Title, Avatar: config.DefaultAvatar, Role: config.RoleAdmin} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -128,7 +145,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: existingRest.Name, Avatar: existingRest.Avatar, Role: config.RoleAdmin}
+	response := models.SuccessResponse{Name: existingRest.Title, Avatar: existingRest.Avatar, Role: config.RoleAdmin}
 	return models.SendResponse(c, response)
 }
 

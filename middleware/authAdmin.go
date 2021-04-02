@@ -44,7 +44,7 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set("Restaurant", restaurant)
 
 		utils.InfoLog(ctx, utils.Fields{
-			"restaurant is autorization": restaurant.Name,
+			"restaurant is autorization": restaurant.Title,
 		})
 		return next(c)
 	}

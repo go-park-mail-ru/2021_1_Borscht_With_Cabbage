@@ -9,6 +9,7 @@ import (
 
 type AdminHandler interface {
 	Create(c echo.Context) error
+	Update(c echo.Context) error
 	Login(c echo.Context) error
 	GetUserData(c echo.Context) error
 	EditProfile(c echo.Context) error
@@ -17,7 +18,8 @@ type AdminHandler interface {
 }
 
 type AdminUsecase interface {
-	Create(ctx context.Context, user models.Restaurant) (int, error)
+	Create(ctx context.Context, restaurant models.Restaurant) (int, error)
+	Update(ctx context.Context, restaurant models.RestaurantUpdate) (models.RestaurantResponse, error)
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
 	AddDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error)
@@ -26,6 +28,7 @@ type AdminUsecase interface {
 
 type AdminRepo interface {
 	Create(ctx context.Context, user models.Restaurant) (int, error)
+	Update(ctx context.Context, restaurant models.RestaurantUpdate) error
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
 	AddDish(ctx context.Context, dish models.Dish) (int, error)

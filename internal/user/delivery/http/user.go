@@ -210,7 +210,7 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			sendErr := errors.NewCustomError(ctx, http.StatusUnauthorized, err.Error())
 			return models.SendResponseWithError(c, sendErr)
 		}
-		authResponse.Name = restaurant.Name
+		authResponse.Name = restaurant.Title
 		authResponse.Avatar = restaurant.Avatar
 		authResponse.Role = config.RoleAdmin
 		return models.SendResponse(c, authResponse)
