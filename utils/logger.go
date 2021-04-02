@@ -9,6 +9,7 @@ import (
 type Fields map[string]interface{}
 
 func InitLogger() {
+	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors: false,
 		ForceColors:   true,

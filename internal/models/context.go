@@ -37,6 +37,7 @@ func GetContext(c echo.Context) context.Context {
 	ctx := c.Request().Context()
 
 	ctx = context.WithValue(ctx, "User", c.Get("User"))
+	ctx = context.WithValue(ctx, "Restaurant", c.Get("Restaurant"))
 	return context.WithValue(ctx, "request_id", c.Get("request_id"))
 }
 

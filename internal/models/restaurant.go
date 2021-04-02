@@ -40,9 +40,20 @@ type RestaurantResponse struct {
 	Avatar       string  `json:"avatar"`
 }
 
+type DishResponse struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
+}
+
 type CheckRestaurantExists struct {
 	Email         string
 	Number        string
 	Name          string
 	CurrentRestId int
+}
+
+type CheckDishExists struct {
+	Name         string
+	RestaurantId int
 }

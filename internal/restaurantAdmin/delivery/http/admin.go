@@ -9,6 +9,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
+	"github.com/borscht/backend/utils"
 	errors "github.com/borscht/backend/utils"
 	"github.com/labstack/echo/v4"
 )
@@ -23,6 +24,23 @@ func NewAdminHandler(adminUCase adminModel.AdminUsecase, sessionUcase sessionMod
 		AdminUsecase: adminUCase,
 		SessionUcase: sessionUcase,
 	}
+}
+
+func (a *AdminHandler) AddDish(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	newDish := new(models.Dish)
+	if err := c.Bind(newDish); err != nil {
+		sendErr := utils.BadRequest(ctx, err.Error())
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	response, err := a.AdminUsecase.AddDish(ctx, *newDish)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, response)
 }
 
 func setResponseCookie(c echo.Context, session string) {

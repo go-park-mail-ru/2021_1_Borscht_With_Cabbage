@@ -8,6 +8,7 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
+	"github.com/borscht/backend/utils"
 	_errors "github.com/borscht/backend/utils"
 )
 
@@ -19,6 +20,50 @@ func NewAdminRepo(db *sql.DB) restaurantAdmin.AdminRepo {
 	return &adminRepo{
 		DB: db,
 	}
+}
+
+func (a adminRepo) checkExistingDish(ctx context.Context, dishData models.CheckDishExists) error {
+	nameDishes, err := a.DB.Query("select name from dishes where restaurant = $1", dishData.RestaurantId)
+	if err != nil {
+		return utils.FailServer(ctx, err.Error())
+	}
+	for nameDishes.Next() {
+		nameDish := new(string)
+		nameDishes.Scan(&nameDish)
+		if *nameDish == dishData.Name {
+			return _errors.NewCustomError(ctx, http.StatusBadRequest, "There is already such a dish")
+		}
+	}
+
+	return nil
+}
+
+func (a adminRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
+	utils.DebagLog(ctx, utils.Fields{
+		"restaurant in context": ctx.Value("Restaurant"),
+	})
+
+	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		return 0, _errors.FailServer(ctx, "failed to convert to models.Restaurant")
+	}
+	dataToExistingCheck := models.CheckDishExists{
+		Name:         dish.Name,
+		RestaurantId: restaurant.ID,
+	}
+	err := a.checkExistingDish(ctx, dataToExistingCheck)
+	if err != nil {
+		return 0, _errors.FailServer(ctx, err.Error())
+	}
+
+	var did int
+	err = a.DB.QueryRow("insert into dishes (restaurant, name, price, weight, description, image) values ($1, $2, $3, $4, $5, $6) returning did",
+		restaurant.ID, dish.Name, dish.Price, dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
+	if err != nil {
+		return 0, _errors.FailServer(ctx, err.Error())
+	}
+
+	return did, nil
 }
 
 func (a adminRepo) checkExistingRestaurant(ctx context.Context, restaurantData models.CheckRestaurantExists) error {

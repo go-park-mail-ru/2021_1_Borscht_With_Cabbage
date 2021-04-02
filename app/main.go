@@ -41,17 +41,19 @@ type initRoute struct {
 }
 
 func route(data initRoute) {
-	user := data.e.Group("/user", data.userMiddleware.Auth)
-	// restaurant := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	userGroup := data.e.Group("/user", data.userMiddleware.Auth)
 	auth := data.e.Group("", data.authMiddleware.Auth)
+	userGroup.GET("", data.user.GetUserData)
+	userGroup.PUT("", data.user.EditProfile)
+	auth.GET("/auth", data.user.CheckAuth)
+
+	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.POST("/dish", data.restaurantAdmin.AddDish)
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
 	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
 	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
-	user.GET("", data.user.GetUserData)
-	user.PUT("", data.user.EditProfile)
-	auth.GET("/auth", data.user.CheckAuth)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)

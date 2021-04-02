@@ -12,16 +12,19 @@ type AdminHandler interface {
 	Login(c echo.Context) error
 	GetUserData(c echo.Context) error
 	EditProfile(c echo.Context) error
+	AddDish(c echo.Context) error
 }
 
 type AdminUsecase interface {
 	Create(ctx context.Context, user models.Restaurant) (int, error)
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
+	AddDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error)
 }
 
 type AdminRepo interface {
 	Create(ctx context.Context, user models.Restaurant) (int, error)
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
+	AddDish(ctx context.Context, dish models.Dish) (int, error)
 }
