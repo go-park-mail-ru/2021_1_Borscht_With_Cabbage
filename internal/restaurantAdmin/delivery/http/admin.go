@@ -26,6 +26,23 @@ func NewAdminHandler(adminUCase adminModel.AdminUsecase, sessionUcase sessionMod
 	}
 }
 
+func (a *AdminHandler) DeleteDish(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	idDish := new(models.DishDelete)
+	if err := c.Bind(idDish); err != nil {
+		sendErr := utils.BadRequest(ctx, err.Error())
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := a.AdminUsecase.DeleteDish(ctx, idDish.ID)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}
+
 func (a *AdminHandler) AddDish(c echo.Context) error {
 	ctx := models.GetContext(c)
 

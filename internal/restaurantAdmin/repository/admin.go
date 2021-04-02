@@ -22,6 +22,43 @@ func NewAdminRepo(db *sql.DB) restaurantAdmin.AdminRepo {
 	}
 }
 
+func (a adminRepo) GetDish(ctx context.Context, did int) (models.Dish, error) {
+	DBdish, err := a.DB.Query("select did, restaurant, name, price, weight, description, image from dishes where did=$1", did)
+	if err != nil {
+		return models.Dish{}, _errors.Authorization(ctx, "dish not found")
+	}
+
+	dish := new(models.Dish)
+	for DBdish.Next() {
+		err = DBdish.Scan(
+			&dish.ID,
+			&dish.Restaurant,
+			&dish.Name,
+			&dish.Price,
+			&dish.Weight,
+			&dish.Description,
+			&dish.Image,
+		)
+		if err != nil {
+			return models.Dish{}, _errors.FailServer(ctx, err.Error())
+		}
+	}
+
+	utils.DebagLog(ctx, utils.Fields{
+		"Get dish": *dish,
+	})
+	return *dish, nil
+}
+
+func (a adminRepo) DeleteDish(ctx context.Context, did int) error {
+	_, err := a.DB.Exec("delete from dishes where did = $1", did)
+	if err != nil {
+		return utils.FailServer(ctx, err.Error())
+	}
+
+	return nil
+}
+
 func (a adminRepo) checkExistingDish(ctx context.Context, dishData models.CheckDishExists) error {
 	nameDishes, err := a.DB.Query("select name from dishes where restaurant = $1", dishData.RestaurantId)
 	if err != nil {
@@ -125,7 +162,7 @@ func (a adminRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck 
 func (a adminRepo) GetByRid(ctx context.Context, rid int) (models.Restaurant, error) {
 	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
 	if err != nil {
-		return models.Restaurant{}, _errors.Authorization(ctx, "user not found")
+		return models.Restaurant{}, _errors.Authorization(ctx, "restaurant not found")
 	}
 
 	restaurant := new(models.Restaurant)

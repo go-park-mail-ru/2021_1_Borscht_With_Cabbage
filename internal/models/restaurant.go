@@ -3,6 +3,7 @@ package models
 // TODO много одинаковых полей, надо объеденить
 type Dish struct {
 	ID          int    `json:"id"`
+	Restaurant  int    `json:"restaurant"`
 	Name        string `json:"name"`
 	Price       int    `json:"price"`
 	Description string `json:"description"`
@@ -44,6 +45,10 @@ type DishResponse struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Image string `json:"image"`
+}
+
+type DishDelete struct {
+	ID int `json:"id"`
 }
 
 type CheckRestaurantExists struct {

@@ -49,6 +49,7 @@ func route(data initRoute) {
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/dish", data.restaurantAdmin.AddDish)
+	restaurantGroup.DELETE("/dish", data.restaurantAdmin.DeleteDish)
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
