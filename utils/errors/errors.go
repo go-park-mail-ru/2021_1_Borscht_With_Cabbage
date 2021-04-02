@@ -28,7 +28,7 @@ func NewCustomError(code int, mess string) *CustomError {
 	}
 }
 
-func BadRequest(desc string) *CustomError {
+func BadRequestError(desc string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
 			Code:    http.StatusBadRequest,
@@ -38,7 +38,7 @@ func BadRequest(desc string) *CustomError {
 	}
 }
 
-func FailServer(desc string) *CustomError {
+func FailServerError(desc string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
 			Code:    http.StatusInternalServerError,
@@ -48,7 +48,7 @@ func FailServer(desc string) *CustomError {
 	}
 }
 
-func Authorization(desc string) *CustomError {
+func AuthorizationError(desc string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
 			Code:    http.StatusUnauthorized,
