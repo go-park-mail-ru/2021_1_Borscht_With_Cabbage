@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 )
@@ -14,11 +15,18 @@ func NewAdminUsecase(repo restaurantAdmin.AdminRepo) restaurantAdmin.AdminUsecas
 		adminRepository: repo,
 	}
 }
-func (a adminUsecase) Create(user models.Restaurant) (int, error) {
-	return a.adminRepository.Create(user)
+func (a adminUsecase) Create(restaurant models.Restaurant) (*models.Restaurant, error) {
+	restaurant.Avatar = config.DefaultAvatar
+
+	id, err := a.adminRepository.Create(restaurant)
+	if err != nil {
+		return nil, err
+	}
+	restaurant.ID = id
+	return &restaurant, nil
 }
 
-func (a adminUsecase) CheckRestaurantExists(user models.RestaurantAuth) (models.Restaurant, error) {
+func (a adminUsecase) CheckRestaurantExists(user models.RestaurantAuth) (*models.Restaurant, error) {
 	return a.adminRepository.CheckRestaurantExists(user)
 }
 

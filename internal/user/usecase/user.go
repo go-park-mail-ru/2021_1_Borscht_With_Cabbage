@@ -29,15 +29,20 @@ func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
 	}
 }
 
-func (u *userUsecase) Create(newUser models.User) (int, error) {
+func (u *userUsecase) Create(newUser models.User) (*models.User, error) {
 
 	// TODO валидация какая нибудь
 	newUser.Avatar = config.DefaultAvatar
 
-	return u.userRepository.Create(newUser)
+	uid, err := u.userRepository.Create(newUser)
+	if err != nil {
+		return nil, err
+	}
+	newUser.Uid = uid
+	return &newUser, nil
 }
 
-func (u *userUsecase) CheckUserExists(user models.UserAuth) (models.User, error) {
+func (u *userUsecase) CheckUserExists(user models.UserAuth) (*models.User, error) {
 	return u.userRepository.CheckUserExists(user)
 }
 

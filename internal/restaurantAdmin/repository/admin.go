@@ -2,11 +2,12 @@ package repository
 
 import (
 	"database/sql"
+	"net/http"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	_errors "github.com/borscht/backend/utils"
-	"net/http"
 )
 
 type adminRepo struct {
@@ -60,19 +61,19 @@ func (a adminRepo) Create(newRestaurant models.Restaurant) (int, error) {
 	return rid, nil
 }
 
-func (a adminRepo) CheckRestaurantExists(restaurantToCheck models.RestaurantAuth) (models.Restaurant, error) {
+func (a adminRepo) CheckRestaurantExists(restaurantToCheck models.RestaurantAuth) (*models.Restaurant, error) {
 	restaurant := new(models.Restaurant)
 	err := a.DB.QueryRow("select rid, name, avatar from restaurants where (adminphone=$1 or adminemail=$1) and adminpassword=$2",
 		restaurantToCheck.Login, restaurantToCheck.Password).Scan(&restaurant.ID, &restaurant.Name, &restaurant.Avatar)
 
 	if err == sql.ErrNoRows {
-		return models.Restaurant{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
+		return nil, _errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
 	if err != nil {
-		return models.Restaurant{}, _errors.FailServer(err.Error())
+		return nil, _errors.FailServer(err.Error())
 	}
 
-	return *restaurant, nil
+	return restaurant, nil
 }
 
 func (a adminRepo) GetByRid(rid int) (models.Restaurant, error) {

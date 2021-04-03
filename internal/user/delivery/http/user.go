@@ -2,6 +2,9 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -9,8 +12,6 @@ import (
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"time"
 )
 
 type Handler struct {
@@ -57,17 +58,16 @@ func (h *Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	uid, err := h.UserUcase.Create(*newUser)
+	responseUser, err := h.UserUcase.Create(*newUser)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
 	sessionInfo := models.SessionInfo{
-		Id:   uid,
+		Id:   responseUser.Uid,
 		Role: config.RoleUser,
 	}
 	session, err := h.SessionUcase.Create(sessionInfo)
-
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -75,7 +75,7 @@ func (h *Handler) Create(c echo.Context) error {
 	fmt.Println("SESSION:", session)
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: newUser.Name, Avatar: config.DefaultAvatar, Role: config.RoleUser} // TODO убрать config отсюда
+	response := models.SuccessUserResponse{User: *responseUser, Role: config.RoleUser} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -104,7 +104,7 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: oldUser.Name, Avatar: oldUser.Avatar, Role: config.RoleUser}
+	response := models.SuccessUserResponse{User: *oldUser, Role: config.RoleUser}
 
 	return models.SendResponse(c, response)
 }

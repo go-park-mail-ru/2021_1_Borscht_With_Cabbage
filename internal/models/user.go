@@ -7,7 +7,7 @@ type User struct {
 	Password    string `json:"password"`
 	Phone       string `json:"number"`
 	Avatar      string `json:"avatar"`
-	MainAddress string `json:"address"`
+	MainAddress string `json:"activeAddress"`
 }
 
 type UserAuth struct {
@@ -24,8 +24,7 @@ type UserData struct {
 	Avatar      string `json:"avatar"`
 }
 
-type SuccessResponse struct {
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
-	Role   string `json:"role"`
+type SuccessUserResponse struct {
+	User
+	Role string `json:"role"`
 }

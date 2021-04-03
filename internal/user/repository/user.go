@@ -2,11 +2,12 @@ package repository
 
 import (
 	"database/sql"
+	"net/http"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	_errors "github.com/borscht/backend/utils"
-	"net/http"
 
 	"io"
 	"mime/multipart"
@@ -69,20 +70,21 @@ func (u *userRepo) Create(newUser models.User) (int, error) {
 	return uid, nil
 }
 
-func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (models.User, error) {
+func (u *userRepo) CheckUserExists(userToCheck models.UserAuth) (*models.User, error) {
 	user := new(models.User)
 
-	err := u.DB.QueryRow("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
-		userToCheck.Login, userToCheck.Password).Scan(&user.Uid, &user.Name, &user.Avatar)
+	err := u.DB.QueryRow("select uid, name, phone, email, password, photo from users where (phone=$1 or email=$1) and password=$2",
+		userToCheck.Login, userToCheck.Password).
+		Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Password, &user.Avatar)
 	if err == sql.ErrNoRows {
 
-		return models.User{}, _errors.NewCustomError(http.StatusBadRequest, "user not found")
+		return nil, _errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
 	if err != nil {
-		return models.User{}, _errors.FailServer(err.Error())
+		return nil, _errors.FailServer(err.Error())
 	}
 
-	return *user, nil
+	return user, nil
 }
 
 func (u *userRepo) GetByUid(uid int) (models.User, error) {
