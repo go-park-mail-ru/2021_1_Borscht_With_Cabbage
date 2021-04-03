@@ -30,6 +30,11 @@ type Restaurant struct {
 	Avatar        string  `json:"avatar"`
 }
 
+type SuccessRestaurantResponse struct {
+	Restaurant
+	Role string `json:"role"`
+}
+
 type RestaurantResponse struct {
 	ID           int     `json:"id"`
 	Title        string  `json:"title"`

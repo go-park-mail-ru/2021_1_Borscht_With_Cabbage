@@ -20,9 +20,9 @@ type AdminHandler interface {
 }
 
 type AdminUsecase interface {
-	Create(ctx context.Context, restaurant models.Restaurant) (int, error)
+	Create(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error)
 	Update(ctx context.Context, restaurant models.RestaurantUpdate) (*models.RestaurantResponse, error)
-	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error)
+	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
 	AddDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error)
 	DeleteDish(ctx context.Context, did int) error
@@ -33,7 +33,7 @@ type AdminUsecase interface {
 type AdminRepo interface {
 	Create(ctx context.Context, user models.Restaurant) (int, error)
 	Update(ctx context.Context, restaurant models.RestaurantUpdate) error
-	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error)
+	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
 	AddDish(ctx context.Context, dish models.Dish) (int, error)
 	DeleteDish(ctx context.Context, did int) error

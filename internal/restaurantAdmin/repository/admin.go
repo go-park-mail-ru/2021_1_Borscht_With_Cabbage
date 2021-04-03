@@ -233,21 +233,21 @@ func (a adminRepo) Create(ctx context.Context, newRestaurant models.Restaurant) 
 	return rid, nil
 }
 
-func (a adminRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck models.RestaurantAuth) (models.Restaurant, error) {
+func (a adminRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck models.RestaurantAuth) (*models.Restaurant, error) {
 	restaurant := new(models.Restaurant)
 	err := a.DB.QueryRow("select rid, name, avatar from restaurants where (adminphone=$1 or adminemail=$1) and adminpassword=$2",
 		restaurantToCheck.Login, restaurantToCheck.Password).Scan(&restaurant.ID, &restaurant.Title, &restaurant.Avatar)
 
 	if err == sql.ErrNoRows {
-		return models.Restaurant{}, errors.NewCustomError(http.StatusBadRequest, "user not found")
+		return nil, errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, custError)
-		return models.Restaurant{}, custError
+		return nil, custError
 	}
 
-	return *restaurant, nil
+	return restaurant, nil
 }
 
 func (a adminRepo) GetByRid(ctx context.Context, rid int) (models.Restaurant, error) {

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
@@ -137,11 +138,18 @@ func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Di
 	return responseDish, nil
 }
 
-func (a adminUsecase) Create(ctx context.Context, user models.Restaurant) (int, error) {
-	return a.adminRepository.Create(ctx, user)
+func (a adminUsecase) Create(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error) {
+	restaurant.Avatar = config.DefaultAvatar
+
+	id, err := a.adminRepository.Create(ctx, restaurant)
+	if err != nil {
+		return nil, err
+	}
+	restaurant.ID = id
+	return &restaurant, nil
 }
 
-func (a adminUsecase) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (models.Restaurant, error) {
+func (a adminUsecase) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error) {
 	return a.adminRepository.CheckRestaurantExists(ctx, user)
 }
 

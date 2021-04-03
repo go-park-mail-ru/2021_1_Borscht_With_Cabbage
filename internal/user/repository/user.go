@@ -77,21 +77,22 @@ func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error)
 	return uid, nil
 }
 
-func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserAuth) (models.User, error) {
+func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserAuth) (*models.User, error) {
 	user := new(models.User)
 
-	err := u.DB.QueryRow("select uid, name, photo from users where (phone=$1 or email=$1) and password=$2",
-		userToCheck.Login, userToCheck.Password).Scan(&user.Uid, &user.Name, &user.Avatar)
+	err := u.DB.QueryRow("select uid, name, phone, email, password, photo from users where (phone=$1 or email=$1) and password=$2",
+		userToCheck.Login, userToCheck.Password).
+		Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Password, &user.Avatar)
 	if err == sql.ErrNoRows {
-		return models.User{}, errors.AuthorizationError("user not found")
+		return nil, errors.AuthorizationError("user not found")
 	}
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.User{}, failError
+		return nil, failError
 	}
 
-	return *user, nil
+	return user, nil
 }
 
 func (u *userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {

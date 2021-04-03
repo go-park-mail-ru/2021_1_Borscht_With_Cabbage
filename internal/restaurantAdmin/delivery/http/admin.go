@@ -127,13 +127,13 @@ func (a AdminHandler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	rid, err := a.AdminUsecase.Create(ctx, *newRestaurant)
+	responseRestaurant, err := a.AdminUsecase.Create(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
 	sessionInfo := models.SessionInfo{
-		Id:   rid,
+		Id:   responseRestaurant.ID,
 		Role: config.RoleAdmin,
 	}
 	session, err := a.SessionUcase.Create(ctx, sessionInfo)
@@ -143,7 +143,7 @@ func (a AdminHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: newRestaurant.Title, Avatar: config.DefaultAvatar, Role: config.RoleAdmin} // TODO убрать config отсюда
+	response := models.SuccessRestaurantResponse{Restaurant: *responseRestaurant, Role: config.RoleAdmin} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -173,7 +173,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessResponse{Name: existingRest.Title, Avatar: existingRest.Avatar, Role: config.RoleAdmin}
+	response := models.SuccessRestaurantResponse{Restaurant: *existingRest, Role: config.RoleAdmin}
 	return models.SendResponse(c, response)
 }
 
