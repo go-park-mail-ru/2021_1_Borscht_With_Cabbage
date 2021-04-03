@@ -5,6 +5,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,6 +16,7 @@ type UserAuthMiddleware struct {
 
 func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		ctx := models.GetContext(c)
 		session, err := c.Cookie(config.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
@@ -22,7 +24,7 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
-		*sessionData, exists, err = m.SessionUcase.Check(session.Value)
+		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -34,12 +36,13 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 
-		user, err := m.UserUcase.GetByUid(sessionData.Id)
+		user, err := m.UserUcase.GetByUid(ctx, sessionData.Id)
 		if err != nil {
 			return models.SendRedirectLogin(c)
 		}
 		user.Uid = sessionData.Id
 		c.Set("User", user)
+		logger.MiddleLevel().DataLog(ctx, "user auth", user)
 		return next(c)
 	}
 }

@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,6 +20,13 @@ type redirect struct {
 }
 
 func SendRedirectLogin(c echo.Context) error {
+	ctx := GetContext(c)
+
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
+		"code":     http.StatusFound,
+		"response": "redirect '/login'",
+	})
+
 	return c.JSON(http.StatusOK, redirect{
 		Code:     http.StatusFound,
 		Redirect: "/login",
@@ -28,11 +36,21 @@ func SendRedirectLogin(c echo.Context) error {
 func GetContext(c echo.Context) context.Context {
 	ctx := c.Request().Context()
 
-	return context.WithValue(ctx, "User", c.Get("User"))
+	ctx = context.WithValue(ctx, "User", c.Get("User"))
+	return context.WithValue(ctx, "request_id", c.Get("request_id"))
 }
 
 func SendResponse(c echo.Context, data interface{}) error {
-	return c.JSON(http.StatusOK, message{http.StatusOK, data})
+
+	serverMessage := message{http.StatusOK, data}
+	ctx := GetContext(c)
+
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
+		"code":     http.StatusOK,
+		"response": serverMessage,
+	})
+
+	return c.JSON(http.StatusOK, serverMessage)
 }
 
 func SendResponseWithError(c echo.Context, err error) error {
@@ -41,7 +59,13 @@ func SendResponseWithError(c echo.Context, err error) error {
 		return c.JSON(http.StatusOK, customErr.SendError)
 	}
 
-	customErr := errors.FailServer(err.Error())
+	ctx := GetContext(c)
+	customErr := errors.FailServerError(err.Error())
+
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
+		"code":     customErr.Code,
+		"response": customErr.SendError,
+	})
 
 	return c.JSON(http.StatusOK, customErr.SendError)
 }

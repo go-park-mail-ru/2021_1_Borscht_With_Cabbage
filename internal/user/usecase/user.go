@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"hash/fnv"
 	"math/rand"
 	"mime/multipart"
@@ -10,7 +11,8 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 )
 
 // TODO: хранить статику в /var/...
@@ -29,12 +31,12 @@ func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
 	}
 }
 
-func (u *userUsecase) Create(newUser models.User) (*models.User, error) {
+func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.User, error) {
 
 	// TODO валидация какая нибудь
 	newUser.Avatar = config.DefaultAvatar
 
-	uid, err := u.userRepository.Create(newUser)
+	uid, err := u.userRepository.Create(ctx, newUser)
 	if err != nil {
 		return nil, err
 	}
@@ -42,38 +44,38 @@ func (u *userUsecase) Create(newUser models.User) (*models.User, error) {
 	return &newUser, nil
 }
 
-func (u *userUsecase) CheckUserExists(user models.UserAuth) (*models.User, error) {
-	return u.userRepository.CheckUserExists(user)
+func (u *userUsecase) CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error) {
+	return u.userRepository.CheckUserExists(ctx, user)
 }
 
-func (u *userUsecase) GetByUid(uid int) (models.User, error) {
-	return u.userRepository.GetByUid(uid)
+func (u *userUsecase) GetByUid(ctx context.Context, uid int) (models.User, error) {
+	return u.userRepository.GetByUid(ctx, uid)
 }
 
-func (u *userUsecase) Update(newUser models.UserData, uid int) error {
+func (u *userUsecase) Update(ctx context.Context, newUser models.UserData, uid int) error {
 	// TODO валидация
 
-	return u.userRepository.Update(newUser, uid)
+	return u.userRepository.Update(ctx, newUser, uid)
 }
 
-func (u *userUsecase) UploadAvatar(image *multipart.FileHeader) (string, error) {
+func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHeader) (string, error) {
 	// парсим расширение
 	expansion := filepath.Ext(image.Filename)
 
-	uid, localErr := getUniqId(image.Filename)
+	uid, localErr := getUniqId(ctx, image.Filename)
 	if localErr != nil {
 		return "", localErr
 	}
 
 	filename := HeadAvatar + uid + expansion
-	if err := u.userRepository.UploadAvatar(image, filename); err != nil {
+	if err := u.userRepository.UploadAvatar(ctx, image, filename); err != nil {
 		return "", err
 	}
 
 	return config.Repository + filename, nil
 }
 
-func getUniqId(filename string) (string, error) {
+func getUniqId(ctx context.Context, filename string) (string, error) {
 	// создаем рандомную последовательность чтобы точно названия не повторялись
 	hashingSalt := strconv.Itoa(rand.Int() % 1000)
 
@@ -81,7 +83,9 @@ func getUniqId(filename string) (string, error) {
 	hash := fnv.New32a()
 	_, err := hash.Write([]byte(filename + hashingSalt))
 	if err != nil {
-		return "", errors.FailServer(err.Error())
+		custErr := errors.FailServerError(err.Error())
+		logger.UsecaseLevel().ErrorLog(ctx, custErr)
+		return "", custErr
 	}
 
 	return strconv.Itoa(int(hash.Sum32())), nil

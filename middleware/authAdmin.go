@@ -5,6 +5,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,6 +16,7 @@ type AdminAuthMiddleware struct {
 
 func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		ctx := models.GetContext(c)
 		session, err := c.Cookie(config.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
@@ -22,7 +24,7 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
-		*sessionData, exists, err = m.SessionUcase.Check(session.Value)
+		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -34,12 +36,13 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 
-		restaurant, err := m.AdminUcase.GetByRid(sessionData.Id)
+		restaurant, err := m.AdminUcase.GetByRid(ctx, sessionData.Id)
 		if err != nil {
 			return models.SendRedirectLogin(c)
 		}
 		restaurant.ID = sessionData.Id
 		c.Set("Restaurant", restaurant)
+		logger.MiddleLevel().DataLog(ctx, "restaurant auth", restaurant)
 		return next(c)
 	}
 }

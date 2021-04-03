@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
-	_errors "github.com/borscht/backend/utils"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type restaurantRepo struct {
@@ -17,11 +20,13 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
-func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantResponse, error) {
+func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantResponse, error) {
 	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
 		"where rid >= $1 and rid <= $2", offset, limit+offset)
 	if err != nil {
-		return []models.RestaurantResponse{}, _errors.FailServer(err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return []models.RestaurantResponse{}, failError
 	}
 
 	var restaurants []models.RestaurantResponse
@@ -42,17 +47,21 @@ func (r *restaurantRepo) GetVendor(limit, offset int) ([]models.RestaurantRespon
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(id string) (models.Restaurant, error) {
+func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaurant, error) {
 	restaurant := new(models.Restaurant)
 	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
 		id).Scan(&restaurant.Name, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
-		return models.Restaurant{}, _errors.FailServer(err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return models.Restaurant{}, failError
 	}
 
 	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
 	if errr != nil {
-		return models.Restaurant{}, _errors.FailServer(errr.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return models.Restaurant{}, failError
 	}
 
 	dishes := make([]models.Dish, 0)
@@ -66,14 +75,18 @@ func (r *restaurantRepo) GetById(id string) (models.Restaurant, error) {
 			&dish.Image,
 		)
 		if err != nil {
-			return models.Restaurant{}, _errors.FailServer(err.Error())
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return models.Restaurant{}, failError
 		}
 
 		dishes = append(dishes, *dish)
 	}
 	err = dishesDB.Close()
 	if err != nil {
-		return models.Restaurant{}, _errors.FailServer(err.Error())
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return models.Restaurant{}, failError
 	}
 
 	restaurant.Dishes = dishes
