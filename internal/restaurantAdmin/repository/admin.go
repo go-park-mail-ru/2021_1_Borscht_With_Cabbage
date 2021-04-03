@@ -49,6 +49,32 @@ func (a adminRepo) Update(ctx context.Context, restaurant models.RestaurantUpdat
 	return nil
 }
 
+func (a adminRepo) GetAllDishes(ctx context.Context, idRestaurant int) ([]models.Dish, error) {
+	dishesDB, err := a.DB.Query("select did, name, price, weight, description, image from dishes "+
+		"where restaurant = $1", idRestaurant)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return []models.Dish{}, failError
+	}
+
+	var dishes []models.Dish
+	for dishesDB.Next() {
+		dish := new(models.Dish)
+		err = dishesDB.Scan(
+			&dish.ID,
+			&dish.Name,
+			&dish.Price,
+			&dish.Weight,
+			&dish.Description,
+			&dish.Image,
+		)
+		dishes = append(dishes, *dish)
+	}
+
+	return dishes, nil
+}
+
 func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {

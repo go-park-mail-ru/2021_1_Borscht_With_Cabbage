@@ -43,6 +43,17 @@ func (a AdminHandler) Update(c echo.Context) error {
 	return models.SendResponse(c, *responseRestaurant)
 }
 
+func (a AdminHandler) GetAllDishes(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	response, err := a.AdminUsecase.GetAllDishes(ctx)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, response)
+}
+
 func (a AdminHandler) UpdateDish(c echo.Context) error {
 	ctx := models.GetContext(c)
 

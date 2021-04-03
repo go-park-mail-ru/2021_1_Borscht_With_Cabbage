@@ -49,6 +49,17 @@ func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUp
 	return restaurantResponse, nil
 }
 
+func (a adminUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
+	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	return a.adminRepository.GetAllDishes(ctx, restaurantAdmin.ID)
+}
+
 func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error) {
 	//TODO: добавление изображения блюда в хранилище
 
