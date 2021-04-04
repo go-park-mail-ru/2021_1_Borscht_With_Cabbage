@@ -33,25 +33,18 @@ func (h Handler) AddToBasket(c echo.Context) error {
 
 	dish := models.DishToBasket{}
 
-	dish.DishID = 1
-	dish.SameBasket = true
+	if err := c.Bind(dish); err != nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
 	err := h.OrderUcase.AddToBasket(ctx, dish, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-	return err
 
-	//if err := c.Bind(dish); err != nil {
-	//	sendErr := errors.Authorization("error with request data")
-	//	return models.SendResponseWithError(c, sendErr)
-	//}
-	//
-	//err := h.OrderUcase.AddToBasket(dish, userStruct.Uid)
-	//if err != nil {
-	//	return models.SendResponseWithError(c, err)
-	//}
-	//
-	//return models.SendResponse(c, "")
+	return models.SendResponse(c, "")
 }
 
 func (h Handler) Create(c echo.Context) error {
@@ -65,11 +58,13 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	order := models.CreateOrder{}
-	if err := c.Bind(order); err != nil {
-		sendErr := errors.AuthorizationError("error with request data")
-		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-		return models.SendResponseWithError(c, sendErr)
-	}
+	//if err := c.Bind(order); err != nil {
+	//	sendErr := errors.AuthorizationError("error with request data")
+	//	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+	//	return models.SendResponseWithError(c, sendErr)
+	//}
+
+	order.Address = "улица Пупкина"
 
 	userStruct := user.(models.User)
 	err := h.OrderUcase.Create(ctx, userStruct.Uid, order)

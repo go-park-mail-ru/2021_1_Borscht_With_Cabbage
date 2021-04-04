@@ -56,7 +56,7 @@ func route(data initRoute) {
 	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
-	user.GET("/orders", data.order.AddToBasket) // TODO TODO TODO НЕ ЭТО
+	user.GET("/orders", data.order.GetUserOrders)
 	user.POST("/order", data.order.Create)
 	user.PUT("/basket", data.order.AddToBasket)
 	auth.GET("/auth", data.user.CheckAuth)

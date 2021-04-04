@@ -29,10 +29,10 @@ CREATE TABLE restaurants (
                              adminEmail TEXT,
                              adminPhone TEXT,
                              adminPassword TEXT,
-                             deliveryCost INTEGER,
-                             avgCheck INTEGER,
+                             deliveryCost INTEGER DEFAULT 0,
+                             avgCheck INTEGER DEFAULT 0,
                              description TEXT,
-                             rating FLOAT,
+                             rating FLOAT DEFAULT 0,
                              avatar TEXT
 );
 

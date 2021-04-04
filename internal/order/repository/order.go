@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/utils/errors"
@@ -64,11 +65,12 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 	return nil
 }
 
+// TODO транзакция
 func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.CreateOrder) error {
 	var basketID int
 	var basketRestaurant string
 	// находим что за корзина и из какого ресторана привязана к юзеру
-	err := o.DB.QueryRow("select bid, restaurant from baskets where user=$1", uid).Scan(&basketID, &basketRestaurant)
+	err := o.DB.QueryRow("select bid, restaurant from baskets where userid=$1", uid).Scan(&basketID, &basketRestaurant)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant name")
 		return errors.BadRequestError("Error with getting restaurant name")
@@ -84,28 +86,32 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 
 	// формируем в бд новый заказ
 	var orderID int
-	err = o.DB.QueryRow("insert into orders (restaurant, user, ordertime, address, deliverycost, sum, status, deliverytime)"+
+	err = o.DB.QueryRow("insert into orders (restaurant, userID, ordertime, address, deliverycost, sum, status, deliverytime)"+
 		"values ($1,$2,$3,$4,$5,$6,$7,$8) returning oid;", basketRestaurant, uid, time.Now(), orderParams.Address, deliveryCost, 0,
-		models.StatusOrderAdded, time.Now()).Scan(orderID) //todo изменить время
+		models.StatusOrderAdded, time.Now()).Scan(&orderID) // todo решить что с временем доставки
 	if err != nil {
+		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
 		return errors.BadRequestError("Error with inserting order in DB")
 	}
 
 	// теперь корзина привязана к сформированному заказу, а не пользователю
 	_, err = o.DB.Exec("update baskets set userid=null, orderid=$1 where user=$2", orderID, uid)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with binding cart from user to order")
+		return errors.BadRequestError("Error with binding cart from user to order")
+	}
 
+	// а юзеру привязываем новую корзину
+	_, err = o.DB.Exec("insert into baskets (userid) values ($1)", uid)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with giving user new basket")
+		return errors.BadRequestError("Error with giving user new basket")
+	}
 	return nil
 }
 
 func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, error) {
-	//var oid int
-	//err := o.DB.QueryRow("insert into orders (restaurant, userID, ordertime, address, deliverycost, sum, status, deliverytime)"+
-	//	" values ($1,$2,$3,$4,$5,$6,$7,$8) returning oid", "yum", 1, time.Now(), "бауманская 2", 200, 1900, "едет к вам", time.Now()).Scan(oid)
-	//fmt.Println(err)
-	//fmt.Println(oid)
-	//return nil, err
-
 	ordersDB, err := o.DB.Query("select oid, restaurant, orderTime, address, deliverycost, sum, status, deliverytime "+
 		"from orders where userID=$1", uid)
 	if err != nil {
@@ -125,6 +131,26 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.Status,
 			&order.DeliveryTime,
 		)
+
+		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image " +
+			"from baskets_food bf" +
+			"join dishes d where d.dish = bf.did")
+		if errr != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
+			return nil, errors.BadRequestError("Error with getting order's dishes")
+		}
+
+		dishes := make([]models.DishInOrder, 0)
+		for dishesDB.Next() {
+			dish := new(models.DishInOrder)
+			err = dishesDB.Scan(
+				&dish.Name,
+				&dish.Price,
+				&dish.Image)
+			dishes = append(dishes, *dish)
+		}
+		order.Foods = dishes
+
 		orders = append(orders, *order)
 	}
 
