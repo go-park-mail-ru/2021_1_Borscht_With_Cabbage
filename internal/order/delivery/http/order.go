@@ -19,6 +19,37 @@ func NewOrderHandler(orderUcase order.OrderUsecase) order.OrderHandler {
 	return handler
 }
 
+func (h Handler) AddToBasket(c echo.Context) error {
+	user := c.Get("User")
+	if user == nil {
+		userError := errors.Authorization("not authorized")
+		return models.SendResponseWithError(c, userError)
+	}
+	userStruct := user.(models.User)
+
+	dish := models.DishToBasket{}
+
+	dish.DishID = 1
+	dish.SameBasket = true
+	err := h.OrderUcase.AddToBasket(dish, userStruct.Uid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+	return err
+
+	//if err := c.Bind(dish); err != nil {
+	//	sendErr := errors.Authorization("error with request data")
+	//	return models.SendResponseWithError(c, sendErr)
+	//}
+	//
+	//err := h.OrderUcase.AddToBasket(dish, userStruct.Uid)
+	//if err != nil {
+	//	return models.SendResponseWithError(c, err)
+	//}
+	//
+	//return models.SendResponse(c, "")
+}
+
 func (h Handler) Create(c echo.Context) error {
 	user := c.Get("User")
 	if user == nil {
@@ -42,39 +73,52 @@ func (h Handler) Create(c echo.Context) error {
 }
 
 func (h Handler) GetUserOrders(c echo.Context) error {
-	orders := make([]models.Order, 0)
-	dishes := make([]models.Dish, 0)
-	dish := models.Dish{
-		Name:  "Солянка",
-		Price: 200,
-	}
-	dishes = append(dishes, dish)
-
-	testOrder1 := models.Order{
-		OID:          1,
-		Restaurant:   "rest1",
-		Address:      "Проспект мира 15,56",
-		OrderTime:    "12.10.2021 15:45",
-		DeliveryCost: 200,
-		DeliveryTime: "1 час",
-		Summary:      "1900",
-		Status:       models.StatusOrderAdded,
-		Foods:        dishes,
-	}
-	orders = append(orders, testOrder1)
-	orders = append(orders, testOrder1)
-
-	//user := c.Get("User")
-	//if user == nil {
-	//	userError := errors.Authorization("not authorized")
-	//	return models.SendResponseWithError(c, userError)
+	//orders := make([]models.Order, 0)
+	//dishes := make([]models.DishInOrder, 0)
+	//dish := models.DishInOrder{
+	//	Name:   "Солянка",
+	//	Price:  200,
+	//	Number: 2,
+	//}
+	//dishes = append(dishes, dish)
+	//dishes = append(dishes, dish)
+	//
+	//testOrder1 := models.Order{
+	//	OID:          1,
+	//	Restaurant:   "rest1",
+	//	Address:      "Проспект мира 15,56",
+	//	OrderTime:    "12.10.2021 15:45",
+	//	DeliveryCost: 200,
+	//	DeliveryTime: "1 час",
+	//	Summary:      "1900",
+	//	Status:       models.StatusOrderAdded,
+	//	Foods:        dishes,
 	//}
 	//
-	//userStruct := user.(models.User)
-	//orders, err := h.OrderUcase.GetUserOrders(userStruct.Uid)
-	//if err != nil {
-	//	return models.SendResponseWithError(c, err)
+	//testOrder2 := models.Order{
+	//	OID:          2,
+	//	Restaurant:   "rest2",
+	//	Address:      "Бауманская 2",
+	//	OrderTime:    "1.01.2021 15:45",
+	//	DeliveryCost: 100,
+	//	DeliveryTime: "1,5 часа",
+	//	Summary:      "100",
+	//	Status:       models.StatusOrderAdded,
+	//	Foods:        dishes,
 	//}
+	//orders = append(orders, testOrder1)
+	//orders = append(orders, testOrder2)
+	user := c.Get("User")
+	if user == nil {
+		userError := errors.Authorization("not authorized")
+		return models.SendResponseWithError(c, userError)
+	}
+
+	userStruct := user.(models.User)
+	orders, err := h.OrderUcase.GetUserOrders(userStruct.Uid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
 
 	return models.SendResponse(c, orders)
 }

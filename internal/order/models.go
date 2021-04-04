@@ -9,16 +9,19 @@ type OrderHandler interface {
 	Create(c echo.Context) error
 	GetUserOrders(c echo.Context) error
 	GetRestaurantOrders(c echo.Context) error
+	AddToBasket(c echo.Context) error
 }
 
 type OrderUsecase interface {
 	Create(uid int, orderParams models.CreateOrder) error
 	GetUserOrders(uid int) ([]models.Order, error)
 	GetRestaurantOrders(restaurantName string) ([]models.Order, error)
+	AddToBasket(dish models.DishToBasket, uid int) error
 }
 
 type OrderRepo interface {
 	Create(uid int, orderParams models.CreateOrder) error
 	GetUserOrders(uid int) ([]models.Order, error)
 	GetRestaurantOrders(restaurantName string) ([]models.Order, error)
+	AddToBasket(dish models.DishToBasket, uid int) error
 }

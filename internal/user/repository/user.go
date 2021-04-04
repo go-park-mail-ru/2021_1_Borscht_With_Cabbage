@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -63,6 +64,13 @@ func (u *userRepo) Create(newUser models.User) (int, error) {
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
 		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultAvatar).Scan(&uid)
 	if err != nil {
+		//_ = transaction.Rollback() // todo error handling
+		return 0, _errors.FailServer(err.Error())
+	}
+
+	_, err = u.DB.Exec("insert into baskets (userid) values ($1)", uid)
+	if err != nil {
+		fmt.Println(err)
 		return 0, _errors.FailServer(err.Error())
 	}
 

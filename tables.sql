@@ -38,7 +38,7 @@ CREATE TABLE restaurants (
 
 CREATE TABLE dishes (
                         did SERIAL PRIMARY KEY,
-                        restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                        restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE,
                         name TEXT,
                         price INTEGER,
                         weight INTEGER,
@@ -49,7 +49,7 @@ CREATE TABLE dishes (
 CREATE TABLE orders (
                         oid SERIAL PRIMARY KEY,
                         restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE,
-                        "user" INTEGER REFERENCES  users(uid) ON DELETE CASCADE,
+                        userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE,
                         orderTime TIMESTAMP,
                         address TEXT,
                         deliveryCost INTEGER,
@@ -61,8 +61,8 @@ CREATE TABLE orders (
 CREATE TABLE baskets (
                          bid SERIAL PRIMARY KEY,
                          restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE,
-                         "user" INTEGER REFERENCES  users(uid) ON DELETE CASCADE, -- корзина либо принадлежит юзеру и пока не оформлена
-                         "order" INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
+                         userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE, -- корзина либо принадлежит юзеру и пока не оформлена
+                         orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
 );
 
 
