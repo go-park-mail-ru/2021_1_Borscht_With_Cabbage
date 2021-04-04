@@ -58,13 +58,11 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	order := models.CreateOrder{}
-	//if err := c.Bind(order); err != nil {
-	//	sendErr := errors.AuthorizationError("error with request data")
-	//	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-	//	return models.SendResponseWithError(c, sendErr)
-	//}
-
-	order.Address = "улица Пупкина"
+	if err := c.Bind(order); err != nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
 
 	userStruct := user.(models.User)
 	err := h.OrderUcase.Create(ctx, userStruct.Uid, order)
@@ -76,41 +74,6 @@ func (h Handler) Create(c echo.Context) error {
 }
 
 func (h Handler) GetUserOrders(c echo.Context) error {
-	//orders := make([]models.Order, 0)
-	//dishes := make([]models.DishInOrder, 0)
-	//dish := models.DishInOrder{
-	//	Name:   "Солянка",
-	//	Price:  200,
-	//	Number: 2,
-	//}
-	//dishes = append(dishes, dish)
-	//dishes = append(dishes, dish)
-	//
-	//testOrder1 := models.Order{
-	//	OID:          1,
-	//	Restaurant:   "rest1",
-	//	Address:      "Проспект мира 15,56",
-	//	OrderTime:    "12.10.2021 15:45",
-	//	DeliveryCost: 200,
-	//	DeliveryTime: "1 час",
-	//	Summary:      "1900",
-	//	Status:       models.StatusOrderAdded,
-	//	Foods:        dishes,
-	//}
-	//
-	//testOrder2 := models.Order{
-	//	OID:          2,
-	//	Restaurant:   "rest2",
-	//	Address:      "Бауманская 2",
-	//	OrderTime:    "1.01.2021 15:45",
-	//	DeliveryCost: 100,
-	//	DeliveryTime: "1,5 часа",
-	//	Summary:      "100",
-	//	Status:       models.StatusOrderAdded,
-	//	Foods:        dishes,
-	//}
-	//orders = append(orders, testOrder1)
-	//orders = append(orders, testOrder2)
 	ctx := models.GetContext(c)
 
 	user := c.Get("User")
