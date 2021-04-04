@@ -3,7 +3,8 @@ package http
 import (
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
-	errors "github.com/borscht/backend/utils"
+	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,10 +21,13 @@ func NewOrderHandler(orderUcase order.OrderUsecase) order.OrderHandler {
 }
 
 func (h Handler) AddToBasket(c echo.Context) error {
+	ctx := models.GetContext(c)
+
 	user := c.Get("User")
 	if user == nil {
-		userError := errors.Authorization("not authorized")
-		return models.SendResponseWithError(c, userError)
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
 	}
 	userStruct := user.(models.User)
 
@@ -31,7 +35,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 
 	dish.DishID = 1
 	dish.SameBasket = true
-	err := h.OrderUcase.AddToBasket(dish, userStruct.Uid)
+	err := h.OrderUcase.AddToBasket(ctx, dish, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -51,20 +55,24 @@ func (h Handler) AddToBasket(c echo.Context) error {
 }
 
 func (h Handler) Create(c echo.Context) error {
+	ctx := models.GetContext(c)
+
 	user := c.Get("User")
 	if user == nil {
-		userError := errors.Authorization("not authorized")
-		return models.SendResponseWithError(c, userError)
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
 	}
 
 	order := models.CreateOrder{}
 	if err := c.Bind(order); err != nil {
-		sendErr := errors.Authorization("error with request data")
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
 	userStruct := user.(models.User)
-	err := h.OrderUcase.Create(userStruct.Uid, order)
+	err := h.OrderUcase.Create(ctx, userStruct.Uid, order)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -108,14 +116,17 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 	//}
 	//orders = append(orders, testOrder1)
 	//orders = append(orders, testOrder2)
+	ctx := models.GetContext(c)
+
 	user := c.Get("User")
 	if user == nil {
-		userError := errors.Authorization("not authorized")
-		return models.SendResponseWithError(c, userError)
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
 	}
 
 	userStruct := user.(models.User)
-	orders, err := h.OrderUcase.GetUserOrders(userStruct.Uid)
+	orders, err := h.OrderUcase.GetUserOrders(ctx, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -124,14 +135,17 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 }
 
 func (h Handler) GetRestaurantOrders(c echo.Context) error {
+	ctx := models.GetContext(c)
+
 	restaurant := c.Get("Restaurant")
 	if restaurant == nil {
-		userError := errors.Authorization("not authorized")
-		return models.SendResponseWithError(c, userError)
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
 	}
 
 	restaurantStruct := restaurant.(models.Restaurant)
-	orders, err := h.OrderUcase.GetRestaurantOrders(restaurantStruct.Name)
+	orders, err := h.OrderUcase.GetRestaurantOrders(ctx, restaurantStruct.Name)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

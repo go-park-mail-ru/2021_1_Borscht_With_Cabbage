@@ -25,6 +25,9 @@ import (
 	userRepo "github.com/borscht/backend/internal/user/repository"
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
+	"github.com/borscht/backend/utils/logger"
+
+	// "github.com/labstack/echo/middleware"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 
@@ -63,12 +66,20 @@ func route(data initRoute) {
 	data.e.GET("/restaurants", data.restaurant.GetVendor)
 }
 
-func main() {
-	e := echo.New()
+func initServer(e *echo.Echo) {
 	e.Static("/static", config.Static)
 	e.Static("/default", config.DefaultStatic)
 
+	logger.InitLogger()
+	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
+
+	e.HTTPErrorHandler = custMiddleware.ErrorHandler
+}
+
+func main() {
+	e := echo.New()
+	initServer(e)
 
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)

@@ -17,6 +17,7 @@ type AuthMiddleware struct {
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		ctx := models.GetContext(c)
 		session, err := c.Cookie(config.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
@@ -24,7 +25,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
-		*sessionData, exists, err = m.SessionUcase.Check(session.Value)
+		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -33,7 +34,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		if sessionData.Role == config.RoleUser {
-			user, err := m.UserUcase.GetByUid(sessionData.Id)
+			user, err := m.UserUcase.GetByUid(ctx, sessionData.Id)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
@@ -42,7 +43,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		if sessionData.Role == config.RoleAdmin {
-			restaurant, err := m.RestaurantAdminUcase.GetByRid(sessionData.Id)
+			restaurant, err := m.RestaurantAdminUcase.GetByRid(ctx, sessionData.Id)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
