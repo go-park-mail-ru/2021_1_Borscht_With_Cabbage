@@ -94,10 +94,9 @@ func (a adminRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 		return err
 	}
 
-	_, err = a.DB.Exec(`update dishes set name = $1, price = $2, weight = $3, 
-						description = $4, image = $5
-						where did = $6`,
-		dish.Name, dish.Price, dish.Weight, dish.Description, dish.Image, dish.ID)
+	_, err = a.DB.Exec(`update dishes set name = $1, price = $2, weight = $3, description = $4
+						where did = $5`,
+		dish.Name, dish.Price, dish.Weight, dish.Description, dish.ID)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

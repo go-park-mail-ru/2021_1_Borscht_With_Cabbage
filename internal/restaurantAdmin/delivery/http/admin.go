@@ -113,7 +113,7 @@ func (a AdminHandler) UploadDishImage(c echo.Context) error {
 	// TODO: подумать как лучше передать id
 	ctx := models.GetContext(c)
 
-	file, err := c.FormFile("avatar")
+	file, err := c.FormFile("image")
 	if err != nil {
 		requestError := errors.BadRequestError(err.Error())
 		logger.DeliveryLevel().ErrorLog(ctx, requestError)
@@ -127,9 +127,10 @@ func (a AdminHandler) UploadDishImage(c echo.Context) error {
 		return models.SendResponseWithError(c, requestError)
 	}
 
+	logger.DeliveryLevel().InlineDebugLog(ctx, formParams.Get("id"))
 	idDish, err := strconv.Atoi(formParams.Get("id"))
 	if err != nil {
-		requestError := errors.BadRequestError("invalid data form")
+		requestError := errors.BadRequestError("invalid data in formdata")
 		logger.DeliveryLevel().ErrorLog(ctx, requestError)
 		return models.SendResponseWithError(c, requestError)
 	}

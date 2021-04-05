@@ -139,12 +139,13 @@ func (a adminUsecase) UploadDishImage(ctx context.Context, image models.DishImag
 		return "", localErr
 	}
 
-	image.CustFilename = config.Repository + HeadImage + uid + expansion
+	image.CustFilename = HeadImage + uid + expansion
 	err := a.adminRepository.UploadDishImage(ctx, image)
 	if err != nil {
 		return "", err
 	}
 
+	image.CustFilename = config.Repository + HeadImage + uid + expansion
 	err = a.adminRepository.UpdateDishImage(ctx, image)
 	if err != nil {
 		return "", err
