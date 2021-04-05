@@ -48,7 +48,7 @@ func SendResponse(c echo.Context, data interface{}) error {
 
 	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     http.StatusOK,
-		"response": serverMessage,
+		"response": data,
 	})
 
 	return c.JSON(http.StatusOK, serverMessage)

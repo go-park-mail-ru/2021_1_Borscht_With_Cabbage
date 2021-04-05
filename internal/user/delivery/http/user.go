@@ -192,8 +192,6 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	authResponse := new(models.Auth)
-
 	sessionData := new(models.SessionInfo)
 	var exist bool
 	*sessionData, exist, err = h.SessionUcase.Check(ctx, cookie.Value)
@@ -214,10 +212,10 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
-		authResponse.Name = restaurant.Title
-		authResponse.Avatar = restaurant.Avatar
-		authResponse.Role = config.RoleAdmin
-		return models.SendResponse(c, authResponse)
+		return models.SendResponse(c, models.SuccessRestaurantResponse{
+			Restaurant: restaurant,
+			Role:       config.RoleAdmin,
+		})
 
 	case config.RoleUser:
 		user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
@@ -226,10 +224,10 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
-		authResponse.Name = user.Name
-		authResponse.Avatar = user.Avatar
-		authResponse.Role = config.RoleUser
-		return models.SendResponse(c, authResponse)
+		return models.SendResponse(c, models.SuccessUserResponse{
+			User: user,
+			Role: config.RoleUser,
+		})
 	default:
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with roles")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)

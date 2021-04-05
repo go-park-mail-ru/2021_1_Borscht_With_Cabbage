@@ -24,9 +24,9 @@ type AdminUsecase interface {
 	Update(ctx context.Context, restaurant models.RestaurantUpdate) (*models.RestaurantResponse, error)
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
-	AddDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error)
+	AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	DeleteDish(ctx context.Context, did int) error
-	UpdateDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error)
+	UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	GetAllDishes(ctx context.Context) ([]models.Dish, error)
 }
 

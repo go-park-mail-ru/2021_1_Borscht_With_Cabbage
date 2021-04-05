@@ -57,12 +57,6 @@ type RestaurantUpdate struct {
 	Avatar        string `json:"avatar"`
 }
 
-type DishResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Image string `json:"image"`
-}
-
 type DishDelete struct {
 	ID int `json:"id"`
 }

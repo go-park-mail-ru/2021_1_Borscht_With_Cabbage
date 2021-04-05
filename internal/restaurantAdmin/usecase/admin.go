@@ -61,7 +61,7 @@ func (a adminUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
 	return a.adminRepository.GetAllDishes(ctx, restaurantAdmin.ID)
 }
 
-func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error) {
+func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
 	//TODO: добавление изображения блюда в хранилище
 
 	if dish.ID == 0 {
@@ -87,16 +87,15 @@ func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models
 		return nil, requestError
 	}
 
+	if dish.Image == "" {
+		dish.Image = oldDish.Image
+	}
+
 	err = a.adminRepository.UpdateDish(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
-	responseDish := &models.DishResponse{
-		ID:    dish.ID,
-		Name:  dish.Name,
-		Image: dish.Image,
-	}
-	return responseDish, nil
+	return &dish, nil
 }
 
 func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
@@ -123,19 +122,17 @@ func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
 	return a.adminRepository.DeleteDish(ctx, did)
 }
 
-func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.DishResponse, error) {
+func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
 	//TODO: добавление изображения блюда в хранилище
 
 	id, err := a.adminRepository.AddDish(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
-	responseDish := &models.DishResponse{
-		ID:    id,
-		Name:  dish.Name,
-		Image: dish.Image,
-	}
-	return responseDish, nil
+	responseDish := dish
+	responseDish.ID = id
+	responseDish.Image = config.DefaultAvatar // TODO: убрать
+	return &responseDish, nil
 }
 
 func (a adminUsecase) Create(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error) {

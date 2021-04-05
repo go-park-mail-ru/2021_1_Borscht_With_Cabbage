@@ -6,6 +6,7 @@ import (
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,10 +19,13 @@ type AuthMiddleware struct {
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := models.GetContext(c)
+		logger.MiddleLevel().InlineDebugLog(ctx, "Autorization")
 		session, err := c.Cookie(config.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
+
+		logger.MiddleLevel().InlineDebugLog(ctx, session.Value)
 
 		sessionData := new(models.SessionInfo)
 		var exists bool

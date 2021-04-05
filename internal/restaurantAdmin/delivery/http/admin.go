@@ -114,6 +114,7 @@ func setResponseCookie(c echo.Context, session string) {
 		Name:     config.SessionCookie,
 		Value:    session,
 		HttpOnly: true,
+		Path:     "/",
 	}
 	c.SetCookie(&sessionCookie)
 }
