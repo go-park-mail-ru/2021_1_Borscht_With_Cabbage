@@ -1,5 +1,7 @@
 package models
 
+import "mime/multipart"
+
 // TODO много одинаковых полей, надо объеденить
 type Dish struct {
 	ID          int    `json:"id"`
@@ -59,6 +61,12 @@ type RestaurantUpdate struct {
 
 type DishDelete struct {
 	ID int `json:"id"`
+}
+
+type DishImage struct {
+	IdDish       int
+	Image        *multipart.FileHeader
+	CustFilename string
 }
 
 type CheckRestaurantExists struct {

@@ -17,6 +17,7 @@ type AdminHandler interface {
 	DeleteDish(c echo.Context) error
 	UpdateDish(c echo.Context) error
 	GetAllDishes(c echo.Context) error
+	UploadDishImage(c echo.Context) error
 }
 
 type AdminUsecase interface {
@@ -28,6 +29,7 @@ type AdminUsecase interface {
 	DeleteDish(ctx context.Context, did int) error
 	UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	GetAllDishes(ctx context.Context) ([]models.Dish, error)
+	UploadDishImage(ctx context.Context, image models.DishImage) (string, error)
 }
 
 type AdminRepo interface {
@@ -40,4 +42,6 @@ type AdminRepo interface {
 	GetDish(ctx context.Context, did int) (models.Dish, error)
 	UpdateDish(ctx context.Context, dish models.Dish) error
 	GetAllDishes(ctx context.Context, idRestaurant int) ([]models.Dish, error)
+	UploadDishImage(ctx context.Context, image models.DishImage) error
+	UpdateDishImage(ctx context.Context, image models.DishImage) error
 }

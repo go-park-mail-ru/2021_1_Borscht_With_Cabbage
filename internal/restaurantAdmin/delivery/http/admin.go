@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/borscht/backend/config"
@@ -106,6 +107,42 @@ func (a AdminHandler) AddDish(c echo.Context) error {
 	}
 
 	return models.SendResponse(c, *response)
+}
+
+func (a AdminHandler) UploadDishImage(c echo.Context) error {
+	// TODO: подумать как лучше передать id
+	ctx := models.GetContext(c)
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		requestError := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	formParams, err := c.FormParams()
+	if err != nil {
+		requestError := errors.BadRequestError("invalid data form")
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	idDish, err := strconv.Atoi(formParams.Get("id"))
+	if err != nil {
+		requestError := errors.BadRequestError("invalid data form")
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	filename, err := a.AdminUsecase.UploadDishImage(ctx, models.DishImage{
+		IdDish: idDish,
+		Image:  file,
+	})
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, filename)
 }
 
 func setResponseCookie(c echo.Context, session string) {
