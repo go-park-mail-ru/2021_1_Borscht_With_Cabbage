@@ -135,7 +135,7 @@ func (a AdminHandler) UploadDishImage(c echo.Context) error {
 		return models.SendResponseWithError(c, requestError)
 	}
 
-	filename, err := a.AdminUsecase.UploadDishImage(ctx, models.DishImage{
+	response, err := a.AdminUsecase.UploadDishImage(ctx, models.DishImage{
 		IdDish: idDish,
 		Image:  file,
 	})
@@ -143,7 +143,7 @@ func (a AdminHandler) UploadDishImage(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, filename)
+	return models.SendResponse(c, response)
 }
 
 func setResponseCookie(c echo.Context, session string) {

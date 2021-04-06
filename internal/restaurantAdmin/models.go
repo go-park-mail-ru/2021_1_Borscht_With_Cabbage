@@ -29,7 +29,7 @@ type AdminUsecase interface {
 	DeleteDish(ctx context.Context, did int) error
 	UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	GetAllDishes(ctx context.Context) ([]models.Dish, error)
-	UploadDishImage(ctx context.Context, image models.DishImage) (string, error)
+	UploadDishImage(ctx context.Context, image models.DishImage) (*models.DishImageResponse, error)
 }
 
 type AdminRepo interface {

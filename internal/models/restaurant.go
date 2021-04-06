@@ -63,6 +63,11 @@ type DishDelete struct {
 	ID int `json:"id"`
 }
 
+type DishImageResponse struct {
+	ID       int    `json:"id"`
+	Filename string `json:"filename"`
+}
+
 type DishImage struct {
 	IdDish       int
 	Image        *multipart.FileHeader

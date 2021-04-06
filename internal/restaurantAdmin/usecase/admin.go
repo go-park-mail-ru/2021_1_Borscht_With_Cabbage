@@ -117,18 +117,18 @@ func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Di
 	return &responseDish, nil
 }
 
-func (a adminUsecase) UploadDishImage(ctx context.Context, image models.DishImage) (string, error) {
+func (a adminUsecase) UploadDishImage(ctx context.Context, image models.DishImage) (*models.DishImageResponse, error) {
 	if image.IdDish == 0 {
 		requestError := errors.BadRequestError("No id at the dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
-		return "", requestError
+		return nil, requestError
 	}
 
 	ok := a.checkRightsForDish(ctx, image.IdDish)
 	if !ok {
 		requestError := errors.BadRequestError("No rights to delete a dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
-		return "", requestError
+		return nil, requestError
 	}
 
 	// парсим расширение
@@ -136,22 +136,26 @@ func (a adminUsecase) UploadDishImage(ctx context.Context, image models.DishImag
 
 	uid, localErr := uniq.GetUniqFilename(ctx, image.Image.Filename)
 	if localErr != nil {
-		return "", localErr
+		return nil, localErr
 	}
 
 	image.CustFilename = HeadImage + uid + expansion
 	err := a.adminRepository.UploadDishImage(ctx, image)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	image.CustFilename = config.Repository + HeadImage + uid + expansion
 	err = a.adminRepository.UpdateDishImage(ctx, image)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return image.CustFilename, nil
+	response := &models.DishImageResponse{
+		ID:       image.IdDish,
+		Filename: image.CustFilename,
+	}
+	return response, nil
 }
 
 func (a adminUsecase) Create(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error) {
