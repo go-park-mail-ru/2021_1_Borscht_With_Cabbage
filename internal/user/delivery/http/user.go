@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/borscht/backend/utils/validation"
 	"net/http"
 	"time"
 
@@ -61,6 +62,10 @@ func (h *Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
+	if err := validation.ValidateUserRegistration(*newUser); err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
 	responseUser, err := h.UserUcase.Create(ctx, *newUser)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -91,6 +96,10 @@ func (h *Handler) Login(c echo.Context) error {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
+	}
+
+	if err := validation.ValidateUserLogin(*newUser); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	oldUser, err := h.UserUcase.CheckUserExists(ctx, *newUser)
@@ -145,6 +154,10 @@ func (h *Handler) EditProfile(c echo.Context) error {
 		Email:       formParams.Get("email"),
 		Password:    formParams.Get("password"),
 		PasswordOld: formParams.Get("password_current"),
+	}
+
+	if err := validation.ValidateUserEdit(profileEdits); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	file, err := c.FormFile("avatar")
