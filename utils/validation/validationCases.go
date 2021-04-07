@@ -56,3 +56,37 @@ func ValidateUserEdit(user models.UserData) error {
 
 	return nil
 }
+
+func ValidateRestLogin(user models.RestaurantAuth) error {
+	err := ValidateLogin(user.Login)
+	if err != nil {
+		return err
+	}
+	err = ValidatePassword(user.Password)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateRestRegistration(newRest models.Restaurant) error {
+	err := ValidateEmail(newRest.AdminEmail)
+	if err != nil {
+		return err
+	}
+	err = ValidatePhoneNumber(newRest.AdminPhone)
+	if err != nil {
+		return err
+	}
+	err = ValidateName(newRest.Name)
+	if err != nil {
+		return err
+	}
+	err = ValidatePassword(newRest.AdminPassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

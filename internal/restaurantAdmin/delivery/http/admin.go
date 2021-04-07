@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/borscht/backend/utils/validation"
 	"net/http"
 	"time"
 
@@ -44,6 +45,10 @@ func (a AdminHandler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
+	if err := validation.ValidateRestRegistration(*newRestaurant); err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
 	responseRestaurant, err := a.AdminUsecase.Create(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -72,6 +77,10 @@ func (a AdminHandler) Login(c echo.Context) error {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
+	}
+
+	if err := validation.ValidateRestLogin(*newRest); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	existingRest, err := a.AdminUsecase.CheckRestaurantExists(ctx, *newRest)
