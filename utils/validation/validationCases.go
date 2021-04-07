@@ -23,12 +23,12 @@ func ValidateUserRegistration(newUser models.User) error {
 	return nil
 }
 
-func ValidateUserLogin(user models.UserAuth) error {
-	err := ValidateLogin(user.Login)
+func ValidateSignIn(login, password string) error {
+	err := ValidateLogin(login)
 	if err != nil {
 		return err
 	}
-	err = ValidatePassword(user.Password)
+	err = ValidatePassword(password)
 	if err != nil {
 		return err
 	}
@@ -56,20 +56,6 @@ func ValidateUserEdit(user models.UserData) error {
 
 	return nil
 }
-
-func ValidateRestLogin(user models.RestaurantAuth) error {
-	err := ValidateLogin(user.Login)
-	if err != nil {
-		return err
-	}
-	err = ValidatePassword(user.Password)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func ValidateRestRegistration(newRest models.Restaurant) error {
 	err := ValidateEmail(newRest.AdminEmail)
 	if err != nil {

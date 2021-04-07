@@ -98,7 +98,7 @@ func (h *Handler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	if err := validation.ValidateUserLogin(*newUser); err != nil {
+	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 

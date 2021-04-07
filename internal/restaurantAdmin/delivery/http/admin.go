@@ -79,7 +79,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	if err := validation.ValidateRestLogin(*newRest); err != nil {
+	if err := validation.ValidateSignIn(newRest.Login, newRest.Password); err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
