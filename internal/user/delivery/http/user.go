@@ -16,11 +16,11 @@ import (
 
 type Handler struct {
 	UserUcase    userModel.UserUsecase
-	AdminUcase   adminModel.AdminUsecase
+	AdminUcase   adminModel.AdminRestaurantUsecase
 	SessionUcase sessionModel.SessionUsecase
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
 	handler := &Handler{
 		UserUcase:    userUcase,
 		AdminUcase:   adminUcase,

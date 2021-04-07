@@ -32,9 +32,16 @@ CREATE TABLE restaurants (
     avatar TEXT
 );
 
+CREATE TABLE sections (
+    sid SERIAL PRIMARY KEY,
+    restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+    name TEXT
+);
+
 CREATE TABLE dishes (
     did SERIAL PRIMARY KEY,
     restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+    section INTEGER REFERENCES sections(sid) ON DELETE CASCADE,
     name TEXT,
     price INTEGER,
     weight INTEGER,

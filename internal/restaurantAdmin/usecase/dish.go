@@ -19,23 +19,21 @@ const (
 	HeadImage = "static/dish/"
 )
 
-type adminUsecase struct {
-	adminRepository restaurantAdmin.AdminRepo
+type dishUsecase struct {
+	dishRepository  restaurantAdmin.AdminDishRepo
 	imageRepository image.ImageRepo
 }
 
-func NewAdminUsecase(adminRepo restaurantAdmin.AdminRepo,
-	imageRepo image.ImageRepo) restaurantAdmin.AdminUsecase {
+func NewDishUsecase(adminRepo restaurantAdmin.AdminDishRepo,
+	imageRepo image.ImageRepo) restaurantAdmin.AdminDishUsecase {
 
-	return &adminUsecase{
-		adminRepository: adminRepo,
+	return &dishUsecase{
+		dishRepository:  adminRepo,
 		imageRepository: imageRepo,
 	}
 }
 
-func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUpdate) (
-	*models.RestaurantResponse, error) {
-
+func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
 	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
@@ -43,37 +41,10 @@ func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUp
 		return nil, failError
 	}
 
-	restaurant.ID = restaurantAdmin.ID
-	err := a.adminRepository.Update(ctx, restaurant)
-	if err != nil {
-		return nil, err
-	}
-
-	restaurantResponse := &models.RestaurantResponse{
-		ID:           restaurant.ID,
-		Title:        restaurant.Title,
-		Description:  restaurant.Description,
-		Rating:       restaurantAdmin.Rating,
-		AvgCheck:     restaurantAdmin.AvgCheck,
-		DeliveryCost: restaurant.DeliveryCost,
-		Avatar:       restaurant.Avatar,
-	}
-
-	return restaurantResponse, nil
+	return a.dishRepository.GetAllDishes(ctx, restaurantAdmin.ID)
 }
 
-func (a adminUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
-	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
-	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
-		logger.UsecaseLevel().ErrorLog(ctx, failError)
-		return nil, failError
-	}
-
-	return a.adminRepository.GetAllDishes(ctx, restaurantAdmin.ID)
-}
-
-func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
+func (a dishUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
 	if dish.ID == 0 {
 		requestError := errors.BadRequestError("No id at the dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
@@ -88,14 +59,14 @@ func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models
 		return nil, requestError
 	}
 
-	err := a.adminRepository.UpdateDish(ctx, dish)
+	err := a.dishRepository.UpdateDish(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
 	return &dish, nil
 }
 
-func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
+func (a dishUsecase) DeleteDish(ctx context.Context, did int) error {
 	ok := a.checkRightsForDish(ctx, did)
 	if !ok {
 		requestError := errors.BadRequestError("No rights to delete a dish")
@@ -104,7 +75,7 @@ func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
 	}
 
 	// удаление изображения
-	oldDish, err := a.adminRepository.GetDish(ctx, did)
+	oldDish, err := a.dishRepository.GetDish(ctx, did)
 	if oldDish.Image != config.DefaultAvatar {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
@@ -113,11 +84,17 @@ func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
 		}
 	}
 
-	return a.adminRepository.DeleteDish(ctx, did)
+	return a.dishRepository.DeleteDish(ctx, did)
 }
 
-func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
-	id, err := a.adminRepository.AddDish(ctx, dish)
+func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
+	if dish.Section == 0 {
+		requestError := errors.BadRequestError("No section at the dish")
+		logger.UsecaseLevel().ErrorLog(ctx, requestError)
+		return nil, requestError
+	}
+
+	id, err := a.dishRepository.AddDish(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +104,7 @@ func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Di
 	return &responseDish, nil
 }
 
-func (a adminUsecase) UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error) {
+func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error) {
 	if idDish == 0 {
 		requestError := errors.BadRequestError("No id at the dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
@@ -150,7 +127,7 @@ func (a adminUsecase) UploadDishImage(ctx context.Context, image *multipart.File
 	}
 
 	// удаление изображения
-	oldDish, err := a.adminRepository.GetDish(ctx, idDish)
+	oldDish, err := a.dishRepository.GetDish(ctx, idDish)
 	if oldDish.Image != config.DefaultAvatar {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
@@ -166,7 +143,7 @@ func (a adminUsecase) UploadDishImage(ctx context.Context, image *multipart.File
 	}
 
 	custFilename = config.Repository + HeadImage + uid + expansion
-	err = a.adminRepository.UpdateDishImage(ctx, idDish, custFilename)
+	err = a.dishRepository.UpdateDishImage(ctx, idDish, custFilename)
 	if err != nil {
 		return nil, err
 	}
@@ -178,27 +155,8 @@ func (a adminUsecase) UploadDishImage(ctx context.Context, image *multipart.File
 	return response, nil
 }
 
-func (a adminUsecase) Create(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error) {
-	restaurant.Avatar = config.DefaultAvatar
-
-	id, err := a.adminRepository.Create(ctx, restaurant)
-	if err != nil {
-		return nil, err
-	}
-	restaurant.ID = id
-	return &restaurant, nil
-}
-
-func (a adminUsecase) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error) {
-	return a.adminRepository.CheckRestaurantExists(ctx, user)
-}
-
-func (a adminUsecase) GetByRid(ctx context.Context, rid int) (models.Restaurant, error) {
-	return a.adminRepository.GetByRid(ctx, rid)
-}
-
-func (a adminUsecase) checkRightsForDish(ctx context.Context, idDish int) bool {
-	dish, err := a.adminRepository.GetDish(ctx, idDish)
+func (a dishUsecase) checkRightsForDish(ctx context.Context, idDish int) bool {
+	dish, err := a.dishRepository.GetDish(ctx, idDish)
 	if err != nil {
 		return false
 	}

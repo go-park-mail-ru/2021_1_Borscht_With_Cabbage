@@ -13,7 +13,7 @@ import (
 type AuthMiddleware struct {
 	SessionUcase         sessionModel.SessionUsecase
 	UserUcase            userModel.UserUsecase
-	RestaurantAdminUcase restaurantAdmin.AdminUsecase
+	RestaurantAdminUcase restaurantAdmin.AdminRestaurantUsecase
 }
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -59,7 +59,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitAuthMiddleware(userUcase userModel.UserUsecase, restaurantAdminUcase restaurantAdmin.AdminUsecase, sessionUcase sessionModel.SessionUsecase) *AuthMiddleware {
+func InitAuthMiddleware(userUcase userModel.UserUsecase, restaurantAdminUcase restaurantAdmin.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) *AuthMiddleware {
 	return &AuthMiddleware{
 		SessionUcase:         sessionUcase,
 		UserUcase:            userUcase,

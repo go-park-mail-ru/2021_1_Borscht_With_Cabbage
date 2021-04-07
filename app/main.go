@@ -33,7 +33,9 @@ type initRoute struct {
 	e               *echo.Echo
 	user            user.UserHandler
 	restaurant      restaurant.RestaurantHandler
-	restaurantAdmin restaurantAdmin.AdminHandler
+	restaurantAdmin restaurantAdmin.AdminRestaurantHandler
+	dishAdmin       restaurantAdmin.AdminDishHandler
+	sectionAdmin    restaurantAdmin.AdminSectionHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
@@ -47,11 +49,11 @@ func route(data initRoute) {
 	auth.GET("/auth", data.user.CheckAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
-	restaurantGroup.POST("/dish", data.restaurantAdmin.AddDish)
-	restaurantGroup.DELETE("/dish", data.restaurantAdmin.DeleteDish)
-	restaurantGroup.PUT("/dish", data.restaurantAdmin.UpdateDish)
-	restaurantGroup.PUT("/dish/image", data.restaurantAdmin.UploadDishImage)
-	restaurantGroup.GET("/dishes", data.restaurantAdmin.GetAllDishes)
+	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
+	restaurantGroup.DELETE("/dish", data.dishAdmin.DeleteDish)
+	restaurantGroup.PUT("/dish", data.dishAdmin.UpdateDish)
+	restaurantGroup.PUT("/dish/image", data.dishAdmin.UploadDishImage)
+	restaurantGroup.GET("/dishes", data.dishAdmin.GetAllDishes)
 	restaurantGroup.PUT("", data.restaurantAdmin.Update)
 
 	data.e.POST("/signin", data.user.Login)
@@ -103,26 +105,35 @@ func main() {
 
 	userRepo := userRepo.NewUserRepo(db)
 	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
-	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
+	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
+	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
+	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	imageRepo := imageRepo.NewImageRepo()
+
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
-	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo, imageRepo)
+	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo)
+	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, imageRepo)
+	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, restaurantAdminUsecase, sessionUcase)
-	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
+	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
+	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
+	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
+	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(restaurantAdminUsecase, sessionUcase)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, restaurantAdminUsecase, sessionUcase)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
 
 	route(initRoute{
 		e:               e,
 		user:            userHandler,
-		restaurantAdmin: restaurantAdminHandler,
+		restaurantAdmin: adminRestaurantHandler,
+		dishAdmin:       adminDishHandler,
+		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
