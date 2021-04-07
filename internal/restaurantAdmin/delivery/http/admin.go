@@ -135,10 +135,7 @@ func (a AdminHandler) UploadDishImage(c echo.Context) error {
 		return models.SendResponseWithError(c, requestError)
 	}
 
-	response, err := a.AdminUsecase.UploadDishImage(ctx, models.DishImage{
-		IdDish: idDish,
-		Image:  file,
-	})
+	response, err := a.AdminUsecase.UploadDishImage(ctx, file, idDish)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

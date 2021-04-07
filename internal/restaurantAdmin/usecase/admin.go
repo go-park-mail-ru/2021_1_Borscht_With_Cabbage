@@ -2,9 +2,12 @@ package usecase
 
 import (
 	"context"
+	"mime/multipart"
 	"path/filepath"
+	"strings"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
@@ -18,17 +21,20 @@ const (
 
 type adminUsecase struct {
 	adminRepository restaurantAdmin.AdminRepo
+	imageRepository image.ImageRepo
 }
 
-func NewAdminUsecase(repo restaurantAdmin.AdminRepo) restaurantAdmin.AdminUsecase {
+func NewAdminUsecase(adminRepo restaurantAdmin.AdminRepo,
+	imageRepo image.ImageRepo) restaurantAdmin.AdminUsecase {
+
 	return &adminUsecase{
-		adminRepository: repo,
+		adminRepository: adminRepo,
+		imageRepository: imageRepo,
 	}
 }
 
 func (a adminUsecase) Update(ctx context.Context, restaurant models.RestaurantUpdate) (
 	*models.RestaurantResponse, error) {
-	// TODO: сохранение фотки
 
 	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
 	if !ok {
@@ -68,8 +74,6 @@ func (a adminUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
 }
 
 func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
-	//TODO: добавление изображения блюда в хранилище
-
 	if dish.ID == 0 {
 		requestError := errors.BadRequestError("No id at the dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
@@ -92,8 +96,6 @@ func (a adminUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models
 }
 
 func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
-	//TODO: удаление изображения блюда из хранилища
-
 	ok := a.checkRightsForDish(ctx, did)
 	if !ok {
 		requestError := errors.BadRequestError("No rights to delete a dish")
@@ -101,30 +103,38 @@ func (a adminUsecase) DeleteDish(ctx context.Context, did int) error {
 		return requestError
 	}
 
+	// удаление изображения
+	oldDish, err := a.adminRepository.GetDish(ctx, did)
+	if oldDish.Image != config.DefaultAvatar {
+		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
+		err = a.imageRepository.DeleteImage(ctx, removeFile)
+		if err != nil {
+			return err
+		}
+	}
+
 	return a.adminRepository.DeleteDish(ctx, did)
 }
 
 func (a adminUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
-	//TODO: добавление изображения блюда в хранилище
-
 	id, err := a.adminRepository.AddDish(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
 	responseDish := dish
 	responseDish.ID = id
-	responseDish.Image = config.DefaultAvatar // TODO: убрать
+	responseDish.Image = config.DefaultAvatar
 	return &responseDish, nil
 }
 
-func (a adminUsecase) UploadDishImage(ctx context.Context, image models.DishImage) (*models.DishImageResponse, error) {
-	if image.IdDish == 0 {
+func (a adminUsecase) UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error) {
+	if idDish == 0 {
 		requestError := errors.BadRequestError("No id at the dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
 		return nil, requestError
 	}
 
-	ok := a.checkRightsForDish(ctx, image.IdDish)
+	ok := a.checkRightsForDish(ctx, idDish)
 	if !ok {
 		requestError := errors.BadRequestError("No rights to delete a dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
@@ -132,28 +142,38 @@ func (a adminUsecase) UploadDishImage(ctx context.Context, image models.DishImag
 	}
 
 	// парсим расширение
-	expansion := filepath.Ext(image.Image.Filename)
+	expansion := filepath.Ext(image.Filename)
 
-	uid, localErr := uniq.GetUniqFilename(ctx, image.Image.Filename)
+	uid, localErr := uniq.GetUniqFilename(ctx, image.Filename)
 	if localErr != nil {
 		return nil, localErr
 	}
 
-	image.CustFilename = HeadImage + uid + expansion
-	err := a.adminRepository.UploadDishImage(ctx, image)
+	// удаление изображения
+	oldDish, err := a.adminRepository.GetDish(ctx, idDish)
+	if oldDish.Image != config.DefaultAvatar {
+		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
+		err = a.imageRepository.DeleteImage(ctx, removeFile)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	custFilename := HeadImage + uid + expansion
+	err = a.imageRepository.UploadImage(ctx, custFilename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	image.CustFilename = config.Repository + HeadImage + uid + expansion
-	err = a.adminRepository.UpdateDishImage(ctx, image)
+	custFilename = config.Repository + HeadImage + uid + expansion
+	err = a.adminRepository.UpdateDishImage(ctx, idDish, custFilename)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &models.DishImageResponse{
-		ID:       image.IdDish,
-		Filename: image.CustFilename,
+		ID:       idDish,
+		Filename: custFilename,
 	}
 	return response, nil
 }

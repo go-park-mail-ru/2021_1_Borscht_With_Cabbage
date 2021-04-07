@@ -41,6 +41,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 			&restaurant.Rating,
 			&restaurant.Avatar,
 		)
+		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
 		restaurants = append(restaurants, *restaurant)
 	}
 
@@ -57,7 +58,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaur
 		return models.Restaurant{}, failError
 	}
 
-	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
+	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where restaurant = $1", id)
 	if errr != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

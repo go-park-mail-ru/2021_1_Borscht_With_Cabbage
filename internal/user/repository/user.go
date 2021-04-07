@@ -9,10 +9,6 @@ import (
 	"github.com/borscht/backend/internal/user"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
-
-	"io"
-	"mime/multipart"
-	"os"
 )
 
 type userRepo struct {
@@ -127,35 +123,6 @@ func (u *userRepo) Update(ctx context.Context, newUser models.UserData, uid int)
 		newUser.Phone, newUser.Email, newUser.Name, newUser.Avatar, uid)
 	if err != nil {
 		return errors.AuthorizationError("curUser not found")
-	}
-
-	return nil
-}
-
-func (u *userRepo) UploadAvatar(ctx context.Context, image *multipart.FileHeader, filename string) error {
-	// Читаем файл из пришедшего запроса
-	src, err := image.Open()
-	if err != nil {
-		custError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, custError)
-		return custError
-	}
-	defer src.Close()
-
-	// создаем файл у себя
-	dst, err := os.Create(filename)
-	if err != nil {
-		custError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, custError)
-		return custError
-	}
-	defer dst.Close()
-
-	// копируем один в другой
-	if _, err = io.Copy(dst, src); err != nil {
-		custError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, custError)
-		return custError
 	}
 
 	return nil

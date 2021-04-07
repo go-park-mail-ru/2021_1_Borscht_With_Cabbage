@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/borscht/backend/config"
+	imageRepo "github.com/borscht/backend/internal/image/repository"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
 	restaurantRepo "github.com/borscht/backend/internal/restaurant/repository"
@@ -22,8 +23,6 @@ import (
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
-
-	// "github.com/labstack/echo/middleware"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 
@@ -106,9 +105,10 @@ func main() {
 	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
-	userUcase := userUcase.NewUserUsecase(userRepo)
+	imageRepo := imageRepo.NewImageRepo()
+	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
-	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo)
+	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo, imageRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, restaurantAdminUsecase, sessionUcase)

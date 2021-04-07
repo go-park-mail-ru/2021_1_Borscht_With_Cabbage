@@ -30,5 +30,4 @@ type UserRepo interface {
 	CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error)
 	GetByUid(ctx context.Context, uid int) (models.User, error)
 	Update(ctx context.Context, newUser models.UserData, uid int) error
-	UploadAvatar(ctx context.Context, image *multipart.FileHeader, filename string) error
 }

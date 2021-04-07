@@ -3,9 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"io"
 	"net/http"
-	"os"
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
@@ -191,42 +189,13 @@ func (a adminRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 	return did, nil
 }
 
-func (a adminRepo) UpdateDishImage(ctx context.Context, image models.DishImage) error {
+func (a adminRepo) UpdateDishImage(ctx context.Context, idDish int, filename string) error {
 	_, err := a.DB.Exec("UPDATE dishes SET image = $1 where did = $2",
-		image.CustFilename, image.IdDish)
+		filename, idDish)
 	if err != nil {
 		dbError := errors.AuthorizationError("curUser not found")
 		logger.RepoLevel().ErrorLog(ctx, dbError)
 		return dbError
-	}
-
-	return nil
-}
-
-func (a adminRepo) UploadDishImage(ctx context.Context, image models.DishImage) error {
-	// Читаем файл из пришедшего запроса
-	src, err := image.Image.Open()
-	if err != nil {
-		custError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, custError)
-		return custError
-	}
-	defer src.Close()
-
-	// создаем файл у себя
-	dst, err := os.Create(image.CustFilename)
-	if err != nil {
-		custError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, custError)
-		return custError
-	}
-	defer dst.Close()
-
-	// копируем один в другой
-	if _, err = io.Copy(dst, src); err != nil {
-		custError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, custError)
-		return custError
 	}
 
 	return nil

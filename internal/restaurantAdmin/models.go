@@ -2,6 +2,7 @@ package restaurantAdmin
 
 import (
 	"context"
+	"mime/multipart"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/labstack/echo/v4"
@@ -29,7 +30,7 @@ type AdminUsecase interface {
 	DeleteDish(ctx context.Context, did int) error
 	UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	GetAllDishes(ctx context.Context) ([]models.Dish, error)
-	UploadDishImage(ctx context.Context, image models.DishImage) (*models.DishImageResponse, error)
+	UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error)
 }
 
 type AdminRepo interface {
@@ -42,6 +43,5 @@ type AdminRepo interface {
 	GetDish(ctx context.Context, did int) (models.Dish, error)
 	UpdateDish(ctx context.Context, dish models.Dish) error
 	GetAllDishes(ctx context.Context, idRestaurant int) ([]models.Dish, error)
-	UploadDishImage(ctx context.Context, image models.DishImage) error
-	UpdateDishImage(ctx context.Context, image models.DishImage) error
+	UpdateDishImage(ctx context.Context, idDish int, filename string) error
 }

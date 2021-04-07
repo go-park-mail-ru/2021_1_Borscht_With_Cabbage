@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	"github.com/borscht/backend/utils/uniq"
@@ -18,12 +19,14 @@ const (
 )
 
 type userUsecase struct {
-	userRepository user.UserRepo
+	userRepository  user.UserRepo
+	imageRepository image.ImageRepo
 }
 
-func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
+func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase {
 	return &userUsecase{
-		userRepository: repo,
+		userRepository:  repo,
+		imageRepository: image,
 	}
 }
 
@@ -64,7 +67,7 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 	}
 
 	filename := HeadAvatar + uid + expansion
-	if err := u.userRepository.UploadAvatar(ctx, image, filename); err != nil {
+	if err := u.imageRepository.UploadImage(ctx, filename, image); err != nil {
 		return "", err
 	}
 
