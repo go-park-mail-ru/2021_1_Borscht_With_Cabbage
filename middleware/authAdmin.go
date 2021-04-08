@@ -41,8 +41,8 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 		restaurant.ID = sessionData.Id
-		c.Set("Restaurant", restaurant)
-		logger.MiddleLevel().DataLog(ctx, "restaurant auth", restaurant)
+		c.Set("Restaurant", *restaurant)
+		logger.MiddleLevel().DataLog(ctx, "restaurant auth", *restaurant)
 
 		return next(c)
 	}

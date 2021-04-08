@@ -48,7 +48,7 @@ func (a dishRepo) GetAllDishes(ctx context.Context, idRestaurant int) ([]models.
 	return dishes, nil
 }
 
-func (a dishRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
+func (a dishRepo) UpdateDishData(ctx context.Context, dish models.Dish) error {
 	dataToExistingCheck := models.CheckDishExists{
 		Name:         dish.Name,
 		RestaurantId: dish.Restaurant,

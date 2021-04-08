@@ -29,10 +29,10 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	}
 }
 
-func (a restaurantUsecase) UpdateRestaurant(ctx context.Context, restaurant models.RestaurantUpdate) (
-	*models.RestaurantResponse, error) {
+func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
+	*models.RestaurantInfo, error) {
 
-	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
@@ -40,25 +40,29 @@ func (a restaurantUsecase) UpdateRestaurant(ctx context.Context, restaurant mode
 	}
 
 	restaurant.ID = restaurantAdmin.ID
-	err := a.restaurantRepository.UpdateRestaurant(ctx, restaurant)
+	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {
 		return nil, err
 	}
 
-	restaurantResponse := &models.RestaurantResponse{
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurant})
+	restaurantResponse := &models.RestaurantInfo{
 		ID:           restaurant.ID,
+		AdminEmail:   restaurant.AdminEmail,
+		AdminPhone:   restaurant.AdminPhone,
 		Title:        restaurant.Title,
 		Description:  restaurant.Description,
 		Rating:       restaurantAdmin.Rating,
 		AvgCheck:     restaurantAdmin.AvgCheck,
 		DeliveryCost: restaurant.DeliveryCost,
-		Avatar:       restaurant.Avatar,
+		Avatar:       restaurantAdmin.Avatar,
 	}
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 
 	return restaurantResponse, nil
 }
 
-func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error) {
+func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.RestaurantInfo, error) {
 	restaurant.Avatar = config.DefaultAvatar
 
 	id, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
@@ -69,11 +73,11 @@ func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant mode
 	return &restaurant, nil
 }
 
-func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error) {
+func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.RestaurantInfo, error) {
 	return a.restaurantRepository.CheckRestaurantExists(ctx, user)
 }
 
-func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (models.Restaurant, error) {
+func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
 	return a.restaurantRepository.GetByRid(ctx, rid)
 }
 
@@ -87,7 +91,7 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 	}
 
 	// удаление изображения
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)

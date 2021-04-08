@@ -147,6 +147,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 		PasswordOld: formParams.Get("password_current"),
 	}
 
+	// TODO: убрать загрузку аватарки здесь
 	file, err := c.FormFile("avatar")
 	var filename string
 	if err == nil { // если аватарка прикреплена
@@ -182,6 +183,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	return models.SendResponse(c, profileEdits)
 }
 
+// TODO: подумать как это можно изменить
 func (h *Handler) CheckAuth(c echo.Context) error {
 	ctx := models.GetContext(c)
 
@@ -213,8 +215,8 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			return models.SendResponseWithError(c, sendErr)
 		}
 		return models.SendResponse(c, models.SuccessRestaurantResponse{
-			Restaurant: restaurant,
-			Role:       config.RoleAdmin,
+			RestaurantInfo: *restaurant, // TODO: узнать что ждет фронтенд
+			Role:           config.RoleAdmin,
 		})
 
 	case config.RoleUser:

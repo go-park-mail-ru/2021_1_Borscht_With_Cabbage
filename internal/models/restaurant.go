@@ -5,7 +5,17 @@ type RestaurantAuth struct {
 	Password string `json:"password"`
 }
 
-type Restaurant struct {
+type RestaurantWithDishes struct {
+	RestaurantInfo
+	Dishes []Dish `json:"foods"`
+}
+
+type SuccessRestaurantResponse struct {
+	RestaurantInfo
+	Role string `json:"role"`
+}
+
+type RestaurantInfo struct {
 	ID            int     `json:"id"`
 	AdminEmail    string  `json:"email"`
 	AdminPhone    string  `json:"number"`
@@ -13,33 +23,16 @@ type Restaurant struct {
 	AvgCheck      int     `json:"cost"`
 	Title         string  `json:"title"`
 	Description   string  `json:"description"`
-	Dishes        []Dish  `json:"foods"`
 	DeliveryCost  int     `json:"deliveryCost"`
 	Rating        float64 `json:"rating"`
 	Avatar        string  `json:"avatar"`
-}
-
-type SuccessRestaurantResponse struct {
-	Restaurant
-	Role string `json:"role"`
-}
-
-type RestaurantResponse struct {
-	ID           int     `json:"id"`
-	Title        string  `json:"title"`
-	Description  string  `json:"description"`
-	Rating       float64 `json:"rating"`
-	DeliveryTime int     `json:"time"` // ????
-	AvgCheck     int     `json:"cost"`
-	DeliveryCost int     `json:"deliveryCost"`
-	Avatar       string  `json:"avatar"`
 }
 
 type RestaurantImageResponse struct {
 	Filename string `json:"avatar"`
 }
 
-type RestaurantUpdate struct {
+type RestaurantUpdateData struct {
 	ID            int    `json:"id"`
 	AdminEmail    string `json:"email"`
 	AdminPhone    string `json:"number"`
@@ -47,7 +40,6 @@ type RestaurantUpdate struct {
 	Title         string `json:"title"`
 	Description   string `json:"description"`
 	DeliveryCost  int    `json:"deliveryCost"`
-	Avatar        string `json:"avatar"`
 }
 
 type CheckRestaurantExists struct {

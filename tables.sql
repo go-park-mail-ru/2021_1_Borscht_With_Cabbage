@@ -47,4 +47,12 @@ CREATE TABLE dishes (
     weight INTEGER,
     description TEXT,
     image TEXT
-)
+);
+
+
+-- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
+-- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;

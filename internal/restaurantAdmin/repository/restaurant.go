@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
@@ -22,7 +21,7 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	}
 }
 
-func (a restaurantRepo) UpdateRestaurant(ctx context.Context, restaurant models.RestaurantUpdate) error {
+func (a restaurantRepo) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) error {
 	dataToExistingCheck := models.CheckRestaurantExists{
 		CurrentRestId: restaurant.ID,
 		Email:         restaurant.AdminEmail,
@@ -36,10 +35,10 @@ func (a restaurantRepo) UpdateRestaurant(ctx context.Context, restaurant models.
 
 	_, err = a.DB.Exec(
 		`update restaurants set name = $1, adminemail = $2, adminphone = $3, 
-		adminpassword = $4, deliverycost = $5, description = $6, avatar = $7
-		where rid = $8`,
+		adminpassword = $4, deliverycost = $5, description = $6
+		where rid = $7`,
 		restaurant.Title, restaurant.AdminEmail, restaurant.AdminPhone, restaurant.AdminPassword,
-		restaurant.DeliveryCost, restaurant.Description, restaurant.Avatar, restaurant.ID)
+		restaurant.DeliveryCost, restaurant.Description, restaurant.ID)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -69,7 +68,8 @@ func (a restaurantRepo) checkExistingRestaurant(ctx context.Context, restaurantD
 	return nil
 }
 
-func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant models.Restaurant) (int, error) {
+func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant models.RestaurantInfo) (int, error) {
+	logger.RepoLevel().InfoLog(ctx, logger.Fields{"create restaurant": newRestaurant})
 	dataToExistingCheck := models.CheckRestaurantExists{
 		Email:  newRestaurant.AdminEmail,
 		Number: newRestaurant.AdminPhone,
@@ -79,10 +79,16 @@ func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant mode
 	if err != nil {
 		return 0, err
 	}
+	logger.RepoLevel().InlineDebugLog(ctx, "correct restaurant")
 
 	var rid int
-	err = a.DB.QueryRow("insert into restaurants (name, adminphone, adminemail, adminpassword, avatar) values ($1, $2, $3, $4, $5) returning rid",
-		newRestaurant.Title, newRestaurant.AdminPhone, newRestaurant.AdminEmail, newRestaurant.AdminPassword, config.DefaultAvatar).Scan(&rid)
+	err = a.DB.QueryRow(`insert into restaurants (name, adminphone, adminemail, adminpassword, 
+		avatar, deliveryCost, avgCheck, description, rating) 
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning rid`,
+		newRestaurant.Title, newRestaurant.AdminPhone, newRestaurant.AdminEmail,
+		newRestaurant.AdminPassword, newRestaurant.Avatar, newRestaurant.DeliveryCost,
+		newRestaurant.AvgCheck, newRestaurant.Description, newRestaurant.Rating).Scan(&rid)
+
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, custError)
@@ -104,10 +110,15 @@ func (a restaurantRepo) UpdateRestaurantImage(ctx context.Context, idRestaurant 
 	return nil
 }
 
-func (a restaurantRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck models.RestaurantAuth) (*models.Restaurant, error) {
-	restaurant := new(models.Restaurant)
-	err := a.DB.QueryRow("select rid, name, avatar from restaurants where (adminphone=$1 or adminemail=$1) and adminpassword=$2",
-		restaurantToCheck.Login, restaurantToCheck.Password).Scan(&restaurant.ID, &restaurant.Title, &restaurant.Avatar)
+func (a restaurantRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck models.RestaurantAuth) (*models.RestaurantInfo, error) {
+	restaurant := new(models.RestaurantInfo)
+	err := a.DB.QueryRow(`select rid, name, adminemail, adminphone, deliveryCost, avgCheck, 
+	description, rating, avatar from restaurants where (adminphone=$1 or adminemail=$1) 
+	and adminpassword=$2`,
+		restaurantToCheck.Login, restaurantToCheck.Password).
+		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
+			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
+			&restaurant.Rating, &restaurant.Avatar)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.NewCustomError(http.StatusBadRequest, "user not found")
@@ -121,13 +132,13 @@ func (a restaurantRepo) CheckRestaurantExists(ctx context.Context, restaurantToC
 	return restaurant, nil
 }
 
-func (a restaurantRepo) GetByRid(ctx context.Context, rid int) (models.Restaurant, error) {
+func (a restaurantRepo) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
 	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
 	if err != nil {
-		return models.Restaurant{}, errors.AuthorizationError("user not found")
+		return nil, errors.AuthorizationError("user not found")
 	}
 
-	restaurant := new(models.Restaurant)
+	restaurant := new(models.RestaurantInfo)
 	for DBuser.Next() {
 		err = DBuser.Scan(
 			&restaurant.Title,
@@ -138,8 +149,8 @@ func (a restaurantRepo) GetByRid(ctx context.Context, rid int) (models.Restauran
 		if err != nil {
 			custError := errors.FailServerError(err.Error())
 			logger.RepoLevel().ErrorLog(ctx, custError)
-			return models.Restaurant{}, custError
+			return nil, custError
 		}
 	}
-	return *restaurant, nil
+	return restaurant, nil
 }

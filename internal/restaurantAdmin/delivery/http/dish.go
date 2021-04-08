@@ -31,7 +31,7 @@ func (a DishHandler) GetAllDishes(c echo.Context) error {
 	return models.SendResponse(c, response)
 }
 
-func (a DishHandler) UpdateDish(c echo.Context) error {
+func (a DishHandler) UpdateDishData(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	updateDish := new(models.Dish)
@@ -41,7 +41,7 @@ func (a DishHandler) UpdateDish(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	response, err := a.DishUsecase.UpdateDish(ctx, *updateDish)
+	response, err := a.DishUsecase.UpdateDishData(ctx, *updateDish)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

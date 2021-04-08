@@ -21,7 +21,7 @@ func NewSectionUsecase(sectionRepo restaurantAdmin.AdminSectionRepo) restaurantA
 }
 
 func (s sectionUsecase) AddSection(ctx context.Context, section models.Section) (*models.Section, error) {
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantWithDishes)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -54,7 +54,7 @@ func (s sectionUsecase) UpdateSection(ctx context.Context, section models.Sectio
 		return nil, requestError
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantWithDishes)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -87,7 +87,7 @@ func (s sectionUsecase) checkRightsForSection(ctx context.Context, idSection int
 		return false
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantWithDishes)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)

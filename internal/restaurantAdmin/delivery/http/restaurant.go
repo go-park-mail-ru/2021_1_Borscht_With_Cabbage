@@ -27,17 +27,17 @@ func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase,
 	}
 }
 
-func (a RestaurantHandler) UpdateRestaurant(c echo.Context) error {
+func (a RestaurantHandler) UpdateRestaurantData(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	restaurant := new(models.RestaurantUpdate)
+	restaurant := new(models.RestaurantUpdateData)
 	if err := c.Bind(restaurant); err != nil {
 		sendErr := errors.BadRequestError(err.Error())
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	responseRestaurant, err := a.RestaurantUsecase.UpdateRestaurant(ctx, *restaurant)
+	responseRestaurant, err := a.RestaurantUsecase.UpdateRestaurantData(ctx, *restaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -58,7 +58,7 @@ func setResponseCookie(c echo.Context, session string) {
 
 func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	ctx := models.GetContext(c)
-	newRestaurant := new(models.Restaurant)
+	newRestaurant := new(models.RestaurantInfo)
 	if err := c.Bind(newRestaurant); err != nil {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -81,7 +81,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessRestaurantResponse{Restaurant: *responseRestaurant, Role: config.RoleAdmin} // TODO убрать config отсюда
+	response := models.SuccessRestaurantResponse{RestaurantInfo: *responseRestaurant, Role: config.RoleAdmin} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
@@ -111,7 +111,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessRestaurantResponse{Restaurant: *existingRest, Role: config.RoleAdmin}
+	response := models.SuccessRestaurantResponse{RestaurantInfo: *existingRest, Role: config.RoleAdmin}
 	return models.SendResponse(c, response)
 }
 

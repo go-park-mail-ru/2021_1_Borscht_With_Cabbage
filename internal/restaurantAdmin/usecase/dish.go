@@ -34,7 +34,7 @@ func NewDishUsecase(adminRepo restaurantAdmin.AdminDishRepo,
 }
 
 func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
-	restaurantAdmin, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
@@ -44,7 +44,7 @@ func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
 	return a.dishRepository.GetAllDishes(ctx, restaurantAdmin.ID)
 }
 
-func (a dishUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {
+func (a dishUsecase) UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error) {
 	if dish.ID == 0 {
 		requestError := errors.BadRequestError("No id at the dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
@@ -59,7 +59,7 @@ func (a dishUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.
 		return nil, requestError
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -68,7 +68,7 @@ func (a dishUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.
 
 	dish.Restaurant = restaurant.ID
 
-	err := a.dishRepository.UpdateDish(ctx, dish)
+	err := a.dishRepository.UpdateDishData(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dis
 		return nil, requestError
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -179,7 +179,7 @@ func (a dishUsecase) checkRightsForDish(ctx context.Context, idDish int) bool {
 		return false
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
