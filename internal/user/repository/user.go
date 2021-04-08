@@ -76,9 +76,9 @@ func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error)
 func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserAuth) (*models.User, error) {
 	user := new(models.User)
 
-	err := u.DB.QueryRow("select uid, name, phone, email, password, photo from users where (phone=$1 or email=$1) and password=$2",
+	err := u.DB.QueryRow("select uid, name, phone, email, photo from users where (phone=$1 or email=$1) and password=$2",
 		userToCheck.Login, userToCheck.Password).
-		Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Password, &user.Avatar)
+		Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Avatar)
 	if err == sql.ErrNoRows {
 		return nil, errors.AuthorizationError("user not found")
 	}
@@ -113,16 +113,28 @@ func (u *userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 	return *user, nil
 }
 
-func (u *userRepo) Update(ctx context.Context, newUser models.UserData, uid int) error {
-	err := u.checkUserWithThisData(ctx, newUser.Phone, newUser.Email, uid)
+func (u *userRepo) UpdateData(ctx context.Context, user models.UserData) error {
+	err := u.checkUserWithThisData(ctx, user.Phone, user.Email, user.ID)
 	if err != nil {
 		return err
 	}
 
-	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3, photo = $4 where uid = $5",
-		newUser.Phone, newUser.Email, newUser.Name, newUser.Avatar, uid)
+	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3 where uid = $4",
+		user.Phone, user.Email, user.Name, user.ID)
 	if err != nil {
 		return errors.AuthorizationError("curUser not found")
+	}
+
+	return nil
+}
+
+func (u userRepo) UpdateAvatar(ctx context.Context, idUser int, filename string) error {
+	_, err := u.DB.Exec("UPDATE users SET photo = $1 where rid = $2",
+		filename, idUser)
+	if err != nil {
+		dbError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, dbError)
+		return dbError
 	}
 
 	return nil

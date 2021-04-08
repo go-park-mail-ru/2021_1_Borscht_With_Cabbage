@@ -45,7 +45,8 @@ func route(data initRoute) {
 	userGroup := data.e.Group("/user", data.userMiddleware.Auth)
 	auth := data.e.Group("", data.authMiddleware.Auth)
 	userGroup.GET("", data.user.GetUserData)
-	userGroup.PUT("", data.user.EditProfile)
+	userGroup.PUT("", data.user.UpdateData)
+	userGroup.PUT("/avatar", data.user.UploadAvatar)
 	auth.GET("/auth", data.user.CheckAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
