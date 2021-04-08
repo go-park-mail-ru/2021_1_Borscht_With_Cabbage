@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -15,17 +14,17 @@ import (
 	"os"
 )
 
-type userRepo struct {
+type UserRepo struct {
 	DB *sql.DB
 }
 
 func NewUserRepo(db *sql.DB) user.UserRepo {
-	return &userRepo{
+	return &UserRepo{
 		DB: db,
 	}
 }
 
-func (u *userRepo) checkExistingUser(ctx context.Context, email, number string) error {
+func (u *UserRepo) checkExistingUser(ctx context.Context, email, number string) error {
 	var userInDB int
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows {
@@ -33,7 +32,7 @@ func (u *userRepo) checkExistingUser(ctx context.Context, email, number string) 
 		return errors.BadRequestError("User with this email already exists")
 	}
 
-	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	err = u.DB.QueryRow("select uid from users where phone = $1", number).Scan(&userInDB)
 	if err != sql.ErrNoRows {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this number already exists")
 		return errors.BadRequestError("User with this number already exists")
@@ -42,7 +41,7 @@ func (u *userRepo) checkExistingUser(ctx context.Context, email, number string) 
 	return nil
 }
 
-func (u *userRepo) checkUserWithThisData(ctx context.Context, email, number string, currentUserId int) error {
+func (u *UserRepo) checkUserWithThisData(ctx context.Context, email, number string, currentUserId int) error {
 	var userInDB int
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
@@ -59,7 +58,7 @@ func (u *userRepo) checkUserWithThisData(ctx context.Context, email, number stri
 	return nil
 }
 
-func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error) {
+func (u *UserRepo) Create(ctx context.Context, newUser models.User) (int, error) {
 	err := u.checkExistingUser(ctx, newUser.Email, newUser.Phone)
 	if err != nil {
 		return 0, err
@@ -77,7 +76,7 @@ func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error)
 	return uid, nil
 }
 
-func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserAuth) (*models.User, error) {
+func (u *UserRepo) CheckUserExists(ctx context.Context, userToCheck models.UserAuth) (*models.User, error) {
 	user := new(models.User)
 
 	err := u.DB.QueryRow("select uid, name, phone, email, password, photo from users where (phone=$1 or email=$1) and password=$2",
@@ -95,7 +94,7 @@ func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserA
 	return user, nil
 }
 
-func (u *userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
+func (u *UserRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
 	if err != nil {
 		return models.User{}, errors.AuthorizationError("user not found")
@@ -117,7 +116,7 @@ func (u *userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 	return *user, nil
 }
 
-func (u *userRepo) Update(ctx context.Context, newUser models.UserData, uid int) error {
+func (u *UserRepo) Update(ctx context.Context, newUser models.UserData, uid int) error {
 	err := u.checkUserWithThisData(ctx, newUser.Phone, newUser.Email, uid)
 	if err != nil {
 		return err
@@ -132,7 +131,7 @@ func (u *userRepo) Update(ctx context.Context, newUser models.UserData, uid int)
 	return nil
 }
 
-func (u *userRepo) UploadAvatar(ctx context.Context, image *multipart.FileHeader, filename string) error {
+func (u *UserRepo) UploadAvatar(ctx context.Context, image *multipart.FileHeader, filename string) error {
 	// Читаем файл из пришедшего запроса
 	src, err := image.Open()
 	if err != nil {
