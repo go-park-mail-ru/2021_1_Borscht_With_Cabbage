@@ -5,3 +5,9 @@ type Section struct {
 	Name       string `json:"name"`
 	Restaurant int    `json:"restaurant"`
 }
+
+type CheckSectionExists struct {
+	Name         string
+	RestaurantId int
+	ID           int
+}

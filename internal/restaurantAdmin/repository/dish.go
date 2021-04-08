@@ -49,15 +49,9 @@ func (a dishRepo) GetAllDishes(ctx context.Context, idRestaurant int) ([]models.
 }
 
 func (a dishRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
-	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
-		logger.RepoLevel().ErrorLog(ctx, failError)
-		return failError
-	}
 	dataToExistingCheck := models.CheckDishExists{
 		Name:         dish.Name,
-		RestaurantId: restaurant.ID,
+		RestaurantId: dish.Restaurant,
 		Id:           dish.ID,
 	}
 	err := a.checkExistingDish(ctx, dataToExistingCheck)
@@ -77,10 +71,10 @@ func (a dishRepo) UpdateDish(ctx context.Context, dish models.Dish) error {
 	return nil
 }
 
-func (a dishRepo) GetDish(ctx context.Context, did int) (models.Dish, error) {
+func (a dishRepo) GetDish(ctx context.Context, did int) (*models.Dish, error) {
 	DBdish, err := a.DB.Query("select did, restaurant, name, price, weight, description, image from dishes where did=$1", did)
 	if err != nil {
-		return models.Dish{}, errors.AuthorizationError("dish not found")
+		return nil, errors.AuthorizationError("dish not found")
 	}
 
 	dish := new(models.Dish)
@@ -97,11 +91,11 @@ func (a dishRepo) GetDish(ctx context.Context, did int) (models.Dish, error) {
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.RepoLevel().ErrorLog(ctx, failError)
-			return models.Dish{}, failError
+			return nil, failError
 		}
 	}
 
-	return *dish, nil
+	return dish, nil
 }
 
 func (a dishRepo) DeleteDish(ctx context.Context, did int) error {
@@ -135,15 +129,9 @@ func (a dishRepo) checkExistingDish(ctx context.Context, dishData models.CheckDi
 }
 
 func (a dishRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
-	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
-	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
-		logger.RepoLevel().ErrorLog(ctx, failError)
-		return 0, failError
-	}
 	dataToExistingCheck := models.CheckDishExists{
 		Name:         dish.Name,
-		RestaurantId: restaurant.ID,
+		RestaurantId: dish.Restaurant,
 	}
 	err := a.checkExistingDish(ctx, dataToExistingCheck)
 	if err != nil {
@@ -152,7 +140,7 @@ func (a dishRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 
 	var did int
 	err = a.DB.QueryRow("insert into dishes (restaurant, name, price, weight, description, image) values ($1, $2, $3, $4, $5, $6) returning did",
-		restaurant.ID, dish.Name, dish.Price, dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
+		dish.Restaurant, dish.Name, dish.Price, dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

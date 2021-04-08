@@ -61,7 +61,7 @@ type AdminRestaurantRepo interface {
 type AdminDishRepo interface {
 	AddDish(ctx context.Context, dish models.Dish) (int, error)
 	DeleteDish(ctx context.Context, did int) error
-	GetDish(ctx context.Context, did int) (models.Dish, error)
+	GetDish(ctx context.Context, did int) (*models.Dish, error)
 	UpdateDish(ctx context.Context, dish models.Dish) error
 	GetAllDishes(ctx context.Context, idRestaurant int) ([]models.Dish, error)
 	UpdateDishImage(ctx context.Context, idDish int, filename string) error
@@ -71,4 +71,5 @@ type AdminSectionRepo interface {
 	AddSection(ctx context.Context, section models.Section) (int, error)
 	UpdateSection(ctx context.Context, section models.Section) error
 	DeleteSection(ctx context.Context, sid int) error
+	GetSection(ctx context.Context, sid int) (*models.Section, error)
 }

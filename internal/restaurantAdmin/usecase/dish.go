@@ -59,6 +59,15 @@ func (a dishUsecase) UpdateDish(ctx context.Context, dish models.Dish) (*models.
 		return nil, requestError
 	}
 
+	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	dish.Restaurant = restaurant.ID
+
 	err := a.dishRepository.UpdateDish(ctx, dish)
 	if err != nil {
 		return nil, err
@@ -93,6 +102,15 @@ func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dis
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
 		return nil, requestError
 	}
+
+	restaurant, ok := ctx.Value("Restaurant").(models.Restaurant)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	dish.Restaurant = restaurant.ID
 
 	id, err := a.dishRepository.AddDish(ctx, dish)
 	if err != nil {
