@@ -86,7 +86,6 @@ func (a DishHandler) AddDish(c echo.Context) error {
 }
 
 func (a DishHandler) UploadDishImage(c echo.Context) error {
-	// TODO: подумать как лучше передать id
 	ctx := models.GetContext(c)
 
 	file, err := c.FormFile("image")

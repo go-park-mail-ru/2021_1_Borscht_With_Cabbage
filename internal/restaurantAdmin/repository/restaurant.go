@@ -22,7 +22,7 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	}
 }
 
-func (a restaurantRepo) Update(ctx context.Context, restaurant models.RestaurantUpdate) error {
+func (a restaurantRepo) UpdateRestaurant(ctx context.Context, restaurant models.RestaurantUpdate) error {
 	dataToExistingCheck := models.CheckRestaurantExists{
 		CurrentRestId: restaurant.ID,
 		Email:         restaurant.AdminEmail,
@@ -69,7 +69,7 @@ func (a restaurantRepo) checkExistingRestaurant(ctx context.Context, restaurantD
 	return nil
 }
 
-func (a restaurantRepo) Create(ctx context.Context, newRestaurant models.Restaurant) (int, error) {
+func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant models.Restaurant) (int, error) {
 	dataToExistingCheck := models.CheckRestaurantExists{
 		Email:  newRestaurant.AdminEmail,
 		Number: newRestaurant.AdminPhone,
@@ -90,6 +90,18 @@ func (a restaurantRepo) Create(ctx context.Context, newRestaurant models.Restaur
 	}
 
 	return rid, nil
+}
+
+func (a restaurantRepo) UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error {
+	_, err := a.DB.Exec("UPDATE restaurants SET avatar = $1 where rid = $2",
+		filename, idRestaurant)
+	if err != nil {
+		dbError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, dbError)
+		return dbError
+	}
+
+	return nil
 }
 
 func (a restaurantRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck models.RestaurantAuth) (*models.Restaurant, error) {

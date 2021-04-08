@@ -9,11 +9,11 @@ import (
 )
 
 type AdminRestaurantHandler interface {
-	Create(c echo.Context) error
-	Update(c echo.Context) error
+	CreateRestaurant(c echo.Context) error
+	UpdateRestaurant(c echo.Context) error // TODO: подправить
 	Login(c echo.Context) error
 	GetUserData(c echo.Context) error
-	EditProfile(c echo.Context) error
+	UploadRestaurantImage(c echo.Context) error
 }
 
 type AdminDishHandler interface {
@@ -31,10 +31,11 @@ type AdminSectionHandler interface {
 }
 
 type AdminRestaurantUsecase interface {
-	Create(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error)
-	Update(ctx context.Context, restaurant models.RestaurantUpdate) (*models.RestaurantResponse, error)
+	CreateRestaurant(ctx context.Context, restaurant models.Restaurant) (*models.Restaurant, error)
+	UpdateRestaurant(ctx context.Context, restaurant models.RestaurantUpdate) (*models.RestaurantResponse, error)
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
+	UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error)
 }
 
 type AdminDishUsecase interface {
@@ -52,10 +53,11 @@ type AdminSectionUsecase interface {
 }
 
 type AdminRestaurantRepo interface {
-	Create(ctx context.Context, user models.Restaurant) (int, error)
-	Update(ctx context.Context, restaurant models.RestaurantUpdate) error
+	CreateRestaurant(ctx context.Context, user models.Restaurant) (int, error)
+	UpdateRestaurant(ctx context.Context, restaurant models.RestaurantUpdate) error
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.Restaurant, error)
 	GetByRid(ctx context.Context, rid int) (models.Restaurant, error)
+	UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error
 }
 
 type AdminDishRepo interface {

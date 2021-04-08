@@ -35,6 +35,10 @@ type RestaurantResponse struct {
 	Avatar       string  `json:"avatar"`
 }
 
+type RestaurantImageResponse struct {
+	Filename string `json:"avatar"`
+}
+
 type RestaurantUpdate struct {
 	ID            int    `json:"id"`
 	AdminEmail    string `json:"email"`

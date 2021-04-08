@@ -131,7 +131,7 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 
 	ok := a.checkRightsForDish(ctx, idDish)
 	if !ok {
-		requestError := errors.BadRequestError("No rights to delete a dish")
+		requestError := errors.BadRequestError("No rights to update a dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
 		return nil, requestError
 	}

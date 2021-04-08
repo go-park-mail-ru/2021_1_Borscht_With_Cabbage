@@ -14,20 +14,20 @@ import (
 )
 
 type RestaurantHandler struct {
-	AdminUsecase adminModel.AdminRestaurantUsecase
-	SessionUcase sessionModel.SessionUsecase
+	RestaurantUsecase adminModel.AdminRestaurantUsecase
+	SessionUcase      sessionModel.SessionUsecase
 }
 
 func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase,
 	sessionUcase sessionModel.SessionUsecase) adminModel.AdminRestaurantHandler {
 
 	return &RestaurantHandler{
-		AdminUsecase: adminUCase,
-		SessionUcase: sessionUcase,
+		RestaurantUsecase: adminUCase,
+		SessionUcase:      sessionUcase,
 	}
 }
 
-func (a RestaurantHandler) Update(c echo.Context) error {
+func (a RestaurantHandler) UpdateRestaurant(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	restaurant := new(models.RestaurantUpdate)
@@ -37,7 +37,7 @@ func (a RestaurantHandler) Update(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	responseRestaurant, err := a.AdminUsecase.Update(ctx, *restaurant)
+	responseRestaurant, err := a.RestaurantUsecase.UpdateRestaurant(ctx, *restaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -56,7 +56,7 @@ func setResponseCookie(c echo.Context, session string) {
 	c.SetCookie(&sessionCookie)
 }
 
-func (a RestaurantHandler) Create(c echo.Context) error {
+func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	ctx := models.GetContext(c)
 	newRestaurant := new(models.Restaurant)
 	if err := c.Bind(newRestaurant); err != nil {
@@ -65,7 +65,7 @@ func (a RestaurantHandler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	responseRestaurant, err := a.AdminUsecase.Create(ctx, *newRestaurant)
+	responseRestaurant, err := a.RestaurantUsecase.CreateRestaurant(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -95,7 +95,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	existingRest, err := a.AdminUsecase.CheckRestaurantExists(ctx, *newRest)
+	existingRest, err := a.RestaurantUsecase.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -122,9 +122,20 @@ func (a RestaurantHandler) GetUserData(c echo.Context) error {
 	return models.SendResponseWithError(c, sendErr) // TODO
 }
 
-func (a RestaurantHandler) EditProfile(c echo.Context) error {
+func (a RestaurantHandler) UploadRestaurantImage(c echo.Context) error {
 	ctx := models.GetContext(c)
-	sendErr := errors.NewCustomError(500, "не реализовано")
-	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-	return models.SendResponseWithError(c, sendErr) // TODO
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		requestError := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	response, err := a.RestaurantUsecase.UploadRestaurantImage(ctx, file)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, response)
 }
