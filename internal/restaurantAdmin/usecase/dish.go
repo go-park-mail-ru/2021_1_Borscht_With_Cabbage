@@ -99,12 +99,12 @@ func (a dishUsecase) UpdateDishData(ctx context.Context, dish models.Dish) (*mod
 	return &dish, nil
 }
 
-func (a dishUsecase) DeleteDish(ctx context.Context, did int) error {
+func (a dishUsecase) DeleteDish(ctx context.Context, did int) (*models.DeleteSuccess, error) {
 	ok := a.checkRightsForDish(ctx, did)
 	if !ok {
 		requestError := errors.BadRequestError("No rights to delete a dish")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
-		return requestError
+		return nil, requestError
 	}
 
 	// удаление изображения
@@ -113,11 +113,11 @@ func (a dishUsecase) DeleteDish(ctx context.Context, did int) error {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return a.dishRepository.DeleteDish(ctx, did)
+	return &models.DeleteSuccess{ID: did}, a.dishRepository.DeleteDish(ctx, did)
 }
 
 func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error) {

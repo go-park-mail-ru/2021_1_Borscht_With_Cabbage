@@ -40,7 +40,7 @@ type AdminRestaurantUsecase interface {
 
 type AdminDishUsecase interface {
 	AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
-	DeleteDish(ctx context.Context, did int) error
+	DeleteDish(ctx context.Context, did int) (*models.DeleteSuccess, error)
 	UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	GetAllDishes(ctx context.Context) ([]models.SectionWithDishes, error)
 	UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error)
@@ -49,7 +49,7 @@ type AdminDishUsecase interface {
 type AdminSectionUsecase interface {
 	AddSection(ctx context.Context, section models.Section) (*models.Section, error)
 	UpdateSection(ctx context.Context, section models.Section) (*models.Section, error)
-	DeleteSection(ctx context.Context, sid int) error
+	DeleteSection(ctx context.Context, sid int) (*models.DeleteSuccess, error)
 }
 
 type AdminRestaurantRepo interface {

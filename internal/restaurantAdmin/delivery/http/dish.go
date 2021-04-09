@@ -59,12 +59,12 @@ func (a DishHandler) DeleteDish(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	err := a.DishUsecase.DeleteDish(ctx, idDish.ID)
+	response, err := a.DishUsecase.DeleteDish(ctx, idDish.ID)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, nil)
+	return models.SendResponse(c, response)
 }
 
 func (a DishHandler) AddDish(c echo.Context) error {

@@ -13,7 +13,7 @@ type CheckSectionExists struct {
 }
 
 type SectionWithDishes struct {
-	SectionName string `json:"sectionName"`
-	SectionId   int    `json:"sectionId"`
+	SectionName string `json:"name"`
+	SectionId   int    `json:"id"`
 	Dishes      []Dish `json:"dishes"`
 }

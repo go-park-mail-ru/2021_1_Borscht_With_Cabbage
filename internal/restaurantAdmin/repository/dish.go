@@ -23,7 +23,7 @@ func NewDishRepo(db *sql.DB) restaurantAdmin.AdminDishRepo {
 }
 
 func (a dishRepo) GetAllDishes(ctx context.Context, idSection int) ([]models.Dish, error) {
-	dishesDB, err := a.DB.Query("select did, name, price, weight, description, image from dishes "+
+	dishesDB, err := a.DB.Query("select did, section, name, price, weight, description, image from dishes "+
 		"where section = $1", idSection)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
@@ -36,6 +36,7 @@ func (a dishRepo) GetAllDishes(ctx context.Context, idSection int) ([]models.Dis
 		dish := new(models.Dish)
 		err = dishesDB.Scan(
 			&dish.ID,
+			&dish.Section,
 			&dish.Name,
 			&dish.Price,
 			&dish.Weight,

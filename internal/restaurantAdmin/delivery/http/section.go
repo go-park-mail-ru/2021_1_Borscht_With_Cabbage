@@ -46,12 +46,12 @@ func (s SectionHandler) DeleteSection(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	err := s.SectionUsecase.DeleteSection(ctx, section.ID)
+	response, err := s.SectionUsecase.DeleteSection(ctx, section.ID)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, nil)
+	return models.SendResponse(c, response)
 }
 
 func (s SectionHandler) UpdateSection(c echo.Context) error {

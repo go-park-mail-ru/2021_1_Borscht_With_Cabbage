@@ -78,9 +78,9 @@ func (s sectionRepo) DeleteSection(ctx context.Context, sid int) error {
 }
 
 func (s sectionRepo) GetSection(ctx context.Context, sid int) (*models.Section, error) {
-	DBsection, err := s.DB.Query("select sid, restaurant, name from sections where id=$1", sid)
+	DBsection, err := s.DB.Query("select sid, restaurant, name from sections where sid=$1", sid)
 	if err != nil {
-		return nil, errors.AuthorizationError("dish not found")
+		return nil, errors.AuthorizationError("section not found")
 	}
 
 	section := new(models.Section)

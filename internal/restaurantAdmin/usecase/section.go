@@ -54,10 +54,10 @@ func (s sectionUsecase) UpdateSection(ctx context.Context, section models.Sectio
 		return nil, requestError
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantWithDishes)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
-		logger.RepoLevel().ErrorLog(ctx, failError)
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
 
@@ -70,30 +70,36 @@ func (s sectionUsecase) UpdateSection(ctx context.Context, section models.Sectio
 	return &section, nil
 }
 
-func (s sectionUsecase) DeleteSection(ctx context.Context, sid int) error {
+func (s sectionUsecase) DeleteSection(ctx context.Context, sid int) (*models.DeleteSuccess, error) {
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"sid": sid})
 	ok := s.checkRightsForSection(ctx, sid)
 	if !ok {
 		requestError := errors.BadRequestError("No rights to delete a section")
 		logger.UsecaseLevel().ErrorLog(ctx, requestError)
-		return requestError
+		return nil, requestError
 	}
 
-	return s.sectionRepository.DeleteSection(ctx, sid)
+	return &models.DeleteSuccess{ID: sid}, s.sectionRepository.DeleteSection(ctx, sid)
 }
 
 func (s sectionUsecase) checkRightsForSection(ctx context.Context, idSection int) bool {
 	section, err := s.sectionRepository.GetSection(ctx, idSection)
 	if err != nil {
+		logger.UsecaseLevel().ErrorLog(ctx, err)
 		return false
 	}
 
-	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantWithDishes)
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return false
 	}
 
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{
+		"restaurantId":      restaurant.ID,
+		"sectionRestaurant": section.Restaurant,
+	})
 	if restaurant.ID != section.Restaurant {
 		return false
 	}

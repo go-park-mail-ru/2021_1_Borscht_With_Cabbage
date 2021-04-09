@@ -48,3 +48,7 @@ type CheckRestaurantExists struct {
 	Name          string
 	CurrentRestId int
 }
+
+type DeleteSuccess struct {
+	ID int `json:"id"`
+}
