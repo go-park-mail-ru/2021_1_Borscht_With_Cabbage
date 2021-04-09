@@ -22,9 +22,9 @@ func NewDishRepo(db *sql.DB) restaurantAdmin.AdminDishRepo {
 	}
 }
 
-func (a dishRepo) GetAllDishes(ctx context.Context, idRestaurant int) ([]models.Dish, error) {
+func (a dishRepo) GetAllDishes(ctx context.Context, idSection int) ([]models.Dish, error) {
 	dishesDB, err := a.DB.Query("select did, name, price, weight, description, image from dishes "+
-		"where restaurant = $1", idRestaurant)
+		"where section = $1", idSection)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -139,8 +139,10 @@ func (a dishRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 	}
 
 	var did int
-	err = a.DB.QueryRow("insert into dishes (restaurant, name, price, weight, description, image) values ($1, $2, $3, $4, $5, $6) returning did",
-		dish.Restaurant, dish.Name, dish.Price, dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
+	err = a.DB.QueryRow(`insert into dishes (restaurant, section, name, price, 
+		weight, description, image) values ($1, $2, $3, $4, $5, $6, $7) returning did`,
+		dish.Restaurant, dish.Section, dish.Name, dish.Price,
+		dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

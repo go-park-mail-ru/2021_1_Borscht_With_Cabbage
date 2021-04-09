@@ -78,7 +78,7 @@ func (s sectionRepo) DeleteSection(ctx context.Context, sid int) error {
 }
 
 func (s sectionRepo) GetSection(ctx context.Context, sid int) (*models.Section, error) {
-	DBsection, err := s.DB.Query("select sid, restaurant, name from sections where sid=$1", sid)
+	DBsection, err := s.DB.Query("select sid, restaurant, name from sections where id=$1", sid)
 	if err != nil {
 		return nil, errors.AuthorizationError("dish not found")
 	}
@@ -100,8 +100,30 @@ func (s sectionRepo) GetSection(ctx context.Context, sid int) (*models.Section, 
 	return section, nil
 }
 
+func (s sectionRepo) GetAllSections(ctx context.Context, idRestaurant int) ([]models.Section, error) {
+	sectionsDB, err := s.DB.Query(`select sid, name from sections 
+		where restaurant = $1`, idRestaurant)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return []models.Section{}, failError
+	}
+
+	var sections []models.Section
+	for sectionsDB.Next() {
+		section := new(models.Section)
+		err = sectionsDB.Scan(
+			&section.ID,
+			&section.Name,
+		)
+		sections = append(sections, *section)
+	}
+
+	return sections, nil
+}
+
 func (s sectionRepo) checkExistingSection(ctx context.Context, sectionData models.CheckSectionExists) error {
-	sections, err := s.DB.Query("select sid, name from dishes where restaurant = $1", sectionData.RestaurantId)
+	sections, err := s.DB.Query("select sid, name from sections where restaurant = $1", sectionData.RestaurantId)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

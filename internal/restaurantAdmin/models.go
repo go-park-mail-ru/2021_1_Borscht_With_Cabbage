@@ -42,7 +42,7 @@ type AdminDishUsecase interface {
 	AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	DeleteDish(ctx context.Context, did int) error
 	UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error)
-	GetAllDishes(ctx context.Context) ([]models.Dish, error)
+	GetAllDishes(ctx context.Context) ([]models.SectionWithDishes, error)
 	UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error)
 }
 
@@ -65,7 +65,7 @@ type AdminDishRepo interface {
 	DeleteDish(ctx context.Context, did int) error
 	GetDish(ctx context.Context, did int) (*models.Dish, error)
 	UpdateDishData(ctx context.Context, dish models.Dish) error
-	GetAllDishes(ctx context.Context, idRestaurant int) ([]models.Dish, error)
+	GetAllDishes(ctx context.Context, idSection int) ([]models.Dish, error)
 	UpdateDishImage(ctx context.Context, idDish int, filename string) error
 }
 
@@ -74,4 +74,5 @@ type AdminSectionRepo interface {
 	UpdateSection(ctx context.Context, section models.Section) error
 	DeleteSection(ctx context.Context, sid int) error
 	GetSection(ctx context.Context, sid int) (*models.Section, error)
+	GetAllSections(ctx context.Context, idRestaurant int) ([]models.Section, error)
 }

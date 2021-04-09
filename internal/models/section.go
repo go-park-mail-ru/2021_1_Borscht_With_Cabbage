@@ -11,3 +11,9 @@ type CheckSectionExists struct {
 	RestaurantId int
 	ID           int
 }
+
+type SectionWithDishes struct {
+	SectionName string `json:"sectionName"`
+	SectionId   int    `json:"sectionId"`
+	Dishes      []Dish `json:"dishes"`
+}

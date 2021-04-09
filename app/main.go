@@ -118,7 +118,7 @@ func main() {
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
-	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, imageRepo)
+	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 

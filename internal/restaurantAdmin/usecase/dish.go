@@ -20,28 +20,52 @@ const (
 )
 
 type dishUsecase struct {
-	dishRepository  restaurantAdmin.AdminDishRepo
-	imageRepository image.ImageRepo
+	dishRepository    restaurantAdmin.AdminDishRepo
+	sectionRepository restaurantAdmin.AdminSectionRepo
+	imageRepository   image.ImageRepo
 }
 
 func NewDishUsecase(adminRepo restaurantAdmin.AdminDishRepo,
+	sectionRepo restaurantAdmin.AdminSectionRepo,
 	imageRepo image.ImageRepo) restaurantAdmin.AdminDishUsecase {
 
 	return &dishUsecase{
-		dishRepository:  adminRepo,
-		imageRepository: imageRepo,
+		dishRepository:    adminRepo,
+		sectionRepository: sectionRepo,
+		imageRepository:   imageRepo,
 	}
 }
 
-func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.Dish, error) {
-	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
+func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.SectionWithDishes, error) {
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
 
-	return a.dishRepository.GetAllDishes(ctx, restaurantAdmin.ID)
+	sections, err := a.sectionRepository.GetAllSections(ctx, restaurant.ID)
+	if err != nil {
+		return []models.SectionWithDishes{}, err
+	}
+
+	response := []models.SectionWithDishes{}
+	for _, section := range sections {
+		dishes, err := a.dishRepository.GetAllDishes(ctx, section.ID)
+		if err != nil {
+			return []models.SectionWithDishes{}, err
+		}
+
+		sectionWithDishes := models.SectionWithDishes{
+			Dishes:      dishes,
+			SectionName: section.Name,
+			SectionId:   section.ID,
+		}
+
+		response = append(response, sectionWithDishes)
+	}
+
+	return response, nil
 }
 
 func (a dishUsecase) UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error) {
