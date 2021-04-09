@@ -6,6 +6,8 @@ DROP TABLE IF EXISTS dishes CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS baskets CASCADE;
 DROP TABLE IF EXISTS baskets_food;
+DROP TABLE IF EXISTS basket_users;
+DROP TABLE IF EXISTS basket_orders;
 
 CREATE TABLE users (
                        uid SERIAL PRIMARY KEY,
@@ -60,13 +62,21 @@ CREATE TABLE orders (
 
 CREATE TABLE baskets (
                          bid SERIAL PRIMARY KEY,
-                         restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE,
-                         userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE, -- корзина либо принадлежит юзеру и пока не оформлена
-                         orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
+                         restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE
 );
 
 
 CREATE TABLE baskets_food (
                               basket INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
                               dish INTEGER REFERENCES dishes(did) ON DELETE CASCADE
-)
+);
+
+CREATE TABLE basket_users (
+                              basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
+                              userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE basket_orders(
+                              basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
+                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
+);

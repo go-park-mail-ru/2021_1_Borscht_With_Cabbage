@@ -24,19 +24,32 @@ func NewOrderRepo(db *sql.DB) order.OrderRepo {
 func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBasket, uid int) error {
 	var basketRestaurant string
 	var basketID int
-	err := o.DB.QueryRow("select bid, restaurant from baskets where userid = $1", uid).Scan(&basketID, &basketRestaurant)
-	if basketRestaurant == "" {
-		//если у текущей корзины нет ресторана,то мы записываем в нее ресторан, блюдо из которого добавляем сейчас
-		var restaurantName string
-		err = o.DB.QueryRow("select restaurant from dishes where did = $1", dishToBasket.DishID).Scan(&restaurantName)
+	// ищем нужную корзину по юзеру
+	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
+	// если к юзеру пока не привязана корзина
+	if err == sql.ErrNoRows {
+		// то мы ищем ресторан, к которому привязать новую корзину
+		err = o.DB.QueryRow("select restaurant from dishes where did = $1", dishToBasket.DishID).Scan(&basketRestaurant)
 		if err != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurant through dish")
 			return errors.BadRequestError("Error with finding restaurant through dish")
 		}
-		_, err = o.DB.Exec("update baskets set restaurant = $1 where bid = $2", restaurantName, basketID)
+
+		// создаем новую корзину
+		err = o.DB.QueryRow("insert into baskets (restaurant) values ($1) returning bid", basketRestaurant).Scan(&basketID)
 		if err != nil {
-			logger.RepoLevel().InlineInfoLog(ctx, "Error with set restaurant name to basket")
-			return errors.BadRequestError("Error with set restaurant name to basket")
+			insertError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, insertError)
+			return insertError
+		}
+
+		fmt.Println(basketID, uid)
+		// вносим ее в табличку связи юзер-корзина
+		_, err = o.DB.Exec("insert into basket_users (basketid, userid) values ($1, $2)", basketID, uid)
+		if err != nil {
+			insertError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, insertError)
+			return insertError
 		}
 	}
 
@@ -50,7 +63,7 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		return nil
 	}
 
-	// если ресeторан теперь другой, то добавляем блюдо и чистим старую корзину
+	// если ресторан теперь другой, то чистим старую корзину и добавляем блюдо
 	_, err = o.DB.Exec("delete from baskets_food where basket = $1", basketID)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with deleting previous dishes from basket")
@@ -70,11 +83,14 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 	var basketID int
 	var basketRestaurant string
 	// находим что за корзина и из какого ресторана привязана к юзеру
-	err := o.DB.QueryRow("select bid, restaurant from baskets where userid=$1", uid).Scan(&basketID, &basketRestaurant)
+	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant name")
 		return errors.BadRequestError("Error with getting restaurant name")
 	}
+
+	// ищем ресторан по корзине
+	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(basketRestaurant)
 
 	// цена доставки ресторана для формирования заказа
 	var deliveryCost int
@@ -90,24 +106,24 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 		"values ($1,$2,$3,$4,$5,$6,$7,$8) returning oid;", basketRestaurant, uid, time.Now(), orderParams.Address, deliveryCost, 0,
 		models.StatusOrderAdded, time.Now()).Scan(&orderID) // todo решить что с временем доставки
 	if err != nil {
-		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
 		return errors.BadRequestError("Error with inserting order in DB")
 	}
 
-	// теперь корзина привязана к сформированному заказу, а не пользователю
-	_, err = o.DB.Exec("update baskets set userid=null, orderid=$1 where user=$2", orderID, uid)
+	// удаляем связь корзина-юзер
+	_, err = o.DB.Exec("delete from basket_users where basketid = $1", basketID)
 	if err != nil {
-		logger.RepoLevel().InlineInfoLog(ctx, "Error with binding cart from user to order")
-		return errors.BadRequestError("Error with binding cart from user to order")
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
+		return errors.BadRequestError("Error with inserting order in DB")
 	}
 
-	// а юзеру привязываем новую корзину
-	_, err = o.DB.Exec("insert into baskets (userid) values ($1)", uid)
+	// создаем связь корзина-заказ
+	_, err = o.DB.Exec("insert into basket_orders (basketid, orderid) values ($1, $2)", basketID, orderID)
 	if err != nil {
-		logger.RepoLevel().InlineInfoLog(ctx, "Error with giving user new basket")
-		return errors.BadRequestError("Error with giving user new basket")
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
+		return errors.BadRequestError("Error with inserting order in DB")
 	}
+
 	return nil
 }
 

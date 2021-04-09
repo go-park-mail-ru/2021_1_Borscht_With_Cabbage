@@ -32,7 +32,6 @@ func (h Handler) AddToBasket(c echo.Context) error {
 	userStruct := user.(models.User)
 
 	dish := models.DishToBasket{}
-
 	if err := c.Bind(dish); err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)

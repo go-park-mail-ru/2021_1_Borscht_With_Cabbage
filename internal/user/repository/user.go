@@ -73,13 +73,6 @@ func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error)
 		return 0, insertError
 	}
 
-	_, err = u.DB.Exec("insert into baskets (userid) values ($1)", uid)
-	if err != nil {
-		insertError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, insertError)
-		return 0, insertError
-	}
-
 	return uid, nil
 }
 
