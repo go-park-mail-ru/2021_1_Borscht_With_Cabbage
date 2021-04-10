@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/borscht/backend/utils/validation"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -61,6 +63,10 @@ func (h Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
+	if err := validation.ValidateUserRegistration(*newUser); err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
 	responseUser, err := h.UserUcase.Create(ctx, *newUser)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -91,6 +97,10 @@ func (h Handler) Login(c echo.Context) error {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
+	}
+
+	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	oldUser, err := h.UserUcase.CheckUserExists(ctx, *newUser)

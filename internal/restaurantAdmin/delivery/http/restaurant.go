@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/borscht/backend/utils/validation"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -65,6 +67,10 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
+	if err := validation.ValidateRestRegistration(*newRestaurant); err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
 	responseRestaurant, err := a.RestaurantUsecase.CreateRestaurant(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -93,6 +99,10 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
+	}
+
+	if err := validation.ValidateSignIn(newRest.Login, newRest.Password); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	existingRest, err := a.RestaurantUsecase.CheckRestaurantExists(ctx, *newRest)
