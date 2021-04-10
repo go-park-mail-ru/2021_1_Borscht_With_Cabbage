@@ -12,6 +12,7 @@ import (
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
+	"github.com/borscht/backend/utils/secure"
 	"github.com/borscht/backend/utils/uniq"
 )
 
@@ -65,16 +66,32 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.RestaurantInfo, error) {
 	restaurant.Avatar = config.DefaultAvatar
 
+	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
+
 	id, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
 	if err != nil {
 		return nil, err
 	}
 	restaurant.ID = id
+	restaurant.AdminPassword = ""
+	restaurant.AdminHashPassword = nil
+
 	return &restaurant, nil
 }
 
-func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.RestaurantInfo, error) {
-	return a.restaurantRepository.CheckRestaurantExists(ctx, user)
+func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.RestaurantInfo, error) {
+	restaurant, err := a.restaurantRepository.GetByLogin(ctx, restaurantAuth.Login)
+	if err != nil {
+		return nil, err
+	}
+
+	if !secure.CheckPassword(ctx, restaurant.AdminHashPassword, restaurantAuth.Password) {
+		err = errors.AuthorizationError("bad password")
+		logger.UsecaseLevel().ErrorLog(ctx, err)
+		return nil, err
+	}
+	restaurant.AdminHashPassword = nil
+	return restaurant, nil
 }
 
 func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {

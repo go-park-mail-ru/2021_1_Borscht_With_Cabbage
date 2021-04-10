@@ -28,8 +28,8 @@ type UserUsecase interface {
 
 type UserRepo interface {
 	Create(ctx context.Context, user models.User) (int, error)
-	CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error)
 	GetByUid(ctx context.Context, uid int) (models.User, error)
 	UpdateData(ctx context.Context, newUser models.UserData) error
 	UpdateAvatar(ctx context.Context, idUser int, filename string) error
+	GetByLogin(ctx context.Context, login string) (*models.User, error)
 }

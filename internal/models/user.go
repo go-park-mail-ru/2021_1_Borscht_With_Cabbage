@@ -1,13 +1,14 @@
 package models
 
 type User struct {
-	Uid         int    `json:"uid"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Phone       string `json:"number"`
-	Avatar      string `json:"avatar"`
-	MainAddress string `json:"activeAddress"`
+	Uid          int    `json:"uid"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	Password     string `json:"password"`
+	HashPassword []byte
+	Phone        string `json:"number"`
+	Avatar       string `json:"avatar"`
+	MainAddress  string `json:"activeAddress"`
 }
 
 type UserAuth struct {

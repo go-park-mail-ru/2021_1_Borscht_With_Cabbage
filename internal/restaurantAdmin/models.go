@@ -55,8 +55,8 @@ type AdminSectionUsecase interface {
 type AdminRestaurantRepo interface {
 	CreateRestaurant(ctx context.Context, user models.RestaurantInfo) (int, error)
 	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) error
-	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.RestaurantInfo, error)
 	GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error)
+	GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error)
 	UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error
 }
 

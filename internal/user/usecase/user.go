@@ -12,6 +12,7 @@ import (
 	"github.com/borscht/backend/internal/user"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
+	"github.com/borscht/backend/utils/secure"
 	"github.com/borscht/backend/utils/uniq"
 )
 
@@ -34,9 +35,9 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 }
 
 func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
-
-	// TODO валидация какая нибудь
 	newUser.Avatar = config.DefaultAvatar
+
+	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
 
 	uid, err := u.userRepository.Create(ctx, newUser)
 	if err != nil {
@@ -44,6 +45,7 @@ func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.
 	}
 	newUser.Uid = uid
 	newUser.Password = "" // TODO: подумать как это более аккуратно сделать
+	newUser.HashPassword = nil
 
 	response := &models.SuccessUserResponse{
 		User: newUser,
@@ -53,8 +55,20 @@ func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.
 	return response, nil
 }
 
-func (u *userUsecase) CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error) {
-	return u.userRepository.CheckUserExists(ctx, user)
+func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserAuth) (*models.User, error) {
+	user, err := u.userRepository.GetByLogin(ctx, userAuth.Login)
+	if err != nil {
+		return nil, err
+	}
+	logger.UsecaseLevel().InlineDebugLog(ctx, &user.HashPassword)
+
+	if !secure.CheckPassword(ctx, user.HashPassword, userAuth.Password) {
+		err = errors.AuthorizationError("bad password")
+		logger.UsecaseLevel().ErrorLog(ctx, err)
+		return nil, err
+	}
+	user.HashPassword = nil
+	return user, nil
 }
 
 func (u *userUsecase) GetByUid(ctx context.Context, uid int) (models.User, error) {
