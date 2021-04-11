@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/golang/mock v1.5.0 // indirect
+	github.com/golang/mock v1.5.0
 	github.com/gomodule/redigo v1.8.4
 	github.com/google/uuid v1.2.0
 	github.com/jackc/pgerrcode v0.0.0-20201024163028-a0d42d470451 // indirect

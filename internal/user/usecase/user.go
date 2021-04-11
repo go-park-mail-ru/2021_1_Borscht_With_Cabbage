@@ -32,8 +32,6 @@ func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
 }
 
 func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.User, error) {
-
-	// TODO валидация какая нибудь
 	newUser.Avatar = config.DefaultAvatar
 
 	uid, err := u.userRepository.Create(ctx, newUser)
@@ -53,8 +51,6 @@ func (u *userUsecase) GetByUid(ctx context.Context, uid int) (models.User, error
 }
 
 func (u *userUsecase) Update(ctx context.Context, newUser models.UserData, uid int) error {
-	// TODO валидация
-
 	return u.userRepository.Update(ctx, newUser, uid)
 }
 
