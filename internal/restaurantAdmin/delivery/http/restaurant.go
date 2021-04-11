@@ -1,9 +1,10 @@
 package http
 
 import (
-	"github.com/borscht/backend/utils/validation"
 	"net/http"
 	"time"
+
+	"github.com/borscht/backend/utils/validation"
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
@@ -14,16 +15,36 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type AdminHandler struct {
-	AdminUsecase adminModel.AdminUsecase
-	SessionUcase sessionModel.SessionUsecase
+type RestaurantHandler struct {
+	RestaurantUsecase adminModel.AdminRestaurantUsecase
+	SessionUcase      sessionModel.SessionUsecase
 }
 
-func NewAdminHandler(adminUCase adminModel.AdminUsecase, sessionUcase sessionModel.SessionUsecase) adminModel.AdminHandler {
-	return &AdminHandler{
-		AdminUsecase: adminUCase,
-		SessionUcase: sessionUcase,
+func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase,
+	sessionUcase sessionModel.SessionUsecase) adminModel.AdminRestaurantHandler {
+
+	return &RestaurantHandler{
+		RestaurantUsecase: adminUCase,
+		SessionUcase:      sessionUcase,
 	}
+}
+
+func (a RestaurantHandler) UpdateRestaurantData(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	restaurant := new(models.RestaurantUpdateData)
+	if err := c.Bind(restaurant); err != nil {
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	responseRestaurant, err := a.RestaurantUsecase.UpdateRestaurantData(ctx, *restaurant)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, *responseRestaurant)
 }
 
 func setResponseCookie(c echo.Context, session string) {
@@ -32,13 +53,14 @@ func setResponseCookie(c echo.Context, session string) {
 		Name:     config.SessionCookie,
 		Value:    session,
 		HttpOnly: true,
+		Path:     "/",
 	}
 	c.SetCookie(&sessionCookie)
 }
 
-func (a AdminHandler) Create(c echo.Context) error {
+func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	ctx := models.GetContext(c)
-	newRestaurant := new(models.Restaurant)
+	newRestaurant := new(models.RestaurantInfo)
 	if err := c.Bind(newRestaurant); err != nil {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -49,7 +71,7 @@ func (a AdminHandler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	responseRestaurant, err := a.AdminUsecase.Create(ctx, *newRestaurant)
+	responseRestaurant, err := a.RestaurantUsecase.CreateRestaurant(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -65,11 +87,11 @@ func (a AdminHandler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessRestaurantResponse{Restaurant: *responseRestaurant, Role: config.RoleAdmin} // TODO убрать config отсюда
+	response := models.SuccessRestaurantResponse{RestaurantInfo: *responseRestaurant, Role: config.RoleAdmin} // TODO убрать config отсюда
 	return models.SendResponse(c, response)
 }
 
-func (a AdminHandler) Login(c echo.Context) error {
+func (a RestaurantHandler) Login(c echo.Context) error {
 	ctx := models.GetContext(c)
 	newRest := new(models.RestaurantAuth)
 
@@ -83,7 +105,7 @@ func (a AdminHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	existingRest, err := a.AdminUsecase.CheckRestaurantExists(ctx, *newRest)
+	existingRest, err := a.RestaurantUsecase.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -99,20 +121,31 @@ func (a AdminHandler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessRestaurantResponse{Restaurant: *existingRest, Role: config.RoleAdmin}
+	response := models.SuccessRestaurantResponse{RestaurantInfo: *existingRest, Role: config.RoleAdmin}
 	return models.SendResponse(c, response)
 }
 
-func (a AdminHandler) GetUserData(c echo.Context) error {
+func (a RestaurantHandler) GetUserData(c echo.Context) error {
 	ctx := models.GetContext(c)
 	sendErr := errors.NewCustomError(500, "не реализовано")
 	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 	return models.SendResponseWithError(c, sendErr) // TODO
 }
 
-func (a AdminHandler) EditProfile(c echo.Context) error {
+func (a RestaurantHandler) UploadRestaurantImage(c echo.Context) error {
 	ctx := models.GetContext(c)
-	sendErr := errors.NewCustomError(500, "не реализовано")
-	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-	return models.SendResponseWithError(c, sendErr) // TODO
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		requestError := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	response, err := a.RestaurantUsecase.UploadRestaurantImage(ctx, file)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, response)
 }

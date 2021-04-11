@@ -2,17 +2,17 @@ package usecase
 
 import (
 	"context"
-	"hash/fnv"
-	"math/rand"
 	"mime/multipart"
 	"path/filepath"
-	"strconv"
+	"strings"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
-	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
+	"github.com/borscht/backend/utils/uniq"
 )
 
 // TODO: хранить статику в /var/...
@@ -22,16 +22,18 @@ const (
 )
 
 type userUsecase struct {
-	userRepository user.UserRepo
+	userRepository  user.UserRepo
+	imageRepository image.ImageRepo
 }
 
-func NewUserUsecase(repo user.UserRepo) user.UserUsecase {
+func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase {
 	return &userUsecase{
-		userRepository: repo,
+		userRepository:  repo,
+		imageRepository: image,
 	}
 }
 
-func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.User, error) {
+func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
 
 	// TODO валидация какая нибудь
 	newUser.Avatar = config.DefaultAvatar
@@ -41,7 +43,14 @@ func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.
 		return nil, err
 	}
 	newUser.Uid = uid
-	return &newUser, nil
+	newUser.Password = "" // TODO: подумать как это более аккуратно сделать
+
+	response := &models.SuccessUserResponse{
+		User: newUser,
+		Role: config.RoleUser,
+	}
+
+	return response, nil
 }
 
 func (u *userUsecase) CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error) {
@@ -52,41 +61,76 @@ func (u *userUsecase) GetByUid(ctx context.Context, uid int) (models.User, error
 	return u.userRepository.GetByUid(ctx, uid)
 }
 
-func (u *userUsecase) Update(ctx context.Context, newUser models.UserData, uid int) error {
-	// TODO валидация
+func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error) {
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
 
-	return u.userRepository.Update(ctx, newUser, uid)
+	newUser.ID = user.Uid
+	err := u.userRepository.UpdateData(ctx, newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	responseUser := models.User{
+		Uid:         newUser.ID,
+		Name:        newUser.Name,
+		Email:       newUser.Email,
+		Phone:       newUser.Phone,
+		Avatar:      user.Avatar,
+		MainAddress: user.MainAddress,
+	}
+
+	response := &models.SuccessUserResponse{
+		User: responseUser,
+		Role: config.RoleUser,
+	}
+
+	return response, err
 }
 
-func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHeader) (string, error) {
+func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHeader) (*models.UserImageResponse, error) {
 	// парсим расширение
 	expansion := filepath.Ext(image.Filename)
 
-	uid, localErr := getUniqId(ctx, image.Filename)
+	uid, localErr := uniq.GetUniqFilename(ctx, image.Filename)
 	if localErr != nil {
-		return "", localErr
+		return nil, localErr
+	}
+
+	// удаление изображения
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	if user.Avatar != config.DefaultAvatar {
+		removeFile := strings.Replace(user.Avatar, config.Repository, "", -1)
+		err := u.imageRepository.DeleteImage(ctx, removeFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	filename := HeadAvatar + uid + expansion
-	if err := u.userRepository.UploadAvatar(ctx, image, filename); err != nil {
-		return "", err
-	}
-
-	return config.Repository + filename, nil
-}
-
-func getUniqId(ctx context.Context, filename string) (string, error) {
-	// создаем рандомную последовательность чтобы точно названия не повторялись
-	hashingSalt := strconv.Itoa(rand.Int() % 1000)
-
-	// создаем хеш от названия файла
-	hash := fnv.New32a()
-	_, err := hash.Write([]byte(filename + hashingSalt))
+	err := u.imageRepository.UploadImage(ctx, filename, image)
 	if err != nil {
-		custErr := errors.FailServerError(err.Error())
-		logger.UsecaseLevel().ErrorLog(ctx, custErr)
-		return "", custErr
+		return nil, err
 	}
 
-	return strconv.Itoa(int(hash.Sum32())), nil
+	filename = config.Repository + HeadAvatar + uid + expansion
+	err = u.userRepository.UpdateAvatar(ctx, user.Uid, filename)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &models.UserImageResponse{
+		Filename: filename,
+	}
+	return response, nil
 }

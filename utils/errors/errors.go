@@ -11,7 +11,7 @@ type CustomError struct {
 
 type SendError struct {
 	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Message string `json:"data"`
 }
 
 func (err *CustomError) Error() string {

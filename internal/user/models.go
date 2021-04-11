@@ -12,23 +12,24 @@ type UserHandler interface {
 	Create(c echo.Context) error
 	Login(c echo.Context) error
 	GetUserData(c echo.Context) error
-	EditProfile(c echo.Context) error
+	UpdateData(c echo.Context) error
+	UploadAvatar(c echo.Context) error
 	CheckAuth(c echo.Context) error
 	Logout(c echo.Context) error
 }
 
 type UserUsecase interface {
-	Create(ctx context.Context, user models.User) (*models.User, error)
+	Create(ctx context.Context, user models.User) (*models.SuccessUserResponse, error)
 	CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error)
 	GetByUid(ctx context.Context, uid int) (models.User, error)
-	Update(ctx context.Context, newUser models.UserData, uid int) error
-	UploadAvatar(ctx context.Context, image *multipart.FileHeader) (string, error)
+	UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error)
+	UploadAvatar(ctx context.Context, image *multipart.FileHeader) (*models.UserImageResponse, error)
 }
 
 type UserRepo interface {
 	Create(ctx context.Context, user models.User) (int, error)
 	CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error)
 	GetByUid(ctx context.Context, uid int) (models.User, error)
-	Update(ctx context.Context, newUser models.UserData, uid int) error
-	UploadAvatar(ctx context.Context, image *multipart.FileHeader, filename string) error
+	UpdateData(ctx context.Context, newUser models.UserData) error
+	UpdateAvatar(ctx context.Context, idUser int, filename string) error
 }

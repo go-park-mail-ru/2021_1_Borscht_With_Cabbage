@@ -101,8 +101,8 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	restaurantStruct := restaurant.(models.Restaurant)
-	orders, err := h.OrderUcase.GetRestaurantOrders(ctx, restaurantStruct.Name)
+	restaurantStruct := restaurant.(models.RestaurantInfo)
+	orders, err := h.OrderUcase.GetRestaurantOrders(ctx, restaurantStruct.Title)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
