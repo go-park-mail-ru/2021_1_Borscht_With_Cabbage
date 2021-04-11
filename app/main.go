@@ -6,6 +6,10 @@ import (
 	"log"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/internal/order/delivery/http"
+	"github.com/borscht/backend/internal/order/repository"
+	"github.com/borscht/backend/internal/order/usecase"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
 	restaurantRepo "github.com/borscht/backend/internal/restaurant/repository"
@@ -35,6 +39,7 @@ type initRoute struct {
 	user            user.UserHandler
 	restaurant      restaurant.RestaurantHandler
 	restaurantAdmin restaurantAdmin.AdminHandler
+	order           order.OrderHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
@@ -51,6 +56,9 @@ func route(data initRoute) {
 	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
 	user.GET("", data.user.GetUserData)
 	user.PUT("", data.user.EditProfile)
+	user.GET("/orders", data.order.GetUserOrders)
+	user.POST("/order", data.order.Create)
+	user.PUT("/basket", data.order.AddToBasket)
 	auth.GET("/auth", data.user.CheckAuth)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
@@ -99,14 +107,18 @@ func main() {
 	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
+	orderRepo := repository.NewOrderRepo(db)
+
 	userUcase := userUcase.NewUserUsecase(userRepo)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, restaurantAdminUsecase, sessionUcase)
 	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
+	orderHandler := http.NewOrderHandler(orderUsecase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(restaurantAdminUsecase, sessionUcase)
@@ -117,6 +129,7 @@ func main() {
 		user:            userHandler,
 		restaurantAdmin: restaurantAdminHandler,
 		restaurant:      restaurantHandler,
+		order:           orderHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,
