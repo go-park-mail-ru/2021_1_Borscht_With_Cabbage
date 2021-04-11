@@ -1,11 +1,10 @@
-package tests
+package repository
 
 import (
 	"context"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/user/repository"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -19,6 +18,13 @@ type UserItem struct {
 	Avatar   string
 }
 
+type UserInfo struct {
+	Name   string `json:"name"`
+	Phone  string `json:"number"`
+	Email  string `json:"email"`
+	Avatar string
+}
+
 type uidStruct struct {
 	Uid int `json:"uid"`
 }
@@ -30,7 +36,7 @@ func TestUserCreate(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &repository.UserRepo{
+	userRepo := &UserRepo{
 		DB: db,
 	}
 
@@ -85,7 +91,7 @@ func TestCheckUserExists(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &repository.UserRepo{
+	userRepo := &UserRepo{
 		DB: db,
 	}
 
@@ -127,7 +133,42 @@ func TestCheckUserExists(t *testing.T) {
 }
 
 func TestGetByUid(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &UserRepo{
+		DB: db,
+	}
 
+	rows := sqlmock.NewRows([]string{"name", "phone", "email", "photo"})
+	expect := []*UserInfo{
+		{"Kate", "81111111111", "kate@mail.ru", "http://127.0.0.1:5000/default/avatar/stas.jpg"},
+	}
+	for _, item := range expect {
+		rows = rows.AddRow(item.Name, item.Phone, item.Email, item.Avatar)
+	}
+
+	mock.
+		ExpectQuery("select name, phone, email, photo from users where uid=").
+		WithArgs(1).
+		WillReturnRows(rows)
+
+	ctx := new(context.Context)
+	uid := 1
+
+	foundUser := new(models.User)
+	*foundUser, err = userRepo.GetByUid(*ctx, uid)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
 }
 
 func TestEditProfile(t *testing.T) {
