@@ -91,14 +91,14 @@ CREATE TABLE basket_orders(
 );
 
 
--- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
--- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
+GRANT ALL PRIVILEGES ON TABLE users TO delivery;
+GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
+GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
+GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
+GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
+GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
+GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
+GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
+GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
+GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
