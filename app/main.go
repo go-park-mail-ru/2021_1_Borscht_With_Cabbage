@@ -61,6 +61,7 @@ func route(data initRoute) {
 	restaurantGroup.PUT("/dish/image", data.dishAdmin.UploadDishImage)
 	restaurantGroup.GET("/dishes", data.dishAdmin.GetAllDishes)
 	restaurantGroup.PUT("", data.restaurantAdmin.UpdateRestaurantData)
+	restaurantGroup.PUT("/avatar", data.restaurantAdmin.UploadRestaurantImage)
 	restaurantGroup.POST("/section", data.sectionAdmin.AddSection)
 	restaurantGroup.DELETE("/section", data.sectionAdmin.DeleteSection)
 	restaurantGroup.PUT("/section", data.sectionAdmin.UpdateSection)
