@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -148,6 +149,7 @@ func (h *Handler) EditProfile(c echo.Context) error {
 	}
 
 	file, err := c.FormFile("avatar")
+	fmt.Println(file, err)
 	var filename string
 	if err == nil { // если аватарка прикреплена
 		filename, err = h.UserUcase.UploadAvatar(ctx, file)
@@ -184,7 +186,6 @@ func (h *Handler) EditProfile(c echo.Context) error {
 
 func (h *Handler) CheckAuth(c echo.Context) error {
 	ctx := models.GetContext(c)
-
 	cookie, err := c.Cookie(config.SessionCookie)
 	if err != nil {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
