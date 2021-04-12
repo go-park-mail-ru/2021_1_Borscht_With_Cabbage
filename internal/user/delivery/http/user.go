@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/borscht/backend/utils/validation"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -17,11 +19,11 @@ import (
 
 type Handler struct {
 	UserUcase    userModel.UserUsecase
-	AdminUcase   adminModel.AdminUsecase
+	AdminUcase   adminModel.AdminRestaurantUsecase
 	SessionUcase sessionModel.SessionUsecase
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
 	handler := &Handler{
 		UserUcase:    userUcase,
 		AdminUcase:   adminUcase,
@@ -51,7 +53,7 @@ func deleteResponseCookie(c echo.Context) {
 	c.SetCookie(&sessionCookie)
 }
 
-func (h *Handler) Create(c echo.Context) error {
+func (h Handler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	newUser := new(models.User)
@@ -60,6 +62,10 @@ func (h *Handler) Create(c echo.Context) error {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
+	}
+
+	if err := validation.ValidateUserRegistration(*newUser); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	responseUser, err := h.UserUcase.Create(ctx, *newUser)
@@ -79,11 +85,11 @@ func (h *Handler) Create(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessUserResponse{User: *responseUser, Role: config.RoleUser} // TODO убрать config отсюда
-	return models.SendResponse(c, response)
+	return models.SendResponse(c, responseUser)
 }
 
-func (h *Handler) Login(c echo.Context) error {
+// TODO: убрать эту логику отсюда
+func (h Handler) Login(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	newUser := new(models.UserAuth)
@@ -92,6 +98,10 @@ func (h *Handler) Login(c echo.Context) error {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
+	}
+
+	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	oldUser, err := h.UserUcase.CheckUserExists(ctx, *newUser)
@@ -116,7 +126,7 @@ func (h *Handler) Login(c echo.Context) error {
 	return models.SendResponse(c, response)
 }
 
-func (h *Handler) GetUserData(c echo.Context) error {
+func (h Handler) GetUserData(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	user := c.Get("User")
@@ -130,61 +140,44 @@ func (h *Handler) GetUserData(c echo.Context) error {
 	return models.SendResponse(c, user)
 }
 
-func (h *Handler) EditProfile(c echo.Context) error {
+func (h Handler) UpdateData(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	formParams, err := c.FormParams()
-	if err != nil {
-		requestError := errors.BadRequestError("invalid data form")
-		logger.DeliveryLevel().ErrorLog(ctx, requestError)
-		return models.SendResponseWithError(c, requestError)
+	user := new(models.UserData)
+	if err := c.Bind(user); err != nil {
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
 	}
 
-	profileEdits := models.UserData{
-		Name:        formParams.Get("name"),
-		Phone:       formParams.Get("number"),
-		Email:       formParams.Get("email"),
-		Password:    formParams.Get("password"),
-		PasswordOld: formParams.Get("password_current"),
-	}
-
-	file, err := c.FormFile("avatar")
-	fmt.Println(file, err)
-	var filename string
-	if err == nil { // если аватарка прикреплена
-		filename, err = h.UserUcase.UploadAvatar(ctx, file)
-		if err != nil {
-			return models.SendResponseWithError(c, err)
-		}
-	}
-
-	profileEdits.Avatar = filename
-	user := c.Get("User")
-
-	if file != nil {
-		if err != nil {
-			requestError := errors.BadRequestError(err.Error())
-			logger.DeliveryLevel().ErrorLog(ctx, requestError)
-			return models.SendResponseWithError(c, requestError)
-		}
-
-		filename, err := h.UserUcase.UploadAvatar(ctx, file)
-		if err != nil {
-			return models.SendResponseWithError(c, err)
-		}
-
-		profileEdits.Avatar = filename
-	}
-
-	err = h.UserUcase.Update(ctx, profileEdits, user.(models.User).Uid)
+	responseUser, err := h.UserUcase.UpdateData(ctx, *user)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, profileEdits)
+	return models.SendResponse(c, *responseUser)
 }
 
-func (h *Handler) CheckAuth(c echo.Context) error {
+func (h Handler) UploadAvatar(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		requestError := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	response, err := h.UserUcase.UploadAvatar(ctx, file)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, response)
+}
+
+// TODO: подумать как это можно изменить
+func (h Handler) CheckAuth(c echo.Context) error {
 	ctx := models.GetContext(c)
 	cookie, err := c.Cookie(config.SessionCookie)
 	if err != nil {
@@ -192,8 +185,6 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
-
-	authResponse := new(models.Auth)
 
 	sessionData := new(models.SessionInfo)
 	var exist bool
@@ -215,10 +206,10 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
-		authResponse.Name = restaurant.Name
-		authResponse.Avatar = restaurant.Avatar
-		authResponse.Role = config.RoleAdmin
-		return models.SendResponse(c, authResponse)
+		return models.SendResponse(c, models.SuccessRestaurantResponse{
+			RestaurantInfo: *restaurant, // TODO: узнать что ждет фронтенд
+			Role:           config.RoleAdmin,
+		})
 
 	case config.RoleUser:
 		user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
@@ -227,10 +218,10 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
-		authResponse.Name = user.Name
-		authResponse.Avatar = user.Avatar
-		authResponse.Role = config.RoleUser
-		return models.SendResponse(c, authResponse)
+		return models.SendResponse(c, models.SuccessUserResponse{
+			User: user,
+			Role: config.RoleUser,
+		})
 	default:
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with roles")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -238,7 +229,7 @@ func (h *Handler) CheckAuth(c echo.Context) error {
 	}
 }
 
-func (h *Handler) Logout(c echo.Context) error {
+func (h Handler) Logout(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	cook, err := c.Cookie(config.SessionCookie)

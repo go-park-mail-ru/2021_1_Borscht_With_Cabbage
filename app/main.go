@@ -6,6 +6,11 @@ import (
 	"log"
 
 	"github.com/borscht/backend/config"
+	imageRepo "github.com/borscht/backend/internal/image/repository"
+	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/internal/order/delivery/http"
+	"github.com/borscht/backend/internal/order/repository"
+	"github.com/borscht/backend/internal/order/usecase"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
 	restaurantRepo "github.com/borscht/backend/internal/restaurant/repository"
@@ -22,8 +27,6 @@ import (
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
-
-	// "github.com/labstack/echo/middleware"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 
@@ -34,24 +37,41 @@ type initRoute struct {
 	e               *echo.Echo
 	user            user.UserHandler
 	restaurant      restaurant.RestaurantHandler
-	restaurantAdmin restaurantAdmin.AdminHandler
+	restaurantAdmin restaurantAdmin.AdminRestaurantHandler
+	dishAdmin       restaurantAdmin.AdminDishHandler
+	sectionAdmin    restaurantAdmin.AdminSectionHandler
+	order           order.OrderHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
 }
 
 func route(data initRoute) {
-	user := data.e.Group("/user", data.userMiddleware.Auth)
-	// restaurant := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	userGroup := data.e.Group("/user", data.userMiddleware.Auth)
 	auth := data.e.Group("", data.authMiddleware.Auth)
+	userGroup.GET("", data.user.GetUserData)
+	userGroup.PUT("", data.user.UpdateData)
+	userGroup.PUT("/avatar", data.user.UploadAvatar)
+	auth.GET("/auth", data.user.CheckAuth)
+
+	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
+	restaurantGroup.DELETE("/dish", data.dishAdmin.DeleteDish)
+	restaurantGroup.PUT("/dish", data.dishAdmin.UpdateDishData)
+	restaurantGroup.PUT("/dish/image", data.dishAdmin.UploadDishImage)
+	restaurantGroup.GET("/dishes", data.dishAdmin.GetAllDishes)
+	restaurantGroup.PUT("", data.restaurantAdmin.UpdateRestaurantData)
+	restaurantGroup.POST("/section", data.sectionAdmin.AddSection)
+	restaurantGroup.DELETE("/section", data.sectionAdmin.DeleteSection)
+	restaurantGroup.PUT("/section", data.sectionAdmin.UpdateSection)
 
 	data.e.POST("/signin", data.user.Login)
 	data.e.POST("/signup", data.user.Create)
+	data.e.POST("/restaurant/signup", data.restaurantAdmin.CreateRestaurant)
 	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
-	data.e.POST("/restaurant/signup", data.restaurantAdmin.Create)
-	user.GET("", data.user.GetUserData)
-	user.PUT("", data.user.EditProfile)
-	auth.GET("/auth", data.user.CheckAuth)
+	userGroup.GET("/orders", data.order.GetUserOrders)
+	userGroup.POST("/order", data.order.Create)
+	userGroup.PUT("/basket", data.order.AddToBasket)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
@@ -97,26 +117,40 @@ func main() {
 
 	userRepo := userRepo.NewUserRepo(db)
 	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
-	restaurantAdminRepo := restaurantAdminRepo.NewAdminRepo(db)
+	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
+	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
+	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
-	userUcase := userUcase.NewUserUsecase(userRepo)
-	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
-	restaurantAdminUsecase := restaurantAdminUsecase.NewAdminUsecase(restaurantAdminRepo)
-	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+	imageRepo := imageRepo.NewImageRepo()
 
-	userHandler := userDelivery.NewUserHandler(userUcase, restaurantAdminUsecase, sessionUcase)
-	restaurantAdminHandler := restaurantAdminDelivery.NewAdminHandler(restaurantAdminUsecase, sessionUcase)
+	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
+	orderRepo := repository.NewOrderRepo(db)
+	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
+	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
+	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
+	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
+	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+
+	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
+	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
+	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
+	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
+	orderHandler := http.NewOrderHandler(orderUsecase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(restaurantAdminUsecase, sessionUcase)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, restaurantAdminUsecase, sessionUcase)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
 
 	route(initRoute{
 		e:               e,
 		user:            userHandler,
-		restaurantAdmin: restaurantAdminHandler,
+		restaurantAdmin: adminRestaurantHandler,
+		dishAdmin:       adminDishHandler,
+		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
+		order:           orderHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,

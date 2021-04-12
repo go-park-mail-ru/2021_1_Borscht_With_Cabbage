@@ -20,48 +20,49 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
-func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantResponse, error) {
+func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
 	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
 		"where rid >= $1 and rid <= $2", offset, limit+offset)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return []models.RestaurantResponse{}, failError
+		return []models.RestaurantInfo{}, failError
 	}
 
-	var restaurants []models.RestaurantResponse
+	var restaurants []models.RestaurantInfo
 	for restaurantsDB.Next() {
-		restaurant := new(models.RestaurantResponse)
+		restaurant := new(models.RestaurantInfo)
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
-			&restaurant.Name,
+			&restaurant.Title,
 			&restaurant.DeliveryCost,
 			&restaurant.AvgCheck,
 			&restaurant.Description,
 			&restaurant.Rating,
 			&restaurant.Avatar,
 		)
+		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
 		restaurants = append(restaurants, *restaurant)
 	}
 
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaurant, error) {
-	restaurant := new(models.Restaurant)
+func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.RestaurantWithDishes, error) {
+	restaurant := new(models.RestaurantWithDishes)
 	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
-		id).Scan(&restaurant.Name, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
+		id).Scan(&restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.Restaurant{}, failError
+		return models.RestaurantWithDishes{}, failError
 	}
 
-	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where did = $1", id)
+	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where restaurant = $1", id)
 	if errr != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.Restaurant{}, failError
+		return models.RestaurantWithDishes{}, failError
 	}
 
 	dishes := make([]models.Dish, 0)
@@ -77,7 +78,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaur
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.RepoLevel().ErrorLog(ctx, failError)
-			return models.Restaurant{}, failError
+			return models.RestaurantWithDishes{}, failError
 		}
 
 		dishes = append(dishes, *dish)
@@ -86,7 +87,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id string) (models.Restaur
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.Restaurant{}, failError
+		return models.RestaurantWithDishes{}, failError
 	}
 
 	restaurant.Dishes = dishes

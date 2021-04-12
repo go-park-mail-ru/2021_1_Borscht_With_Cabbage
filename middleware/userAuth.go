@@ -43,6 +43,7 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		user.Uid = sessionData.Id
 		c.Set("User", user)
 		logger.MiddleLevel().DataLog(ctx, "user auth", user)
+
 		return next(c)
 	}
 }

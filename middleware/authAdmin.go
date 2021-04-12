@@ -11,7 +11,7 @@ import (
 
 type AdminAuthMiddleware struct {
 	SessionUcase sessionModel.SessionUsecase
-	AdminUcase   adminModel.AdminUsecase
+	AdminUcase   adminModel.AdminRestaurantUsecase
 }
 
 func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -41,13 +41,14 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 		restaurant.ID = sessionData.Id
-		c.Set("Restaurant", restaurant)
-		logger.MiddleLevel().DataLog(ctx, "restaurant auth", restaurant)
+		c.Set("Restaurant", *restaurant)
+		logger.MiddleLevel().DataLog(ctx, "restaurant auth", *restaurant)
+
 		return next(c)
 	}
 }
 
-func InitAdminMiddleware(adminUcase adminModel.AdminUsecase, sessionUcase sessionModel.SessionUsecase) *AdminAuthMiddleware {
+func InitAdminMiddleware(adminUcase adminModel.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) *AdminAuthMiddleware {
 	return &AdminAuthMiddleware{
 		SessionUcase: sessionUcase,
 		AdminUcase:   adminUcase,

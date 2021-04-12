@@ -6,22 +6,26 @@ import (
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthMiddleware struct {
 	SessionUcase         sessionModel.SessionUsecase
 	UserUcase            userModel.UserUsecase
-	RestaurantAdminUcase restaurantAdmin.AdminUsecase
+	RestaurantAdminUcase restaurantAdmin.AdminRestaurantUsecase
 }
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := models.GetContext(c)
+		logger.MiddleLevel().InlineDebugLog(ctx, "Autorization")
 		session, err := c.Cookie(config.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
+
+		logger.MiddleLevel().InlineDebugLog(ctx, session.Value)
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
@@ -55,7 +59,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitAuthMiddleware(userUcase userModel.UserUsecase, restaurantAdminUcase restaurantAdmin.AdminUsecase, sessionUcase sessionModel.SessionUsecase) *AuthMiddleware {
+func InitAuthMiddleware(userUcase userModel.UserUsecase, restaurantAdminUcase restaurantAdmin.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) *AuthMiddleware {
 	return &AuthMiddleware{
 		SessionUcase:         sessionUcase,
 		UserUcase:            userUcase,

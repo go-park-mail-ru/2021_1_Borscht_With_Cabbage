@@ -15,7 +15,12 @@ type UserAuth struct {
 	Password string `json:"password"`
 }
 
+type UserImageResponse struct {
+	Filename string `json:"avatar"`
+}
+
 type UserData struct {
+	ID          int    `json"id"`
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	Phone       string `json:"number"`
