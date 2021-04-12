@@ -51,10 +51,10 @@ func (mr *MockUserUsecaseMockRecorder) CheckUserExists(arg0, arg1 interface{}) *
 }
 
 // Create mocks base method
-func (m *MockUserUsecase) Create(arg0 context.Context, arg1 models.User) (*models.User, error) {
+func (m *MockUserUsecase) Create(arg0 context.Context, arg1 models.User) (*models.SuccessUserResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(*models.User)
+	ret0, _ := ret[0].(*models.SuccessUserResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,25 +80,26 @@ func (mr *MockUserUsecaseMockRecorder) GetByUid(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUid", reflect.TypeOf((*MockUserUsecase)(nil).GetByUid), arg0, arg1)
 }
 
-// Update mocks base method
-func (m *MockUserUsecase) Update(arg0 context.Context, arg1 models.UserData, arg2 int) error {
+// UpdateData mocks base method
+func (m *MockUserUsecase) UpdateData(arg0 context.Context, arg1 models.UserData) (*models.SuccessUserResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "UpdateData", arg0, arg1)
+	ret0, _ := ret[0].(*models.SuccessUserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Update indicates an expected call of Update
-func (mr *MockUserUsecaseMockRecorder) Update(arg0, arg1, arg2 interface{}) *gomock.Call {
+// UpdateData indicates an expected call of UpdateData
+func (mr *MockUserUsecaseMockRecorder) UpdateData(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserUsecase)(nil).Update), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateData", reflect.TypeOf((*MockUserUsecase)(nil).UpdateData), arg0, arg1)
 }
 
 // UploadAvatar mocks base method
-func (m *MockUserUsecase) UploadAvatar(arg0 context.Context, arg1 *multipart.FileHeader) (string, error) {
+func (m *MockUserUsecase) UploadAvatar(arg0 context.Context, arg1 *multipart.FileHeader) (*models.UserImageResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UploadAvatar", arg0, arg1)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*models.UserImageResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -116,7 +116,7 @@ func (u *UserRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 }
 
 func (u *UserRepo) UpdateData(ctx context.Context, user models.UserData) error {
-	err := u.checkUserWithThisData(ctx, user.Phone, user.Email, user.ID)
+	err := u.checkUserWithThisData(ctx, user.Email, user.Phone, user.ID)
 	if err != nil {
 		return err
 	}

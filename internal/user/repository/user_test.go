@@ -5,17 +5,17 @@ import (
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 type UserItem struct {
-	Uid      int    `json:"uid"`
-	Name     string `json:"name"`
-	Phone    string `json:"number"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Avatar   string
+	Uid    int    `json:"uid"`
+	Name   string `json:"name"`
+	Phone  string `json:"number"`
+	Email  string `json:"email"`
+	Avatar string
 }
 
 type UserInfo struct {
@@ -84,54 +84,56 @@ func TestUserCreate(t *testing.T) {
 	require.EqualValues(t, uid, 1)
 }
 
-//func TestUserCreateNegative(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	if err != nil {
-//		t.Fatalf("cant create mock: %s", err)
-//	}
-//	defer db.Close()
-//	userRepo := &UserRepo{
-//		DB: db,
-//	}
-//
-//	//rows := sqlmock.NewRows([]string{"uid"})
-//	//rows = rows.AddRow(1)
-//
-//	rows := sqlmock.NewRows([]string{"uid"})
-//	expect := []*uidStruct{
-//		{1},
-//	}
-//	for _, item := range expect {
-//		rows = rows.AddRow(item.Uid)
-//	}
-//
-//	mock.
-//		ExpectQuery("select uid from users where email =").
-//		WithArgs("kate@mail.ru").
-//		WillReturnRows(rows)
-//
-//	ctx := new(context.Context)
-//
-//	user := models.User{
-//		Email:    "kate@mail.ru",
-//		Name:     "Kate",
-//		Phone:    "81111111111",
-//		Password: "111111",
-//		Avatar:   "",
-//	}
-//	logger.InitLogger()
-//	uid, err := userRepo.Create(*ctx, user)
-//	if err == nil {
-//		t.Errorf("unexpected err: %s", err)
-//		return
-//	}
-//
-//	if err := mock.ExpectationsWereMet(); err != nil {
-//		t.Errorf("there were unfulfilled expectations: %s", err)
-//		return
-//	}
-//	require.EqualValues(t, uid, 1)
-//}
+func TestUserCreateNegative(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &UserRepo{
+		DB: db,
+	}
+
+	//rows := sqlmock.NewRows([]string{"uid"})
+	//rows = rows.AddRow(1)
+
+	rows := sqlmock.NewRows([]string{"uid"})
+	expect := []*uidStruct{
+		{1},
+	}
+	for _, item := range expect {
+		rows = rows.AddRow(item.Uid)
+	}
+
+	mock.
+		ExpectQuery("select uid from users where email =").
+		WithArgs("kate@mail.ru").
+		WillReturnRows(rows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	user := models.User{
+		Email:    "kate@mail.ru",
+		Name:     "Kate",
+		Phone:    "81111111111",
+		Password: "111111",
+		Avatar:   "",
+	}
+
+	logger.InitLogger()
+	uid, err := userRepo.Create(ctx, user)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	require.EqualValues(t, uid, 0)
+}
 
 func TestCheckUserExists(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -143,16 +145,16 @@ func TestCheckUserExists(t *testing.T) {
 		DB: db,
 	}
 
-	rows := sqlmock.NewRows([]string{"uid", "name", "phone", "email", "password", "photo"})
+	rows := sqlmock.NewRows([]string{"uid", "name", "phone", "email", "photo"})
 	expect := []*UserItem{
-		{1, "Kate", "81111111111", "kate@mail.ru", "111111", "http://127.0.0.1:5000/default/avatar/stas.jpg"},
+		{1, "Kate", "81111111111", "kate@mail.ru", "http://127.0.0.1:5000/default/avatar/stas.jpg"},
 	}
 	for _, item := range expect {
-		rows = rows.AddRow(item.Uid, item.Name, item.Phone, item.Email, item.Password, item.Avatar)
+		rows = rows.AddRow(item.Uid, item.Name, item.Phone, item.Email, item.Avatar)
 	}
 
 	mock.
-		ExpectQuery("select uid, name, phone, email, password, photo").
+		ExpectQuery("select uid, name").
 		WithArgs("kate@mail.ru", "111111").
 		WillReturnRows(rows)
 
@@ -177,11 +179,10 @@ func TestCheckUserExists(t *testing.T) {
 	require.EqualValues(t, foundUser.Name, "Kate")
 	require.EqualValues(t, foundUser.Email, "kate@mail.ru")
 	require.EqualValues(t, foundUser.Phone, "81111111111")
-	require.EqualValues(t, foundUser.Password, "111111")
 }
 
 func TestCheckUserExistsNegative(t *testing.T) {
-
+	// TODO
 }
 
 func TestGetByUid(t *testing.T) {
@@ -224,7 +225,7 @@ func TestGetByUid(t *testing.T) {
 }
 
 func TestGetByUidNegative(t *testing.T) {
-
+	// TODO
 }
 
 func TestEditProfile(t *testing.T) {
@@ -249,19 +250,26 @@ func TestEditProfile(t *testing.T) {
 
 	mock.
 		ExpectExec("UPDATE users SET").
-		WithArgs("81111111111", "kate@mail.ru", "Kate", "http://127.0.0.1:5000/default/avatar/stas.jpg", 1).
+		WithArgs("81111111111", "kate@mail.ru", "Kate", 1).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	ctx := new(context.Context)
+	userId := models.User{
+		Uid:  1,
+		Name: "Daria",
+	}
+
 	user := models.UserData{
 		Phone:  "81111111111",
 		Email:  "kate@mail.ru",
 		Name:   "Kate",
 		Avatar: "http://127.0.0.1:5000/default/avatar/stas.jpg",
 	}
-	uid := 1
+	user.ID = 1
 
-	err = userRepo.Update(*ctx, user, uid)
+	c := context.Background()
+	ctx := context.WithValue(c, "User", userId)
+
+	err = userRepo.UpdateData(ctx, user)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -274,7 +282,7 @@ func TestEditProfile(t *testing.T) {
 }
 
 func TestEditProfileNegative(t *testing.T) {
-
+	// TODO
 }
 
 func TestUploadAvatar(t *testing.T) {

@@ -32,7 +32,6 @@ func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.Admin
 
 	return handler
 }
-
 func setResponseCookie(c echo.Context, session string) {
 	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(24 * time.Hour),
@@ -101,6 +100,7 @@ func (h Handler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
+		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
 

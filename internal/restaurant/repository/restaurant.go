@@ -41,6 +41,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 			&restaurant.Rating,
 			&restaurant.Avatar,
 		)
+
 		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
 		restaurants = append(restaurants, *restaurant)
 	}
