@@ -7,6 +7,10 @@ import (
 
 	"github.com/borscht/backend/config"
 	imageRepo "github.com/borscht/backend/internal/image/repository"
+	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/internal/order/delivery/http"
+	"github.com/borscht/backend/internal/order/repository"
+	"github.com/borscht/backend/internal/order/usecase"
 	"github.com/borscht/backend/internal/restaurant"
 	restaurantDelivery "github.com/borscht/backend/internal/restaurant/delivery/http"
 	restaurantRepo "github.com/borscht/backend/internal/restaurant/repository"
@@ -37,6 +41,7 @@ type initRoute struct {
 	restaurantAdmin restaurantAdmin.AdminRestaurantHandler
 	dishAdmin       restaurantAdmin.AdminDishHandler
 	sectionAdmin    restaurantAdmin.AdminSectionHandler
+	order           order.OrderHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
@@ -65,6 +70,9 @@ func route(data initRoute) {
 	data.e.POST("/signup", data.user.Create)
 	data.e.POST("/restaurant/signup", data.restaurantAdmin.CreateRestaurant)
 	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
+	userGroup.GET("/orders", data.order.GetUserOrders)
+	userGroup.POST("/order", data.order.Create)
+	userGroup.PUT("/basket", data.order.AddToBasket)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
@@ -119,17 +127,20 @@ func main() {
 	imageRepo := imageRepo.NewImageRepo()
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
+	orderRepo := repository.NewOrderRepo(db)
 	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
+	orderHandler := http.NewOrderHandler(orderUsecase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
@@ -142,6 +153,7 @@ func main() {
 		dishAdmin:       adminDishHandler,
 		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
+		order:           orderHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,

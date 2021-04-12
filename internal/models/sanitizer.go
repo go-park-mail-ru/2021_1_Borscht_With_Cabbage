@@ -77,8 +77,8 @@ func (u *Section) Sanitize() {
 
 func (u *RestaurantWithDishes) Sanitize() {
 	sanitizer := bluemonday.UGCPolicy()
-	for _, value := range u.Dishes {
-		value.Sanitize()
+	for i := range u.Dishes {
+		u.Dishes[i].Sanitize()
 	}
 	u.AdminEmail = sanitizer.Sanitize(u.AdminEmail)
 	u.AdminPhone = sanitizer.Sanitize(u.AdminPhone)
@@ -105,5 +105,25 @@ func (u *Restaurants) Sanitize() {
 func (u *SectionsWithDishes) Sanitize() {
 	for i := range u.Section {
 		u.Section[i].Sanitize()
+	}
+}
+
+func (u *DishInOrder) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Image = sanitizer.Sanitize(u.Image)
+}
+
+func (u *Order) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Address = sanitizer.Sanitize(u.Address)
+	u.Restaurant = sanitizer.Sanitize(u.Restaurant)
+	u.DeliveryTime = sanitizer.Sanitize(u.DeliveryTime)
+	u.OrderTime = sanitizer.Sanitize(u.OrderTime)
+	u.Status = sanitizer.Sanitize(u.Status)
+	u.Summary = sanitizer.Sanitize(u.Summary)
+
+	for i := range u.Foods {
+		u.Foods[i].Sanitize()
 	}
 }
