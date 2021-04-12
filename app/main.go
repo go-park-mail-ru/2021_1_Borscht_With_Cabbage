@@ -24,6 +24,7 @@ import (
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
 
 	"github.com/gomodule/redigo/redis"
@@ -77,6 +78,8 @@ func initServer(e *echo.Echo) {
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
+
+	e.Use(middleware.Secure())
 
 	e.HTTPErrorHandler = custMiddleware.ErrorHandler
 }

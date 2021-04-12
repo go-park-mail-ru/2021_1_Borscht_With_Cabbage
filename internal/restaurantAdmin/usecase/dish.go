@@ -36,7 +36,7 @@ func NewDishUsecase(adminRepo restaurantAdmin.AdminDishRepo,
 	}
 }
 
-func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.SectionWithDishes, error) {
+func (a dishUsecase) GetAllDishes(ctx context.Context) (*models.ArraySectionWithDishes, error) {
 	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
@@ -46,14 +46,14 @@ func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.SectionWithDish
 
 	sections, err := a.sectionRepository.GetAllSections(ctx, restaurant.ID)
 	if err != nil {
-		return []models.SectionWithDishes{}, err
+		return nil, err
 	}
 
 	response := []models.SectionWithDishes{}
 	for _, section := range sections {
 		dishes, err := a.dishRepository.GetAllDishes(ctx, section.ID)
 		if err != nil {
-			return []models.SectionWithDishes{}, err
+			return nil, err
 		}
 
 		sectionWithDishes := models.SectionWithDishes{
@@ -65,7 +65,7 @@ func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.SectionWithDish
 		response = append(response, sectionWithDishes)
 	}
 
-	return response, nil
+	return &models.ArraySectionWithDishes{Section: response}, nil
 }
 
 func (a dishUsecase) UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error) {

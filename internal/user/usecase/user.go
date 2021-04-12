@@ -55,7 +55,7 @@ func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.
 	return response, nil
 }
 
-func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserAuth) (*models.User, error) {
+func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserAuth) (*models.SuccessUserResponse, error) {
 	user, err := u.userRepository.GetByLogin(ctx, userAuth.Login)
 	if err != nil {
 		return nil, err
@@ -68,11 +68,44 @@ func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserA
 		return nil, err
 	}
 	user.HashPassword = nil
-	return user, nil
+	return &models.SuccessUserResponse{
+		User: *user,
+		Role: config.RoleUser,
+	}, nil
 }
 
-func (u *userUsecase) GetByUid(ctx context.Context, uid int) (models.User, error) {
-	return u.userRepository.GetByUid(ctx, uid)
+func (u *userUsecase) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResponse, error) {
+	user, err := u.userRepository.GetByUid(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.SuccessUserResponse{
+		User: user,
+		Role: config.RoleUser,
+	}, nil
+}
+
+func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserResponse, error) {
+	user := ctx.Value("User")
+
+	if user == nil {
+		userError := errors.AuthorizationError("not authorization")
+		logger.DeliveryLevel().ErrorLog(ctx, userError)
+		return nil, userError
+	}
+
+	responseUser, ok := user.(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.DeliveryLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	return &models.SuccessUserResponse{
+		User: responseUser,
+		Role: config.RoleUser,
+	}, nil
 }
 
 func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error) {

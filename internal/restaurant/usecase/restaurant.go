@@ -17,10 +17,15 @@ func NewRestaurantUsecase(repo restModel.RestaurantRepo) restModel.RestaurantUse
 	}
 }
 
-func (r *restaurantUsecase) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
-	return r.restaurantRepo.GetVendor(ctx, limit, offset)
+func (r *restaurantUsecase) GetVendor(ctx context.Context, limit, offset int) (*models.ArrayRestaurants, error) {
+	restaurants, err := r.restaurantRepo.GetVendor(ctx, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.ArrayRestaurants{Restaurants: restaurants}, nil
 }
 
-func (r *restaurantUsecase) GetById(ctx context.Context, id string) (models.RestaurantWithDishes, error) {
+func (r *restaurantUsecase) GetById(ctx context.Context, id string) (*models.RestaurantWithDishes, error) {
 	return r.restaurantRepo.GetById(ctx, id)
 }

@@ -46,7 +46,7 @@ func (a DishHandler) UpdateDishData(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, *response)
+	return models.SendResponse(c, response)
 }
 
 func (a DishHandler) DeleteDish(c echo.Context) error {
@@ -82,7 +82,7 @@ func (a DishHandler) AddDish(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, *response)
+	return models.SendResponse(c, response)
 }
 
 func (a DishHandler) UploadDishImage(c echo.Context) error {

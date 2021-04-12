@@ -33,7 +33,7 @@ func (s SectionHandler) AddSection(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, *response)
+	return models.SendResponse(c, response)
 }
 
 func (s SectionHandler) DeleteSection(c echo.Context) error {
@@ -69,5 +69,5 @@ func (s SectionHandler) UpdateSection(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, *response)
+	return models.SendResponse(c, response)
 }

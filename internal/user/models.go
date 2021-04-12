@@ -20,8 +20,9 @@ type UserHandler interface {
 
 type UserUsecase interface {
 	Create(ctx context.Context, user models.User) (*models.SuccessUserResponse, error)
-	CheckUserExists(ctx context.Context, user models.UserAuth) (*models.User, error)
-	GetByUid(ctx context.Context, uid int) (models.User, error)
+	CheckUserExists(ctx context.Context, user models.UserAuth) (*models.SuccessUserResponse, error)
+	GetByUid(ctx context.Context, uid int) (*models.SuccessUserResponse, error)
+	GetUserData(ctx context.Context) (*models.SuccessUserResponse, error)
 	UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error)
 	UploadAvatar(ctx context.Context, image *multipart.FileHeader) (*models.UserImageResponse, error)
 }

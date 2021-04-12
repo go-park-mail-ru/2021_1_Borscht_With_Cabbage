@@ -31,10 +31,10 @@ type AdminSectionHandler interface {
 }
 
 type AdminRestaurantUsecase interface {
-	CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.RestaurantInfo, error)
-	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (*models.RestaurantInfo, error)
-	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.RestaurantInfo, error)
-	GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error)
+	CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error)
+	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (*models.SuccessRestaurantResponse, error)
+	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.SuccessRestaurantResponse, error)
+	GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error)
 	UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error)
 }
 
@@ -42,7 +42,7 @@ type AdminDishUsecase interface {
 	AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	DeleteDish(ctx context.Context, did int) (*models.DeleteSuccess, error)
 	UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error)
-	GetAllDishes(ctx context.Context) ([]models.SectionWithDishes, error)
+	GetAllDishes(ctx context.Context) (*models.ArraySectionWithDishes, error)
 	UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error)
 }
 

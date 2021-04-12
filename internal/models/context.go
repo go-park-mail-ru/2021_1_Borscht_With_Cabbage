@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"net/http"
+	"reflect"
 
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -17,6 +18,10 @@ type message struct {
 type redirect struct {
 	Code     int    `json:"code"`
 	Redirect string `json:"redirect"`
+}
+
+type Response interface {
+	Sanitize()
 }
 
 func SendRedirectLogin(c echo.Context) error {
@@ -41,10 +46,13 @@ func GetContext(c echo.Context) context.Context {
 	return context.WithValue(ctx, "request_id", c.Get("request_id"))
 }
 
-func SendResponse(c echo.Context, data interface{}) error {
+func SendResponse(c echo.Context, data Response) error {
+
+	ctx := GetContext(c)
+	data.Sanitize()
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{"fields": reflect.ValueOf(data).Elem().NumField()})
 
 	serverMessage := message{http.StatusOK, data}
-	ctx := GetContext(c)
 
 	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     http.StatusOK,

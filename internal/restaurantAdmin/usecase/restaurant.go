@@ -31,7 +31,7 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 }
 
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
-	*models.RestaurantInfo, error) {
+	*models.SuccessRestaurantResponse, error) {
 
 	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
@@ -60,10 +60,13 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 	}
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 
-	return restaurantResponse, nil
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: *restaurantResponse,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
-func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.RestaurantInfo, error) {
+func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
 	restaurant.Avatar = config.DefaultAvatar
 
 	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
@@ -76,10 +79,13 @@ func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant mode
 	restaurant.AdminPassword = ""
 	restaurant.AdminHashPassword = nil
 
-	return &restaurant, nil
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: restaurant,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
-func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.RestaurantInfo, error) {
+func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
 	restaurant, err := a.restaurantRepository.GetByLogin(ctx, restaurantAuth.Login)
 	if err != nil {
 		return nil, err
@@ -91,11 +97,22 @@ func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurant
 		return nil, err
 	}
 	restaurant.AdminHashPassword = nil
-	return restaurant, nil
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: *restaurant,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
-func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
-	return a.restaurantRepository.GetByRid(ctx, rid)
+func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
+	response, err := a.restaurantRepository.GetByRid(ctx, rid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: *response,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
 func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error) {

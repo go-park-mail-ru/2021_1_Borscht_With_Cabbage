@@ -29,6 +29,10 @@ type RestaurantInfo struct {
 	Avatar            string  `json:"avatar"`
 }
 
+type ArrayRestaurants struct {
+	Restaurants []RestaurantInfo `json:""`
+}
+
 type RestaurantImageResponse struct {
 	Filename string `json:"avatar"`
 }
