@@ -42,7 +42,7 @@ type AdminDishUsecase interface {
 	AddDish(ctx context.Context, dish models.Dish) (*models.Dish, error)
 	DeleteDish(ctx context.Context, did int) (*models.DeleteSuccess, error)
 	UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error)
-	GetAllDishes(ctx context.Context) (*models.ArraySectionWithDishes, error)
+	GetAllDishes(ctx context.Context) (*models.SectionsWithDishes, error)
 	UploadDishImage(ctx context.Context, image *multipart.FileHeader, idDish int) (*models.DishImageResponse, error)
 }
 

@@ -13,7 +13,7 @@ type RestaurantHandler interface {
 }
 
 type RestaurantUsecase interface {
-	GetVendor(ctx context.Context, limit, offset int) (*models.ArrayRestaurants, error)
+	GetVendor(ctx context.Context, limit, offset int) (*models.Restaurants, error)
 	GetById(ctx context.Context, id string) (*models.RestaurantWithDishes, error)
 }
 

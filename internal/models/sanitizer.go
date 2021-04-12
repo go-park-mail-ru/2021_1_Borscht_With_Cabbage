@@ -96,13 +96,13 @@ func (u *RestaurantInfo) Sanitize() {
 	u.Title = sanitizer.Sanitize(u.Title)
 }
 
-func (u *ArrayRestaurants) Sanitize() {
+func (u *Restaurants) Sanitize() {
 	for i := range u.Restaurants {
 		u.Restaurants[i].Sanitize()
 	}
 }
 
-func (u *ArraySectionWithDishes) Sanitize() {
+func (u *SectionsWithDishes) Sanitize() {
 	for i := range u.Section {
 		u.Section[i].Sanitize()
 	}

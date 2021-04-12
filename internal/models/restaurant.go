@@ -29,7 +29,7 @@ type RestaurantInfo struct {
 	Avatar            string  `json:"avatar"`
 }
 
-type ArrayRestaurants struct {
+type Restaurants struct {
 	Restaurants []RestaurantInfo `json:""`
 }
 

@@ -18,6 +18,6 @@ type SectionWithDishes struct {
 	Dishes      []Dish `json:"dishes"`
 }
 
-type ArraySectionWithDishes struct {
+type SectionsWithDishes struct {
 	Section []SectionWithDishes `json:""`
 }
