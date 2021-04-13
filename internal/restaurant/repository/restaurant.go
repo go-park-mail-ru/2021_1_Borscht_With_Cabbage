@@ -61,7 +61,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 
-	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where restaurantId = $1", id)
+	dishesDB, errr := r.DB.Query("select did, name, price, weight, description, image from dishes where restaurantId = $1", id)
 	if errr != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -72,6 +72,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 	for dishesDB.Next() {
 		dish := new(models.Dish)
 		err = dishesDB.Scan(
+			&dish.ID,
 			&dish.Name,
 			&dish.Price,
 			&dish.Weight,

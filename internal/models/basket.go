@@ -8,7 +8,7 @@ type DishInBasket struct {
 	Image  string `json:"image"`
 }
 
-type Basket struct {
+type BasketForUser struct {
 	BID          int            `json:"id"`
 	Restaurant   string         `json:"restaurantName"`
 	RID          int            `json:"restaurantID"`

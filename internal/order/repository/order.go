@@ -242,30 +242,30 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 	return orders, nil
 }
 
-func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.Basket, error) {
+func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser, error) {
 	var basketRestaurant string
 	var basketID, restaurantID, deliveryCost int
 	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with basket through user")
-		return models.Basket{}, errors.BadRequestError("Error with basket through user")
+		return models.BasketForUser{}, errors.BadRequestError("Error with basket through user")
 	}
 
-	basketResponse := models.Basket{
+	basketResponse := models.BasketForUser{
 		BID: basketID,
 	}
 
 	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(&basketRestaurant)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurant through basket")
-		return models.Basket{}, errors.BadRequestError("Error with finding restaurant through basket")
+		return models.BasketForUser{}, errors.BadRequestError("Error with finding restaurant through basket")
 	}
 	basketResponse.Restaurant = basketRestaurant
 
 	err = o.DB.QueryRow("select rid, deliverycost from restaurants where name = $1", basketRestaurant).Scan(&restaurantID, &deliveryCost)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurantID through name")
-		return models.Basket{}, errors.BadRequestError("Error with finding restaurantID through name")
+		return models.BasketForUser{}, errors.BadRequestError("Error with finding restaurantID through name")
 	}
 	basketResponse.RID = restaurantID
 	basketResponse.DeliveryCost = deliveryCost
@@ -273,7 +273,7 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.Basket, error
 	dishesDB, errr := o.DB.Query("select d.did, d.name, d.price, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
 	if errr != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket's dishes")
-		return models.Basket{}, errors.BadRequestError("Error with getting basket's dishes")
+		return models.BasketForUser{}, errors.BadRequestError("Error with getting basket's dishes")
 	}
 
 	sum := 0

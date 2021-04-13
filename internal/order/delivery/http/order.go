@@ -77,7 +77,12 @@ func (h Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, "")
+	basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, basket)
 }
 
 func (h Handler) GetUserOrders(c echo.Context) error {
@@ -116,4 +121,23 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 	}
 
 	return models.SendResponse(c, orders)
+}
+
+func (h Handler) GetBasket(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	user := c.Get("User")
+	if user == nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	userStruct := user.(models.User)
+	basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, basket)
 }
