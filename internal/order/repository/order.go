@@ -254,9 +254,12 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	var basketRestaurant, imageRestaurant string
 	var basketID, restaurantID, deliveryCost int
 	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
+	if err == sql.ErrNoRows {
+		return models.BasketForUser{}, nil
+	}
 	if err != nil {
-		logger.RepoLevel().InlineInfoLog(ctx, "Error with basket through user")
-		return models.BasketForUser{}, errors.BadRequestError("Error with basket through user")
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket through user")
+		return models.BasketForUser{}, errors.BadRequestError("Error with getting basket through user")
 	}
 
 	basketResponse := models.BasketForUser{
