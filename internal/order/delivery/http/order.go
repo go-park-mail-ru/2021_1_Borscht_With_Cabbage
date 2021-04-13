@@ -77,7 +77,7 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	order := models.CreateOrder{}
-	if err := c.Bind(order); err != nil {
+	if err := c.Bind(&order); err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
@@ -131,7 +131,6 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 }
 
 func (h Handler) GetBasket(c echo.Context) error {
-	fmt.Println("get basket start")
 	ctx := models.GetContext(c)
 
 	user := c.Get("User")
