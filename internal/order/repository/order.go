@@ -243,7 +243,7 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 }
 
 func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser, error) {
-	var basketRestaurant string
+	var basketRestaurant, imageRestaurant string
 	var basketID, restaurantID, deliveryCost int
 	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
 	if err != nil {
@@ -261,6 +261,13 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 		return models.BasketForUser{}, errors.BadRequestError("Error with finding restaurant through basket")
 	}
 	basketResponse.Restaurant = basketRestaurant
+
+	err = o.DB.QueryRow("select avatar from restaurants where name = $1", basketRestaurant).Scan(&imageRestaurant)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant image")
+		return models.BasketForUser{}, errors.BadRequestError("Error with getting restaurant image")
+	}
+	basketResponse.RestaurantImage = imageRestaurant
 
 	err = o.DB.QueryRow("select rid, deliverycost from restaurants where name = $1", basketRestaurant).Scan(&restaurantID, &deliveryCost)
 	if err != nil {
