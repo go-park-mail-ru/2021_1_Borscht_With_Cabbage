@@ -25,6 +25,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	user := c.Get("User")
+
 	if user == nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
