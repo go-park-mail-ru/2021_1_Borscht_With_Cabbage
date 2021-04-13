@@ -257,5 +257,35 @@ func TestHandler_GetRestaurantOrders(t *testing.T) {
 }
 
 func TestHandler_GetBasket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock)
 
+	basket := models.BasketForUser{
+		BID:          1,
+		Restaurant:   "rest1",
+		RID:          1,
+		DeliveryCost: 200,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/restaurant/orders", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	user := models.User{
+		Uid:  1,
+		Name: "Daria",
+	}
+	c.Set("User", user)
+	ctx := models.GetContext(c)
+
+	OrderUsecaseMock.EXPECT().GetBasket(ctx, user.Uid).Return(basket, nil)
+
+	err := orderHandler.GetBasket(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
 }
