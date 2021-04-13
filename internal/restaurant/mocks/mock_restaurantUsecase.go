@@ -35,7 +35,7 @@ func (m *MockRestaurantUsecase) EXPECT() *MockRestaurantUsecaseMockRecorder {
 }
 
 // GetById mocks base method
-func (m *MockRestaurantUsecase) GetById(arg0 context.Context, arg1 string) (models.RestaurantWithDishes, error) {
+func (m *MockRestaurantUsecase) GetById(arg0 context.Context, arg1 int) (models.RestaurantWithDishes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
 	ret0, _ := ret[0].(models.RestaurantWithDishes)

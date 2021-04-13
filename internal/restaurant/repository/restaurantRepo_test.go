@@ -31,6 +31,7 @@ type Restaurant struct {
 }
 
 type DishInfo struct {
+	did         int    `json:"did"`
 	Name        string `json:"name"`
 	Price       int    `json:"price"`
 	Weight      int    `json:"weight"`
@@ -108,30 +109,30 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 		restaurant = restaurant.AddRow(item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Rating, item.Avatar)
 	}
 
-	dishes := sqlmock.NewRows([]string{"name", "price", "weight", "description", "image"})
+	dishes := sqlmock.NewRows([]string{"did", "name", "price", "weight", "description", "image"})
 	expectDishes := []*DishInfo{
-		{"Dish1", 200, 240, "new", "img.jpg"},
-		{"Dish2", 100, 130, "new2", "img2.jpg"},
+		{1, "Dish1", 200, 240, "new", "img.jpg"},
+		{2, "Dish2", 100, 130, "new2", "img2.jpg"},
 	}
 	for _, item := range expectDishes {
-		dishes = dishes.AddRow(item.Name, item.Price, item.Weight, item.Description, item.Image)
+		dishes = dishes.AddRow(item.did, item.Name, item.Price, item.Weight, item.Description, item.Image)
 	}
 
 	mock.
 		ExpectQuery("select name, deliveryCost").
-		WithArgs("1").
+		WithArgs(1).
 		WillReturnRows(restaurant)
 
 	mock.
-		ExpectQuery("select name, price,").
-		WithArgs("1").
+		ExpectQuery("select did, name,").
+		WithArgs(1).
 		WillReturnRows(dishes)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
 	restaurants := new(models.RestaurantWithDishes)
-	*restaurants, err = restaurantRepo.GetById(ctx, "1")
+	*restaurants, err = restaurantRepo.GetById(ctx, 1)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

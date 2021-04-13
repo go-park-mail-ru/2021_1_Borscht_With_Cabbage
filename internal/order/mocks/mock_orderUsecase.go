@@ -77,10 +77,10 @@ func (mr *MockOrderUsecaseMockRecorder) DeleteFromBasket(arg0, arg1, arg2 interf
 }
 
 // GetBasket mocks base method
-func (m *MockOrderUsecase) GetBasket(arg0 context.Context, arg1 int) (models.Basket, error) {
+func (m *MockOrderUsecase) GetBasket(arg0 context.Context, arg1 int) (models.BasketForUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBasket", arg0, arg1)
-	ret0, _ := ret[0].(models.Basket)
+	ret0, _ := ret[0].(models.BasketForUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

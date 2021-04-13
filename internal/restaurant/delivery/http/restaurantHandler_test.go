@@ -66,7 +66,7 @@ func TestRestaurantHandler_GetRestaurantPage(t *testing.T) {
 	c.SetParamValues("1")
 	ctx := models.GetContext(c)
 
-	RestaurantUsecaseMock.EXPECT().GetById(ctx, "1").Return(response, nil)
+	RestaurantUsecaseMock.EXPECT().GetById(ctx, 1).Return(response, nil)
 
 	err := restaurantHandler.GetRestaurantPage(c)
 	if err != nil {
