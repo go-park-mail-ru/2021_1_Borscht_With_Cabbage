@@ -6,6 +6,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	errors "github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -42,8 +43,14 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 }
 
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
-	id := c.Param("id")
 	ctx := models.GetContext(c)
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		badRequest := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, badRequest)
+		return models.SendResponseWithError(c, badRequest)
+	}
 
 	restaurant, err := h.restaurantUsecase.GetById(ctx, id)
 	if err != nil {
