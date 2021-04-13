@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	HeadImage = "static/dish/"
+	HeadImageDish = "static/dish/"
 )
 
 type dishUsecase struct {
@@ -178,13 +178,13 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 		}
 	}
 
-	custFilename := HeadImage + uid + expansion
+	custFilename := HeadImageDish + uid + expansion
 	err = a.imageRepository.UploadImage(ctx, custFilename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImage + uid + expansion
+	custFilename = config.Repository + HeadImageDish + uid + expansion
 	err = a.dishRepository.UpdateDishImage(ctx, idDish, custFilename)
 	if err != nil {
 		return nil, err

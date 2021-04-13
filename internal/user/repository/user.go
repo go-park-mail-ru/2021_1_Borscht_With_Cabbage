@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -128,7 +129,7 @@ func (u *userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 }
 
 func (u userRepo) UpdateAvatar(ctx context.Context, idUser int, filename string) error {
-	_, err := u.DB.Exec("UPDATE users SET photo = $1 where rid = $2",
+	_, err := u.DB.Exec("UPDATE users SET photo = $1 where uid = $2",
 		filename, idUser)
 	if err != nil {
 		dbError := errors.FailServerError(err.Error())

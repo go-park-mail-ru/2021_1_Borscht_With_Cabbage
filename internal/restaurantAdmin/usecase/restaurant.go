@@ -15,6 +15,10 @@ import (
 	"github.com/borscht/backend/utils/uniq"
 )
 
+const (
+	HeadImageRestaurant = "static/restaurant/"
+)
+
 type restaurantUsecase struct {
 	restaurantRepository restaurantAdmin.AdminRestaurantRepo
 	imageRepository      image.ImageRepo
@@ -106,13 +110,13 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		}
 	}
 
-	custFilename := HeadImage + uid + expansion
+	custFilename := HeadImageRestaurant + uid + expansion
 	err := a.imageRepository.UploadImage(ctx, custFilename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImage + uid + expansion
+	custFilename = config.Repository + HeadImageRestaurant + uid + expansion
 	err = a.restaurantRepository.UpdateRestaurantImage(ctx, restaurant.ID, custFilename)
 	if err != nil {
 		return nil, err

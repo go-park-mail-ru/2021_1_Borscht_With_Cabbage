@@ -18,7 +18,7 @@ import (
 // TODO: хранить статику в /var/...
 
 const (
-	HeadAvatar = "static/avatar/"
+	HeadAvatar = "static/user/avatar/"
 )
 
 type userUsecase struct {

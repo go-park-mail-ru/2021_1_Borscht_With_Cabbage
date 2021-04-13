@@ -73,7 +73,7 @@ func (a dishRepo) UpdateDishData(ctx context.Context, dish models.Dish) error {
 }
 
 func (a dishRepo) GetDish(ctx context.Context, did int) (*models.Dish, error) {
-	DBdish, err := a.DB.Query("select did, restaurant, name, price, weight, description, image from dishes where did=$1", did)
+	DBdish, err := a.DB.Query("select did, restaurantId, name, price, weight, description, image from dishes where did=$1", did)
 	if err != nil {
 		return nil, errors.AuthorizationError("dish not found")
 	}
@@ -111,7 +111,7 @@ func (a dishRepo) DeleteDish(ctx context.Context, did int) error {
 }
 
 func (a dishRepo) checkExistingDish(ctx context.Context, dishData models.CheckDishExists) error {
-	dishes, err := a.DB.Query("select did, name from dishes where restaurant = $1", dishData.RestaurantId)
+	dishes, err := a.DB.Query("select did, name from dishes where restaurantId = $1", dishData.RestaurantId)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -140,7 +140,7 @@ func (a dishRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 	}
 
 	var did int
-	err = a.DB.QueryRow(`insert into dishes (restaurant, section, name, price, 
+	err = a.DB.QueryRow(`insert into dishes (restaurantId, section, name, price, 
 		weight, description, image) values ($1, $2, $3, $4, $5, $6, $7) returning did`,
 		dish.Restaurant, dish.Section, dish.Name, dish.Price,
 		dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
