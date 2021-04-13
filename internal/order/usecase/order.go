@@ -36,6 +36,6 @@ func (o orderUsecase) GetRestaurantOrders(ctx context.Context, restaurantName st
 	return o.orderRepository.GetRestaurantOrders(ctx, restaurantName)
 }
 
-func (o orderUsecase) GetBasket(ctx context.Context, uid int) (models.Basket, error) {
+func (o orderUsecase) GetBasket(ctx context.Context, uid int) (models.BasketForUser, error) {
 	return o.orderRepository.GetBasket(ctx, uid)
 }
