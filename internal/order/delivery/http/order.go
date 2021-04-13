@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	errors "github.com/borscht/backend/utils/errors"
@@ -50,7 +49,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
-		fmt.Println(basket)
+
 		return models.SendResponse(c, basket)
 	}
 

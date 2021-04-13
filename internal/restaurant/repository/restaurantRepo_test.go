@@ -2,10 +2,7 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -36,17 +33,18 @@ type DishInfo struct {
 	Price       int    `json:"price"`
 	Weight      int    `json:"weight"`
 	Description string `json:"description"`
+	Section     int    `json:"section"`
 	Image       string `json:"image"`
 }
 
 func TestNewRestaurantRepo(t *testing.T) {
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
-	db, err := sql.Open(config.PostgresDB, dsn)
-	if err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-		return
-	}
-	NewRestaurantRepo(db)
+	//dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
+	//db, err := sql.Open(config.PostgresDB, dsn)
+	//if err != nil {
+	//	t.Errorf("there were unfulfilled expectations: %s", err)
+	//	return
+	//}
+	//NewRestaurantRepo(db)
 }
 
 func TestRestaurantRepo_GetVendor(t *testing.T) {
@@ -101,27 +99,41 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 		DB: db,
 	}
 
-	restaurant := sqlmock.NewRows([]string{"name", "deliveryCost", "avgCheck", "description", "rating", "avatar"})
-	expectRestaurant := []*Restaurant{
-		{"Rest1", 200, 1200, "new", 5, "img.jpg"},
+	restaurant := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "rating", "avatar"})
+	expectRestaurant := []*RestaurantInfo{
+		{1, "Rest1", 200, 1200, "new", 5, "img.jpg"},
 	}
 	for _, item := range expectRestaurant {
-		restaurant = restaurant.AddRow(item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Rating, item.Avatar)
+		restaurant = restaurant.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Rating, item.Avatar)
 	}
 
-	dishes := sqlmock.NewRows([]string{"did", "name", "price", "weight", "description", "image"})
+	dishes := sqlmock.NewRows([]string{"did", "name", "price", "weight", "description", "section", "image"})
 	expectDishes := []*DishInfo{
-		{1, "Dish1", 200, 240, "new", "img.jpg"},
-		{2, "Dish2", 100, 130, "new2", "img2.jpg"},
+		{1, "Dish1", 200, 240, "new", 1, "img.jpg"},
+		{2, "Dish2", 100, 130, "new2", 2, "img2.jpg"},
 	}
 	for _, item := range expectDishes {
-		dishes = dishes.AddRow(item.did, item.Name, item.Price, item.Weight, item.Description, item.Image)
+		dishes = dishes.AddRow(item.did, item.Name, item.Price, item.Weight, item.Description, item.Section, item.Image)
+	}
+
+	sections := sqlmock.NewRows([]string{"sid", "name"})
+	expectSections := []*models.Section{
+		{1, "section1", 0},
+		{2, "section2", 0},
+	}
+	for _, item := range expectSections {
+		sections = sections.AddRow(item.ID, item.Name)
 	}
 
 	mock.
-		ExpectQuery("select name, deliveryCost").
+		ExpectQuery("select rid, name, deliveryCost, ").
 		WithArgs(1).
 		WillReturnRows(restaurant)
+
+	mock.
+		ExpectQuery("select sid, name from sections").
+		WithArgs(1).
+		WillReturnRows(sections)
 
 	mock.
 		ExpectQuery("select did, name,").
