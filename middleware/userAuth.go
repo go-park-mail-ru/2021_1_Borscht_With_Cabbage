@@ -21,7 +21,6 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
-
 		sessionData := new(models.SessionInfo)
 		var exists bool
 		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)

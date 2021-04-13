@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	errors "github.com/borscht/backend/utils/errors"
@@ -32,7 +33,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 	userStruct := user.(models.User)
 
 	dish := models.DishToBasket{}
-	if err := c.Bind(dish); err != nil {
+	if err := c.Bind(&dish); err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
@@ -43,7 +44,13 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
-		return models.SendResponse(c, "")
+
+		basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		fmt.Println(basket)
+		return models.SendResponse(c, basket)
 	}
 
 	err := h.OrderUcase.DeleteFromBasket(ctx, dish, userStruct.Uid)
@@ -51,7 +58,12 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, "")
+	basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, basket)
 }
 
 func (h Handler) Create(c echo.Context) error {
@@ -77,12 +89,7 @@ func (h Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
-
-	return models.SendResponse(c, basket)
+	return models.SendResponse(c, "")
 }
 
 func (h Handler) GetUserOrders(c echo.Context) error {

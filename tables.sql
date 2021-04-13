@@ -27,22 +27,22 @@ CREATE TABLE addresses (
 );
 
 CREATE TABLE restaurants (
-                            rid SERIAL PRIMARY KEY,
-                            name TEXT UNIQUE,
-                            adminEmail TEXT,
-                            adminPhone TEXT,
-                            adminPassword TEXT,
-                            deliveryCost INTEGER DEFAULT 0,
-                            avgCheck INTEGER DEFAULT 0,
-                            description TEXT,
-                            rating FLOAT DEFAULT 0,
-                            avatar TEXT
+                             rid SERIAL PRIMARY KEY,
+                             name TEXT UNIQUE,
+                             adminEmail TEXT,
+                             adminPhone TEXT,
+                             adminPassword TEXT,
+                             deliveryCost INTEGER DEFAULT 0,
+                             avgCheck INTEGER DEFAULT 0,
+                             description TEXT,
+                             rating FLOAT DEFAULT 0,
+                             avatar TEXT
 );
 
 CREATE TABLE sections (
-                            sid SERIAL PRIMARY KEY,
-                            restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
-                            name TEXT
+                          sid SERIAL PRIMARY KEY,
+                          restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                          name TEXT
 );
 
 CREATE TABLE dishes (
@@ -71,13 +71,13 @@ CREATE TABLE orders (
 
 CREATE TABLE baskets (
                          bid SERIAL PRIMARY KEY,
-                         sum INTEGER,
-                         restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE
+                         restaurant TEXT REFERENCES restaurants(rid) ON DELETE CASCADE
 );
 
 
 CREATE TABLE baskets_food (
                               basket INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
+                              number INTEGER,
                               dish INTEGER REFERENCES dishes(did) ON DELETE CASCADE
 );
 
@@ -91,15 +91,15 @@ CREATE TABLE basket_orders(
                               orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
 );
 
-
-GRANT ALL PRIVILEGES ON TABLE users TO delivery;
-GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
-GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
-GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
-GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
-GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
-GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
-GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
-GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
-GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
+--
+-- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
+-- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;

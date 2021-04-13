@@ -150,6 +150,21 @@ func (a dishRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 		return 0, failError
 	}
 
+	var restaurantName string
+	err = a.DB.QueryRow(`select name from restaurants where rid =$1`, dish.Restaurant).Scan(&restaurantName)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return 0, failError
+	}
+
+	_, err = a.DB.Exec(`update dishes set restaurant=$1 where restaurantid=$2`, restaurantName, dish.Restaurant)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return 0, failError
+	}
+
 	return did, nil
 }
 
