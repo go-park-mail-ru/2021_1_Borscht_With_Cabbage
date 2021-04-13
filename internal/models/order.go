@@ -31,8 +31,7 @@ type CreateOrder struct {
 }
 
 type DishToBasket struct {
-	DishID     int    `json:"dishID"`
-	IsPlus     bool   `json:"IsPlus"`
-	SameBasket bool   `json:"same"`
-	Image      string `json:"image"`
+	DishID     int  `json:"dishID"`
+	IsPlus     bool `json:"isPlus"`
+	SameBasket bool `json:"same"`
 }

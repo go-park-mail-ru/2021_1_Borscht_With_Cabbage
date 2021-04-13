@@ -43,7 +43,6 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 			return insertError
 		}
 
-		fmt.Println(basketID, uid)
 		// вносим ее в табличку связи юзер-корзина
 		_, err = o.DB.Exec("insert into basket_users (basketid, userid) values ($1, $2)", basketID, uid)
 		if err != nil {
@@ -59,7 +58,7 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		var dishID int
 		err := o.DB.QueryRow("select dish from baskets_food where dish = $1 and basket = $2", dishToBasket.DishID, basketID).Scan(&dishID)
 		if err == sql.ErrNoRows {
-			_, err = o.DB.Exec("insert into baskets_food (dish, basket) values ($1, $2)", dishToBasket.DishID, basketID)
+			_, err = o.DB.Exec("insert into baskets_food (dish, basket, number) values ($1, $2, 1)", dishToBasket.DishID, basketID)
 			if err != nil {
 				logger.RepoLevel().InlineInfoLog(ctx, "Error while adding dish to basket")
 				return errors.BadRequestError("Error while adding dish to basket")
@@ -68,7 +67,8 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		}
 
 		// если есть - увеличиваем количество в корзине
-		_, err = o.DB.Exec("update baskets_food set number = number+1 where dish = $1 and basket = $2", dishToBasket.DishID, basketID)
+		_, err = o.DB.Exec("update baskets_food set number=number+1 where dish = $1 and basket = $2", dishToBasket.DishID, basketID)
+		fmt.Println(err)
 		if err != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error while inc dish count in basket")
 			return errors.BadRequestError("Error while inc dish count in basket")
@@ -83,7 +83,7 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		return errors.BadRequestError("Error with deleting previous dishes from basket")
 	}
 
-	_, err = o.DB.Exec("insert into baskets_food (basket, dish) values ($1, $2)", basketID, dishToBasket.DishID)
+	_, err = o.DB.Exec("insert into baskets_food (basket, dish, number) values ($1, $2, 1)", basketID, dishToBasket.DishID)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error while adding dish to basket")
 		return errors.BadRequestError("Error while adding dish to basket")
@@ -281,6 +281,7 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	for dishesDB.Next() {
 		dish := new(models.DishInBasket)
 		err = dishesDB.Scan(
+			&dish.ID,
 			&dish.Name,
 			&dish.Price,
 			&dish.Number)
