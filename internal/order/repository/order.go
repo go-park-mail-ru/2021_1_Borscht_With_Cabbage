@@ -326,7 +326,7 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	basketResponse.RID = restaurantID
 	basketResponse.DeliveryCost = deliveryCost
 
-	dishesDB, errr := o.DB.Query("select d.did, d.name, d.price, bf.number, d.image from baskets_food bf join dishes d on d.did = bf.dish")
+	dishesDB, errr := o.DB.Query("select d.did, d.name, d.price, bf.number, d.image from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID)
 	if errr != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket's dishes")
 		return models.BasketForUser{}, errors.BadRequestError("Error with getting basket's dishes")
