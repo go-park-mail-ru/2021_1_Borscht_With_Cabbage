@@ -38,7 +38,15 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	err := h.OrderUcase.AddToBasket(ctx, dish, userStruct.Uid)
+	if dish.IsPlus {
+		err := h.OrderUcase.AddToBasket(ctx, dish, userStruct.Uid)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		return models.SendResponse(c, "")
+	}
+
+	err := h.OrderUcase.DeleteFromBasket(ctx, dish, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

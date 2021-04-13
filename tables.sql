@@ -70,6 +70,7 @@ CREATE TABLE orders (
 
 CREATE TABLE baskets (
                          bid SERIAL PRIMARY KEY,
+                         sum INTEGER,
                          restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE
 );
 

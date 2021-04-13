@@ -55,10 +55,23 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 
 	// если добавляем в корзину с тем же рестораном, то просто добавляем блюдо
 	if dishToBasket.SameBasket {
-		_, err = o.DB.Exec("insert into baskets_food (dish, basket) values ($1, $2)", dishToBasket.DishID, basketID)
+		// если такого блюда в корзине нет
+		var dishID int
+		err := o.DB.QueryRow("select dish from baskets_food where dish = $1 and basket = $2", dishToBasket.DishID, basketID).Scan(&dishID)
+		if err == sql.ErrNoRows {
+			_, err = o.DB.Exec("insert into baskets_food (dish, basket) values ($1, $2)", dishToBasket.DishID, basketID)
+			if err != nil {
+				logger.RepoLevel().InlineInfoLog(ctx, "Error while adding dish to basket")
+				return errors.BadRequestError("Error while adding dish to basket")
+			}
+			return nil
+		}
+
+		// если есть - увеличиваем количество в корзине
+		_, err = o.DB.Exec("update baskets_food set number = number+1 where dish = $1 and basket = $2", dishToBasket.DishID, basketID)
 		if err != nil {
-			logger.RepoLevel().InlineInfoLog(ctx, "Error while adding dish to basket")
-			return errors.BadRequestError("Error while adding dish to basket")
+			logger.RepoLevel().InlineInfoLog(ctx, "Error while inc dish count in basket")
+			return errors.BadRequestError("Error while inc dish count in basket")
 		}
 		return nil
 	}
@@ -78,6 +91,38 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 	return nil
 }
 
+func (o orderRepo) DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error {
+	var basketID int
+	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with basket through user")
+		return errors.BadRequestError("Error with basket through user")
+	}
+
+	var number int
+	err = o.DB.QueryRow("select number from baskets_food where dish = $1 and basket = $2", dish.DishID, basketID).Scan(&number)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error get dish count in basket")
+		return errors.BadRequestError("Error get dish count in basket")
+	}
+
+	if number == 1 {
+		_, err = o.DB.Exec("delete from baskets_food where basket = $1 and dish = $2", basketID, dish.DishID)
+		if err != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with deleting dish from basket")
+			return errors.BadRequestError("Error with deleting dish from basket")
+		}
+	}
+
+	_, err = o.DB.Exec("update baskets_food set number=number-1 where basket = $1 and dish = $2", basketID, dish.DishID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with deleting dish from basket")
+		return errors.BadRequestError("Error with deleting dish from basket")
+	}
+
+	return nil
+}
+
 // TODO транзакция
 func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.CreateOrder) error {
 	var basketID int
@@ -90,7 +135,7 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 	}
 
 	// ищем ресторан по корзине
-	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(basketRestaurant)
+	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(&basketRestaurant)
 
 	// цена доставки ресторана для формирования заказа
 	var deliveryCost int
@@ -148,9 +193,7 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.DeliveryTime,
 		)
 
-		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image " +
-			"from baskets_food bf" +
-			"join dishes d where d.dish = bf.did")
+		dishesDB, errr := o.DB.Query("select d.name, d.price, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
 		if errr != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
 			return nil, errors.BadRequestError("Error with getting order's dishes")
@@ -174,8 +217,7 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 }
 
 func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error) {
-	ordersDB, err := o.DB.Query("select oid, userID, orderTime, address, deliverycost, sum, status, deliverytime "+
-		"from orders where restaurant=$1", restaurantName)
+	ordersDB, err := o.DB.Query("select oid, userID, orderTime, address, deliverycost, sum, status, deliverytime from orders where restaurant=$1", restaurantName)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant orders")
 		return nil, errors.BadRequestError("Error with getting restaurant orders")
@@ -198,4 +240,55 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 	}
 
 	return orders, nil
+}
+
+func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.Basket, error) {
+	var basketRestaurant string
+	var basketID, restaurantID, deliveryCost int
+	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with basket through user")
+		return models.Basket{}, errors.BadRequestError("Error with basket through user")
+	}
+
+	basketResponse := models.Basket{
+		BID: basketID,
+	}
+
+	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(&basketRestaurant)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurant through basket")
+		return models.Basket{}, errors.BadRequestError("Error with finding restaurant through basket")
+	}
+	basketResponse.Restaurant = basketRestaurant
+
+	err = o.DB.QueryRow("select rid, deliverycost from restaurants where name = $1", basketRestaurant).Scan(&restaurantID, &deliveryCost)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurantID through name")
+		return models.Basket{}, errors.BadRequestError("Error with finding restaurantID through name")
+	}
+	basketResponse.RID = restaurantID
+	basketResponse.DeliveryCost = deliveryCost
+
+	dishesDB, errr := o.DB.Query("select d.did, d.name, d.price, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
+	if errr != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket's dishes")
+		return models.Basket{}, errors.BadRequestError("Error with getting basket's dishes")
+	}
+
+	sum := 0
+	dishes := make([]models.DishInBasket, 0)
+	for dishesDB.Next() {
+		dish := new(models.DishInBasket)
+		err = dishesDB.Scan(
+			&dish.Name,
+			&dish.Price,
+			&dish.Number)
+		sum += dish.Price * dish.Number
+		dishes = append(dishes, *dish)
+	}
+	basketResponse.Foods = dishes
+	basketResponse.Summary = sum
+
+	return basketResponse, nil
 }

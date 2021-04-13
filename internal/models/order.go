@@ -13,7 +13,7 @@ type Order struct {
 	OrderTime    string        `json:"orderTime"`
 	DeliveryCost int           `json:"ship"`
 	DeliveryTime string        `json:"deliveryTime"`
-	Summary      string        `json:"summary"`
+	Summary      int           `json:"summary"`
 	Status       string        `json:"status"`
 	Foods        []DishInOrder `json:"foods"`
 }
@@ -32,6 +32,7 @@ type CreateOrder struct {
 
 type DishToBasket struct {
 	DishID     int    `json:"dishID"`
+	IsPlus     bool   `json:"IsPlus"`
 	SameBasket bool   `json:"same"`
 	Image      string `json:"image"`
 }
