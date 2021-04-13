@@ -193,22 +193,30 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.DeliveryTime,
 		)
 
-		dishesDB, errr := o.DB.Query("select d.name, d.price, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
+		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
 		if errr != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
 			return nil, errors.BadRequestError("Error with getting order's dishes")
 		}
 
 		dishes := make([]models.DishInOrder, 0)
+		sum := 0
 		for dishesDB.Next() {
 			dish := new(models.DishInOrder)
 			err = dishesDB.Scan(
 				&dish.Name,
 				&dish.Price,
-				&dish.Image)
+				&dish.Image,
+				&dish.Number)
+			sum += dish.Number * dish.Price
 			dishes = append(dishes, *dish)
 		}
 		order.Foods = dishes
+		order.Summary = sum
+
+		var restaurantImage string
+		err = o.DB.QueryRow("select avatar from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage)
+		order.RestaurantImage = restaurantImage
 
 		orders = append(orders, *order)
 	}
@@ -243,7 +251,7 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 }
 
 func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser, error) {
-	var basketRestaurant string
+	var basketRestaurant, imageRestaurant string
 	var basketID, restaurantID, deliveryCost int
 	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
 	if err != nil {
@@ -261,6 +269,13 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 		return models.BasketForUser{}, errors.BadRequestError("Error with finding restaurant through basket")
 	}
 	basketResponse.Restaurant = basketRestaurant
+
+	err = o.DB.QueryRow("select avatar from restaurants where name = $1", basketRestaurant).Scan(&imageRestaurant)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant image")
+		return models.BasketForUser{}, errors.BadRequestError("Error with getting restaurant image")
+	}
+	basketResponse.RestaurantImage = imageRestaurant
 
 	err = o.DB.QueryRow("select rid, deliverycost from restaurants where name = $1", basketRestaurant).Scan(&restaurantID, &deliveryCost)
 	if err != nil {
