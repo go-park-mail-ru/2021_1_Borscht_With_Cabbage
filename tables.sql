@@ -71,7 +71,7 @@ CREATE TABLE orders (
 
 CREATE TABLE baskets (
                          bid SERIAL PRIMARY KEY,
-                         restaurant TEXT REFERENCES restaurants(rid) ON DELETE CASCADE
+                         restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE
 );
 
 
@@ -91,7 +91,7 @@ CREATE TABLE basket_orders(
                               orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
 );
 
---
+
 -- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;

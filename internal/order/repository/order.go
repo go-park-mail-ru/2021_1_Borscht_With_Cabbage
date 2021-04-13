@@ -281,6 +281,7 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	for dishesDB.Next() {
 		dish := new(models.DishInBasket)
 		err = dishesDB.Scan(
+			&dish.ID,
 			&dish.Name,
 			&dish.Price,
 			&dish.Number)

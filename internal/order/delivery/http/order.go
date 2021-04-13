@@ -131,6 +131,7 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 }
 
 func (h Handler) GetBasket(c echo.Context) error {
+	fmt.Println("get basket start")
 	ctx := models.GetContext(c)
 
 	user := c.Get("User")
