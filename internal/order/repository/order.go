@@ -111,6 +111,7 @@ func (o orderRepo) DeleteFromBasket(ctx context.Context, dish models.DishToBaske
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with deleting dish from basket")
 			return errors.BadRequestError("Error with deleting dish from basket")
 		}
+
 		return nil
 	}
 
@@ -194,7 +195,14 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.DeliveryTime,
 		)
 
-		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
+		var basketID string
+		err = o.DB.QueryRow("select basketid from basket_orders where orderid=$1", order.OID).Scan(&basketID)
+		if err != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
+			return nil, errors.BadRequestError("Error with getting order's dishes")
+		}
+
+		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image, bf.number from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID)
 		if errr != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
 			return nil, errors.BadRequestError("Error with getting order's dishes")
@@ -245,6 +253,35 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 			&order.Status,
 			&order.DeliveryTime,
 		)
+
+		var basketID string
+		err = o.DB.QueryRow("select basketid from basket_orders where orderid=$1", order.OID).Scan(&basketID)
+		if err != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
+			return nil, errors.BadRequestError("Error with getting order's dishes")
+		}
+
+		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image, bf.number from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID)
+		if errr != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
+			return nil, errors.BadRequestError("Error with getting order's dishes")
+		}
+
+		dishes := make([]models.DishInOrder, 0)
+		sum := 0
+		for dishesDB.Next() {
+			dish := new(models.DishInOrder)
+			err = dishesDB.Scan(
+				&dish.Name,
+				&dish.Price,
+				&dish.Image,
+				&dish.Number)
+			sum += dish.Number * dish.Price
+			dishes = append(dishes, *dish)
+		}
+		order.Foods = dishes
+		order.Summary = sum
+
 		orders = append(orders, *order)
 	}
 

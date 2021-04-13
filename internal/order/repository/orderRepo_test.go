@@ -508,6 +508,14 @@ func TestOrderRepo_GetUserOrders(t *testing.T) {
 		dishes = dishes.AddRow(item.Name, item.Price, item.Image, item.Number)
 	}
 
+	basketID := sqlmock.NewRows([]string{"dish"})
+	expectBasketID := []models.BasketForUser{
+		{BID: 1},
+	}
+	for _, item := range expectBasketID {
+		basketID = basketID.AddRow(item.BID)
+	}
+
 	restaurantAvatar := sqlmock.NewRows([]string{"dish"})
 	expectRestaurantAvatar := []models.RestaurantInfo{
 		{Avatar: "img.jpg"},
@@ -520,6 +528,10 @@ func TestOrderRepo_GetUserOrders(t *testing.T) {
 		ExpectQuery("select oid, restaurant,").
 		WithArgs(1).
 		WillReturnRows(orders)
+	mock.
+		ExpectQuery("select basketid from").
+		WithArgs(1).
+		WillReturnRows(basketID)
 	mock.
 		ExpectQuery("select d.name, d.price,").
 		WillReturnRows(dishes)
@@ -554,12 +566,20 @@ func TestOrderRepo_GetRestaurantOrders(t *testing.T) {
 		DB: db,
 	}
 
-	orders := sqlmock.NewRows([]string{"oid", "restaurant", "orderTime", "address", "deliverycost", "sum", "status", "deliverytime"})
+	orders := sqlmock.NewRows([]string{"oid", "userid", "orderTime", "address", "deliverycost", "sum", "status", "deliverytime"})
 	expectOrders := []models.Order{
-		{OID: 1, Restaurant: "rest1", OrderTime: "15:00", Address: "Prospekt mira 2", DeliveryCost: 200, Summary: 1200, Status: models.StatusOrderAdded, DeliveryTime: "17:00"},
+		{OID: 1, UID: 1, OrderTime: "15:00", Address: "Prospekt mira 2", DeliveryCost: 200, Summary: 1200, Status: models.StatusOrderAdded, DeliveryTime: "17:00"},
 	}
 	for _, item := range expectOrders {
-		orders = orders.AddRow(item.OID, item.Restaurant, item.OrderTime, item.Address, item.DeliveryCost, item.Summary, item.Status, item.DeliveryTime)
+		orders = orders.AddRow(item.OID, item.UID, item.OrderTime, item.Address, item.DeliveryCost, item.Summary, item.Status, item.DeliveryTime)
+	}
+
+	basketID := sqlmock.NewRows([]string{"dish"})
+	expectBasketID := []models.BasketForUser{
+		{BID: 1},
+	}
+	for _, item := range expectBasketID {
+		basketID = basketID.AddRow(item.BID)
 	}
 
 	dishes := sqlmock.NewRows([]string{"name", "price", "image", "number"})
@@ -572,9 +592,12 @@ func TestOrderRepo_GetRestaurantOrders(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("select oid, restaurant,").
-		WithArgs(1).
+		ExpectQuery("select oid, userID,").
+		WithArgs("rest1").
 		WillReturnRows(orders)
+	mock.
+		ExpectQuery("select basketid from").
+		WillReturnRows(basketID)
 	mock.
 		ExpectQuery("select d.name, d.price,").
 		WillReturnRows(dishes)
@@ -582,7 +605,7 @@ func TestOrderRepo_GetRestaurantOrders(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	ordersResult, errr := orderRepo.GetRestaurantOrders(ctx, 1)
+	ordersResult, errr := orderRepo.GetRestaurantOrders(ctx, "rest1")
 	if errr != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -596,5 +619,93 @@ func TestOrderRepo_GetRestaurantOrders(t *testing.T) {
 }
 
 func TestOrderRepo_GetBasket(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	orderRepo := &orderRepo{
+		DB: db,
+	}
 
+	basketID := sqlmock.NewRows([]string{"dish"})
+	expectBasketID := []models.BasketForUser{
+		{BID: 1},
+	}
+	for _, item := range expectBasketID {
+		basketID = basketID.AddRow(item.BID)
+	}
+
+	restaurantName := sqlmock.NewRows([]string{"restaurant"})
+	expectRestName := []models.RestaurantInfo{
+		{Title: "rest1"},
+	}
+	for _, item := range expectRestName {
+		restaurantName = restaurantName.AddRow(item.Title)
+	}
+
+	restaurantAvatar := sqlmock.NewRows([]string{"restaurant"})
+	expectRestaurantAvatar := []models.RestaurantInfo{
+		{Avatar: "img.jpg"},
+	}
+	for _, item := range expectRestaurantAvatar {
+		restaurantAvatar = restaurantAvatar.AddRow(item.Avatar)
+	}
+
+	restaurantInfo := sqlmock.NewRows([]string{"rid", "deliveryCost"})
+	expectRestaurantInfo := []models.RestaurantInfo{
+		{ID: 1, DeliveryCost: 200},
+	}
+	for _, item := range expectRestaurantInfo {
+		restaurantInfo = restaurantInfo.AddRow(item.ID, item.DeliveryCost)
+	}
+
+	dishes := sqlmock.NewRows([]string{"id", "name", "price", "number", "image"})
+	expectDishes := []models.DishInOrder{
+		{ID: 1, Name: "dish1", Price: 250, Image: "img.jpg", Number: 1},
+		{ID: 2, Name: "dish2", Price: 350, Image: "img2.jpg", Number: 2},
+	}
+	for _, item := range expectDishes {
+		dishes = dishes.AddRow(item.ID, item.Name, item.Price, item.Number, item.Image)
+	}
+
+	mock.
+		ExpectQuery("select basketID from basket_users").
+		WithArgs(1).
+		WillReturnRows(basketID)
+	mock.
+		ExpectQuery("select restaurant from baskets").
+		WithArgs(1).
+		WillReturnRows(restaurantName)
+	mock.
+		ExpectQuery("select avatar from restaurants").
+		WithArgs("rest1").
+		WillReturnRows(restaurantAvatar)
+	mock.
+		ExpectQuery("select rid, deliverycost from restaurants").
+		WithArgs("rest1").
+		WillReturnRows(restaurantInfo)
+	mock.
+		ExpectQuery("select d.did, d.name,").
+		WithArgs(1).
+		WillReturnRows(dishes)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	basketResult, errr := orderRepo.GetBasket(ctx, 1)
+	if errr != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	require.EqualValues(t, basketResult.RID, 1)
+	require.EqualValues(t, basketResult.BID, 1)
+	require.EqualValues(t, basketResult.Restaurant, "rest1")
+	require.EqualValues(t, basketResult.RestaurantImage, "img.jpg")
+	require.EqualValues(t, basketResult.DeliveryCost, 200)
 }
