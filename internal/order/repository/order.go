@@ -193,22 +193,30 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.DeliveryTime,
 		)
 
-		dishesDB, errr := o.DB.Query("select d.name, d.price, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
+		dishesDB, errr := o.DB.Query("select d.name, d.price, d.image, bf.number from baskets_food bf join dishes d on d.did = bf.dish")
 		if errr != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting order's dishes")
 			return nil, errors.BadRequestError("Error with getting order's dishes")
 		}
 
 		dishes := make([]models.DishInOrder, 0)
+		sum := 0
 		for dishesDB.Next() {
 			dish := new(models.DishInOrder)
 			err = dishesDB.Scan(
 				&dish.Name,
 				&dish.Price,
-				&dish.Image)
+				&dish.Image,
+				&dish.Number)
+			sum += dish.Number * dish.Price
 			dishes = append(dishes, *dish)
 		}
 		order.Foods = dishes
+		order.Summary = sum
+
+		var restaurantImage string
+		err = o.DB.QueryRow("select avatar from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage)
+		order.RestaurantImage = restaurantImage
 
 		orders = append(orders, *order)
 	}
