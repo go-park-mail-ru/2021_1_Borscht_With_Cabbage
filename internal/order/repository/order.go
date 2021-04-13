@@ -68,7 +68,6 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 
 		// если есть - увеличиваем количество в корзине
 		_, err = o.DB.Exec("update baskets_food set number=number+1 where dish = $1 and basket = $2", dishToBasket.DishID, basketID)
-		fmt.Println(err)
 		if err != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error while inc dish count in basket")
 			return errors.BadRequestError("Error while inc dish count in basket")
@@ -112,6 +111,7 @@ func (o orderRepo) DeleteFromBasket(ctx context.Context, dish models.DishToBaske
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with deleting dish from basket")
 			return errors.BadRequestError("Error with deleting dish from basket")
 		}
+		return nil
 	}
 
 	_, err = o.DB.Exec("update baskets_food set number=number-1 where basket = $1 and dish = $2", basketID, dish.DishID)
@@ -141,6 +141,7 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 	var deliveryCost int
 	err = o.DB.QueryRow("select deliverycost from restaurants where name=$1", basketRestaurant).Scan(&deliveryCost)
 	if err != nil {
+		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting delivery cost")
 		return errors.BadRequestError("Error with getting delivery cost")
 	}
