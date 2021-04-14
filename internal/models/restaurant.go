@@ -7,7 +7,8 @@ type RestaurantAuth struct {
 
 type RestaurantWithDishes struct {
 	RestaurantInfo
-	Dishes []Dish `json:"foods"`
+	Sections []Section `json:"sections"`
+	Dishes   []Dish    `json:"foods"`
 }
 
 type SuccessRestaurantResponse struct {
@@ -27,10 +28,6 @@ type RestaurantInfo struct {
 	DeliveryCost      int     `json:"deliveryCost"`
 	Rating            float64 `json:"rating"`
 	Avatar            string  `json:"avatar"`
-}
-
-type Restaurants struct {
-	Restaurants []RestaurantInfo `json:""`
 }
 
 type RestaurantImageResponse struct {

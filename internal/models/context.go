@@ -46,11 +46,14 @@ func GetContext(c echo.Context) context.Context {
 	return context.WithValue(ctx, "request_id", c.Get("request_id"))
 }
 
-func SendResponse(c echo.Context, data Response) error {
-
+func SendResponse(c echo.Context, data ...Response) error {
 	ctx := GetContext(c)
-	data.Sanitize()
+
 	logger.ResponseLevel().InfoLog(ctx, logger.Fields{"fields": reflect.ValueOf(data).Elem().NumField()})
+
+	for i := range data {
+		data[i].Sanitize()
+	}
 
 	serverMessage := message{http.StatusOK, data}
 

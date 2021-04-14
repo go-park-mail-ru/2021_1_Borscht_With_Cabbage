@@ -19,7 +19,7 @@ import (
 // TODO: хранить статику в /var/...
 
 const (
-	HeadAvatar = "static/avatar/"
+	HeadAvatar = "static/user/avatar/"
 )
 
 type userUsecase struct {
@@ -35,7 +35,9 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 }
 
 func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
-	newUser.Avatar = config.DefaultAvatar
+
+	// TODO валидация какая нибудь
+	newUser.Avatar = config.DefaultUserImage
 
 	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
 
@@ -156,7 +158,7 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 		return nil, failError
 	}
 
-	if user.Avatar != config.DefaultAvatar {
+	if user.Avatar != config.DefaultUserImage {
 		removeFile := strings.Replace(user.Avatar, config.Repository, "", -1)
 		err := u.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {

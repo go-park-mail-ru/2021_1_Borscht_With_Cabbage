@@ -6,16 +6,17 @@ var StatusOrderDelivering = "едет к вам"
 var StatusOrderDone = "доставлен"
 
 type Order struct {
-	OID          int           `json:"orderID"`
-	UID          int           `json:"user"`
-	Restaurant   string        `json:"store"`
-	Address      string        `json:"address"`
-	OrderTime    string        `json:"orderTime"`
-	DeliveryCost int           `json:"ship"`
-	DeliveryTime string        `json:"deliveryTime"`
-	Summary      string        `json:"summary"`
-	Status       string        `json:"status"`
-	Foods        []DishInOrder `json:"foods"`
+	OID             int           `json:"orderID"`
+	UID             int           `json:"user"`
+	Restaurant      string        `json:"store"`
+	RestaurantImage string        `json:"restaurantImage"`
+	Address         string        `json:"address"`
+	OrderTime       string        `json:"orderTime"`
+	DeliveryCost    int           `json:"ship"`
+	DeliveryTime    string        `json:"deliveryTime"`
+	Summary         int           `json:"summary"`
+	Status          string        `json:"status"`
+	Foods           []DishInOrder `json:"foods"`
 }
 
 type DishInOrder struct {
@@ -31,7 +32,7 @@ type CreateOrder struct {
 }
 
 type DishToBasket struct {
-	DishID     int    `json:"dishID"`
-	SameBasket bool   `json:"same"`
-	Image      string `json:"image"`
+	DishID     int  `json:"dishID"`
+	IsPlus     bool `json:"isPlus"`
+	SameBasket bool `json:"same"`
 }

@@ -23,12 +23,16 @@ func NewDishHandler(dishUCase adminModel.AdminDishUsecase) adminModel.AdminDishH
 func (a DishHandler) GetAllDishes(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	response, err := a.DishUsecase.GetAllDishes(ctx)
+	result, err := a.DishUsecase.GetAllDishes(ctx)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, response)
+	response := make([]models.Response, 0)
+	for _, val := range result {
+		response = append(response, &val)
+	}
+	return models.SendResponse(c, response...)
 }
 
 func (a DishHandler) UpdateDishData(c echo.Context) error {

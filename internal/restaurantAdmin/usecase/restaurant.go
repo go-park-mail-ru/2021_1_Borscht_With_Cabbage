@@ -16,6 +16,10 @@ import (
 	"github.com/borscht/backend/utils/uniq"
 )
 
+const (
+	HeadImageRestaurant = "static/restaurant/"
+)
+
 type restaurantUsecase struct {
 	restaurantRepository restaurantAdmin.AdminRestaurantRepo
 	imageRepository      image.ImageRepo
@@ -67,7 +71,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 }
 
 func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	restaurant.Avatar = config.DefaultAvatar
+	restaurant.Avatar = config.DefaultUserImage
 
 	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
 
@@ -132,7 +136,7 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		return nil, failError
 	}
 
-	if restaurant.Avatar != config.DefaultAvatar {
+	if restaurant.Avatar != config.DefaultRestaurantImage {
 		removeFile := strings.Replace(restaurant.Avatar, config.Repository, "", -1)
 		err := a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
@@ -140,13 +144,13 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		}
 	}
 
-	custFilename := HeadImage + uid + expansion
+	custFilename := HeadImageRestaurant + uid + expansion
 	err := a.imageRepository.UploadImage(ctx, custFilename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImage + uid + expansion
+	custFilename = config.Repository + HeadImageRestaurant + uid + expansion
 	err = a.restaurantRepository.UpdateRestaurantImage(ctx, restaurant.ID, custFilename)
 	if err != nil {
 		return nil, err

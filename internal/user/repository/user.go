@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -62,7 +63,7 @@ func (u userRepo) Create(ctx context.Context, newUser models.User) (int, error) 
 
 	var uid int
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
-		newUser.Name, newUser.Phone, newUser.Email, newUser.HashPassword, config.DefaultAvatar).Scan(&uid)
+		newUser.Name, newUser.Phone, newUser.Email, newUser.HashPassword, config.DefaultUserImage).Scan(&uid)
 	if err != nil {
 		insertError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, insertError)
@@ -129,7 +130,7 @@ func (u userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 }
 
 func (u userRepo) UpdateAvatar(ctx context.Context, idUser int, filename string) error {
-	_, err := u.DB.Exec("UPDATE users SET photo = $1 where rid = $2",
+	_, err := u.DB.Exec("UPDATE users SET photo = $1 where uid = $2",
 		filename, idUser)
 	if err != nil {
 		dbError := errors.FailServerError(err.Error())

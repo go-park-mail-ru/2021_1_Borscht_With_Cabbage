@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	HeadImage = "static/dish/"
+	HeadImageDish = "static/dish/"
 )
 
 type dishUsecase struct {
@@ -36,7 +36,7 @@ func NewDishUsecase(adminRepo restaurantAdmin.AdminDishRepo,
 	}
 }
 
-func (a dishUsecase) GetAllDishes(ctx context.Context) (*models.SectionsWithDishes, error) {
+func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.SectionWithDishes, error) {
 	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
@@ -65,7 +65,7 @@ func (a dishUsecase) GetAllDishes(ctx context.Context) (*models.SectionsWithDish
 		response = append(response, sectionWithDishes)
 	}
 
-	return &models.SectionsWithDishes{Section: response}, nil
+	return response, nil
 }
 
 func (a dishUsecase) UpdateDishData(ctx context.Context, dish models.Dish) (*models.Dish, error) {
@@ -109,7 +109,7 @@ func (a dishUsecase) DeleteDish(ctx context.Context, did int) (*models.DeleteSuc
 
 	// удаление изображения
 	oldDish, err := a.dishRepository.GetDish(ctx, did)
-	if oldDish.Image != config.DefaultAvatar {
+	if oldDish.Image != config.DefaultDishImage {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
@@ -142,7 +142,7 @@ func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dis
 	}
 	responseDish := dish
 	responseDish.ID = id
-	responseDish.Image = config.DefaultAvatar
+	responseDish.Image = config.DefaultDishImage
 	return &responseDish, nil
 }
 
@@ -170,7 +170,7 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 
 	// удаление изображения
 	oldDish, err := a.dishRepository.GetDish(ctx, idDish)
-	if oldDish.Image != config.DefaultAvatar {
+	if oldDish.Image != config.DefaultDishImage {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
@@ -178,13 +178,13 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 		}
 	}
 
-	custFilename := HeadImage + uid + expansion
+	custFilename := HeadImageDish + uid + expansion
 	err = a.imageRepository.UploadImage(ctx, custFilename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImage + uid + expansion
+	custFilename = config.Repository + HeadImageDish + uid + expansion
 	err = a.dishRepository.UpdateDishImage(ctx, idDish, custFilename)
 	if err != nil {
 		return nil, err

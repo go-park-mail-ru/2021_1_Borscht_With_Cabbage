@@ -13,11 +13,11 @@ type RestaurantHandler interface {
 }
 
 type RestaurantUsecase interface {
-	GetVendor(ctx context.Context, limit, offset int) (*models.Restaurants, error)
-	GetById(ctx context.Context, id string) (*models.RestaurantWithDishes, error)
+	GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error)
+	GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error)
 }
 
 type RestaurantRepo interface {
 	GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error)
-	GetById(ctx context.Context, id string) (*models.RestaurantWithDishes, error)
+	GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error)
 }

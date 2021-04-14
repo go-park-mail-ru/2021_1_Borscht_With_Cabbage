@@ -48,17 +48,51 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(ctx context.Context, id string) (*models.RestaurantWithDishes, error) {
+func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
 	restaurant := new(models.RestaurantWithDishes)
-	err := r.DB.QueryRow("select name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
-		id).Scan(&restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
+	err := r.DB.QueryRow("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
+		id).Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
 
-	dishesDB, errr := r.DB.Query("select name, price, weight, description, image from dishes where restaurant = $1", id)
+	logger.RepoLevel().InlineDebugLog(ctx, restaurant)
+
+	// Get sections
+	sectionsDB, ok := r.DB.Query("select sid, name from sections where restaurant = $1", restaurant.ID)
+	if ok != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+	sections := make([]models.Section, 0)
+	for sectionsDB.Next() {
+		section := new(models.Section)
+		err = sectionsDB.Scan(
+			&section.ID,
+			&section.Name,
+		)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+		logger.RepoLevel().InlineDebugLog(ctx, section)
+
+		sections = append(sections, *section)
+	}
+	err = sectionsDB.Close()
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+	restaurant.Sections = sections
+
+	// get dishes
+	dishesDB, errr := r.DB.Query("select did, name, price, weight, description, section, image from dishes where restaurantId = $1", id)
 	if errr != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -69,10 +103,12 @@ func (r *restaurantRepo) GetById(ctx context.Context, id string) (*models.Restau
 	for dishesDB.Next() {
 		dish := new(models.Dish)
 		err = dishesDB.Scan(
+			&dish.ID,
 			&dish.Name,
 			&dish.Price,
 			&dish.Weight,
 			&dish.Description,
+			&dish.Section,
 			&dish.Image,
 		)
 		if err != nil {
@@ -80,6 +116,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id string) (*models.Restau
 			logger.RepoLevel().ErrorLog(ctx, failError)
 			return nil, failError
 		}
+		logger.RepoLevel().InlineDebugLog(ctx, dish)
 
 		dishes = append(dishes, *dish)
 	}

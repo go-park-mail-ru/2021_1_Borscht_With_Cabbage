@@ -11,6 +11,7 @@ type OrderHandler interface {
 	GetUserOrders(c echo.Context) error
 	GetRestaurantOrders(c echo.Context) error
 	AddToBasket(c echo.Context) error
+	GetBasket(c echo.Context) error
 }
 
 type OrderUsecase interface {
@@ -18,6 +19,8 @@ type OrderUsecase interface {
 	GetUserOrders(ctx context.Context, uid int) ([]models.Order, error)
 	GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error)
 	AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error
+	DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error
+	GetBasket(ctx context.Context, uid int) (models.BasketForUser, error)
 }
 
 type OrderRepo interface {
@@ -25,4 +28,6 @@ type OrderRepo interface {
 	GetUserOrders(ctx context.Context, uid int) ([]models.Order, error)
 	GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error)
 	AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error
+	DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error
+	GetBasket(ctx context.Context, uid int) (models.BasketForUser, error)
 }
