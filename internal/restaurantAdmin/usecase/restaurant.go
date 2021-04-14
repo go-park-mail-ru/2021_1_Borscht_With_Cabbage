@@ -67,7 +67,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 }
 
 func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.RestaurantInfo, error) {
-	restaurant.Avatar = config.DefaultAvatar
+	restaurant.Avatar = config.DefaultRestaurantImage
 
 	id, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
 	if err != nil {
@@ -102,7 +102,7 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		return nil, failError
 	}
 
-	if restaurant.Avatar != config.DefaultAvatar {
+	if restaurant.Avatar != config.DefaultRestaurantImage {
 		removeFile := strings.Replace(restaurant.Avatar, config.Repository, "", -1)
 		err := a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
