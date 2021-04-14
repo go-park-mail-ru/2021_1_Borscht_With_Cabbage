@@ -39,7 +39,11 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, result)
+	response := make([]models.Response, 0)
+	for _, val := range result {
+		response = append(response, &val)
+	}
+	return models.SendResponse(c, response...)
 }
 
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {

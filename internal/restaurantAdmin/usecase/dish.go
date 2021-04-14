@@ -46,14 +46,14 @@ func (a dishUsecase) GetAllDishes(ctx context.Context) ([]models.SectionWithDish
 
 	sections, err := a.sectionRepository.GetAllSections(ctx, restaurant.ID)
 	if err != nil {
-		return []models.SectionWithDishes{}, err
+		return nil, err
 	}
 
 	response := []models.SectionWithDishes{}
 	for _, section := range sections {
 		dishes, err := a.dishRepository.GetAllDishes(ctx, section.ID)
 		if err != nil {
-			return []models.SectionWithDishes{}, err
+			return nil, err
 		}
 
 		sectionWithDishes := models.SectionWithDishes{

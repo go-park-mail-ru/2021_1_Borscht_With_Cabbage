@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/errors"
@@ -48,14 +49,14 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.RestaurantWithDishes, error) {
+func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
 	restaurant := new(models.RestaurantWithDishes)
 	err := r.DB.QueryRow("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants where rid=$1",
 		id).Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.RestaurantWithDishes{}, failError
+		return nil, failError
 	}
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)
@@ -65,7 +66,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 	if ok != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.RestaurantWithDishes{}, failError
+		return nil, failError
 	}
 	sections := make([]models.Section, 0)
 	for sectionsDB.Next() {
@@ -77,7 +78,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.RepoLevel().ErrorLog(ctx, failError)
-			return models.RestaurantWithDishes{}, failError
+			return nil, failError
 		}
 		logger.RepoLevel().InlineDebugLog(ctx, section)
 
@@ -87,7 +88,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.RestaurantWithDishes{}, failError
+		return nil, failError
 	}
 	restaurant.Sections = sections
 
@@ -96,7 +97,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 	if errr != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.RestaurantWithDishes{}, failError
+		return nil, failError
 	}
 
 	dishes := make([]models.Dish, 0)
@@ -114,7 +115,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.RepoLevel().ErrorLog(ctx, failError)
-			return models.RestaurantWithDishes{}, failError
+			return nil, failError
 		}
 		logger.RepoLevel().InlineDebugLog(ctx, dish)
 
@@ -124,9 +125,9 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (models.Restaurant
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
-		return models.RestaurantWithDishes{}, failError
+		return nil, failError
 	}
 
 	restaurant.Dishes = dishes
-	return *restaurant, nil
+	return restaurant, nil
 }

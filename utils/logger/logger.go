@@ -12,6 +12,7 @@ const (
 	deliveryLevel   = "Delivery Level"
 	repositoryLevel = "Repository Level"
 	responseLevel   = "Response Level"
+	utilsLevel      = "Utils Level"
 )
 
 type Fields map[string]interface{}
@@ -95,5 +96,11 @@ func RepoLevel() *EntryLog {
 func ResponseLevel() *EntryLog {
 	return &EntryLog{
 		level: responseLevel,
+	}
+}
+
+func UtilsLevel() *EntryLog {
+	return &EntryLog{
+		level: utilsLevel,
 	}
 }

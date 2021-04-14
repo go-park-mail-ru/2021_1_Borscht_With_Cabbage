@@ -21,6 +21,7 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	}
 }
 
+// TODO: update password
 func (a restaurantRepo) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) error {
 	dataToExistingCheck := models.CheckRestaurantExists{
 		CurrentRestId: restaurant.ID,
@@ -34,10 +35,10 @@ func (a restaurantRepo) UpdateRestaurantData(ctx context.Context, restaurant mod
 	}
 
 	_, err = a.DB.Exec(
-		`update restaurants set name = $1, adminemail = $2, adminphone = $3, 
-		adminpassword = $4, deliverycost = $5, description = $6
-		where rid = $7`,
-		restaurant.Title, restaurant.AdminEmail, restaurant.AdminPhone, restaurant.AdminPassword,
+		`update restaurants set name = $1, adminemail = $2, adminphone = $3,
+		deliverycost = $4, description = $5
+		where rid = $6`,
+		restaurant.Title, restaurant.AdminEmail, restaurant.AdminPhone,
 		restaurant.DeliveryCost, restaurant.Description, restaurant.ID)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
@@ -86,7 +87,7 @@ func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant mode
 		avatar, deliveryCost, avgCheck, description, rating) 
 		values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning rid`,
 		newRestaurant.Title, newRestaurant.AdminPhone, newRestaurant.AdminEmail,
-		newRestaurant.AdminPassword, newRestaurant.Avatar, newRestaurant.DeliveryCost,
+		newRestaurant.AdminHashPassword, newRestaurant.Avatar, newRestaurant.DeliveryCost,
 		newRestaurant.AvgCheck, newRestaurant.Description, newRestaurant.Rating).Scan(&rid)
 
 	if err != nil {
@@ -110,15 +111,15 @@ func (a restaurantRepo) UpdateRestaurantImage(ctx context.Context, idRestaurant 
 	return nil
 }
 
-func (a restaurantRepo) CheckRestaurantExists(ctx context.Context, restaurantToCheck models.RestaurantAuth) (*models.RestaurantInfo, error) {
+func (a restaurantRepo) GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error) {
 	restaurant := new(models.RestaurantInfo)
 	err := a.DB.QueryRow(`select rid, name, adminemail, adminphone, deliveryCost, avgCheck, 
-	description, rating, avatar from restaurants where (adminphone=$1 or adminemail=$1) 
-	and adminpassword=$2`,
-		restaurantToCheck.Login, restaurantToCheck.Password).
+	description, rating, avatar, adminpassword from restaurants where (adminphone=$1 or adminemail=$1)`,
+		login).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
 			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
-			&restaurant.Rating, &restaurant.Avatar)
+			&restaurant.Rating, &restaurant.Avatar, &restaurant.AdminHashPassword)
+
 	if err == sql.ErrNoRows {
 		return nil, errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}
