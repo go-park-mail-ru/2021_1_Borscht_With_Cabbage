@@ -34,7 +34,7 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 }
 
 func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
-	newUser.Avatar = config.DefaultAvatar
+	newUser.Avatar = config.DefaultUserImage
 
 	uid, err := u.userRepository.Create(ctx, newUser)
 	if err != nil {
@@ -107,7 +107,7 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 		return nil, failError
 	}
 
-	if user.Avatar != config.DefaultAvatar {
+	if user.Avatar != config.DefaultUserImage {
 		removeFile := strings.Replace(user.Avatar, config.Repository, "", -1)
 		err := u.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {

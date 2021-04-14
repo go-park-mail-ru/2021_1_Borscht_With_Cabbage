@@ -88,6 +88,13 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		logger.RepoLevel().InlineInfoLog(ctx, "Error while adding dish to basket")
 		return errors.BadRequestError("Error while adding dish to basket")
 	}
+
+	_, err = o.DB.Exec("update baskets set restaurant = (select restaurant from dishes where did=$1) where bid=$2", dishToBasket.DishID, basketID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error while adding dish to basket")
+		return errors.BadRequestError("Error while adding dish to basket")
+	}
+
 	return nil
 }
 
@@ -185,6 +192,7 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 	orders := make([]models.Order, 0)
 	for ordersDB.Next() {
 		order := new(models.Order)
+
 		var deliveryTime, orderTime time.Time
 		err = ordersDB.Scan(
 			&order.OID,

@@ -143,7 +143,7 @@ func (a dishRepo) AddDish(ctx context.Context, dish models.Dish) (int, error) {
 	err = a.DB.QueryRow(`insert into dishes (restaurantId, section, name, price, 
 		weight, description, image) values ($1, $2, $3, $4, $5, $6, $7) returning did`,
 		dish.Restaurant, dish.Section, dish.Name, dish.Price,
-		dish.Weight, dish.Description, config.DefaultAvatar).Scan(&did)
+		dish.Weight, dish.Description, config.DefaultDishImage).Scan(&did)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

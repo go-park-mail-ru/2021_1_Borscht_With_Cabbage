@@ -65,7 +65,7 @@ func (u *UserRepo) Create(ctx context.Context, newUser models.User) (int, error)
 
 	var uid int
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
-		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultAvatar).Scan(&uid)
+		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultUserImage).Scan(&uid)
 	if err != nil {
 		insertError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, insertError)
