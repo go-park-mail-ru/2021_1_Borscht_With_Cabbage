@@ -112,7 +112,7 @@ func TestRestaurantUsecase_CheckRestaurantExists(t *testing.T) {
 	}
 	restaurant := models.RestaurantInfo{}
 
-	restaurantRepoMock.EXPECT().CheckRestaurantExists(*ctx, user).Return(&restaurant, nil)
+	restaurantRepoMock.EXPECT().GetByLogin(*ctx, user).Return(&restaurant, nil)
 
 	_, err := restaurantUsecase.CheckRestaurantExists(*ctx, user)
 	if err != nil {

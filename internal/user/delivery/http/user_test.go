@@ -123,6 +123,9 @@ func TestHandler_Login(t *testing.T) {
 		Password: "111111",
 		Uid:      1,
 	}
+	response := models.SuccessUserResponse{
+		output, config.RoleUser,
+	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
@@ -136,7 +139,7 @@ func TestHandler_Login(t *testing.T) {
 	c := e.NewContext(req, rec)
 	ctx := models.GetContext(c)
 
-	UserUsecaseMock.EXPECT().CheckUserExists(ctx, input).Return(&output, nil)
+	UserUsecaseMock.EXPECT().CheckUserExists(ctx, input).Return(&response, nil)
 	SessionUseCaseMock.EXPECT().Create(ctx, sessionInfo)
 
 	err := userHandler.Login(c)
@@ -191,15 +194,21 @@ func TestHandler_GetUserData(t *testing.T) {
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/user", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	ctx := models.GetContext(c)
+
 	user := models.User{
 		Uid:  1,
 		Name: "Daria",
 	}
-	c.Set("User", user)
+	response := models.SuccessUserResponse{
+		user, config.RoleUser,
+	}
+
+	UserUsecaseMock.EXPECT().GetUserData(ctx).Return(&response, nil)
 
 	err := userHandler.GetUserData(c)
 	if err != nil {
@@ -279,6 +288,9 @@ func TestHandler_CheckAuth(t *testing.T) {
 		Avatar:   "img.jpg",
 		Uid:      1,
 	}
+	responseUser := models.SuccessUserResponse{
+		output, config.RoleUser,
+	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
@@ -299,7 +311,7 @@ func TestHandler_CheckAuth(t *testing.T) {
 
 	ctx := models.GetContext(c)
 	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
-	UserUsecaseMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(output, nil)
+	UserUsecaseMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, nil)
 
 	err := userHandler.CheckAuth(c)
 	if err != nil {

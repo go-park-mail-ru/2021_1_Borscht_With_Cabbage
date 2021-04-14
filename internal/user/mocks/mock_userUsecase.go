@@ -36,10 +36,10 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 }
 
 // CheckUserExists mocks base method
-func (m *MockUserUsecase) CheckUserExists(arg0 context.Context, arg1 models.UserAuth) (*models.User, error) {
+func (m *MockUserUsecase) CheckUserExists(arg0 context.Context, arg1 models.UserAuth) (*models.SuccessUserResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckUserExists", arg0, arg1)
-	ret0, _ := ret[0].(*models.User)
+	ret0, _ := ret[0].(*models.SuccessUserResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +66,10 @@ func (mr *MockUserUsecaseMockRecorder) Create(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetByUid mocks base method
-func (m *MockUserUsecase) GetByUid(arg0 context.Context, arg1 int) (models.User, error) {
+func (m *MockUserUsecase) GetByUid(arg0 context.Context, arg1 int) (*models.SuccessUserResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByUid", arg0, arg1)
-	ret0, _ := ret[0].(models.User)
+	ret0, _ := ret[0].(*models.SuccessUserResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -78,6 +78,21 @@ func (m *MockUserUsecase) GetByUid(arg0 context.Context, arg1 int) (models.User,
 func (mr *MockUserUsecaseMockRecorder) GetByUid(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUid", reflect.TypeOf((*MockUserUsecase)(nil).GetByUid), arg0, arg1)
+}
+
+// GetUserData mocks base method
+func (m *MockUserUsecase) GetUserData(arg0 context.Context) (*models.SuccessUserResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserData", arg0)
+	ret0, _ := ret[0].(*models.SuccessUserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserData indicates an expected call of GetUserData
+func (mr *MockUserUsecaseMockRecorder) GetUserData(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserData", reflect.TypeOf((*MockUserUsecase)(nil).GetUserData), arg0)
 }
 
 // UpdateData mocks base method

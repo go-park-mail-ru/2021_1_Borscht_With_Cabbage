@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
@@ -36,7 +35,7 @@ func TestUserCreate(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &UserRepo{
+	userRepo := &userRepo{
 		DB: db,
 	}
 
@@ -60,7 +59,6 @@ func TestUserCreate(t *testing.T) {
 
 	mock.
 		ExpectQuery("insert into users").
-		WithArgs("Kate", "81111111111", "kate@mail.ru", "111111", config.DefaultUserImage).
 		WillReturnRows(rows)
 
 	ctx := new(context.Context)
@@ -91,7 +89,7 @@ func TestUserCreateNegative(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &UserRepo{
+	userRepo := &userRepo{
 		DB: db,
 	}
 
@@ -142,31 +140,29 @@ func TestCheckUserExists(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &UserRepo{
+	userRepo := &userRepo{
 		DB: db,
 	}
 
-	rows := sqlmock.NewRows([]string{"uid", "name", "phone", "email", "photo"})
-	expect := []*UserItem{
-		{1, "Kate", "81111111111", "kate@mail.ru", "http://127.0.0.1:5000/default/avatar/stas.jpg"},
+	rows := sqlmock.NewRows([]string{"uid", "name", "phone", "email", "photo", "password"})
+	expect := []*models.User{
+		{1, "Kate", "kate@mail.ru", "89111111111", []byte(""), "89111111111", "http://127.0.0.1:5000/default/avatar/stas.jpg", ""},
 	}
 	for _, item := range expect {
-		rows = rows.AddRow(item.Uid, item.Name, item.Phone, item.Email, item.Avatar)
+		rows = rows.AddRow(item.Uid, item.Name, item.Phone, item.Email, item.Avatar, item.Password)
 	}
 
 	mock.
 		ExpectQuery("select uid, name").
-		WithArgs("kate@mail.ru", "111111").
+		WithArgs("kate@mail.ru").
 		WillReturnRows(rows)
 
-	ctx := new(context.Context)
-	user := models.UserAuth{
-		Login:    "kate@mail.ru",
-		Password: "111111",
-	}
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
 
+	logger.InitLogger()
 	foundUser := new(models.User)
-	foundUser, err = userRepo.CheckUserExists(*ctx, user)
+	foundUser, err = userRepo.GetByLogin(ctx, "kate@mail.ru")
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -179,7 +175,7 @@ func TestCheckUserExists(t *testing.T) {
 	require.EqualValues(t, foundUser.Uid, 1)
 	require.EqualValues(t, foundUser.Name, "Kate")
 	require.EqualValues(t, foundUser.Email, "kate@mail.ru")
-	require.EqualValues(t, foundUser.Phone, "81111111111")
+	require.EqualValues(t, foundUser.Phone, "89111111111")
 }
 
 func TestCheckUserExistsNegative(t *testing.T) {
@@ -192,7 +188,7 @@ func TestGetByUid(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &UserRepo{
+	userRepo := &userRepo{
 		DB: db,
 	}
 
@@ -235,7 +231,7 @@ func TestEditProfile(t *testing.T) {
 		t.Fatalf("cant create mock: %s", err)
 	}
 	defer db.Close()
-	userRepo := &UserRepo{
+	userRepo := &userRepo{
 		DB: db,
 	}
 

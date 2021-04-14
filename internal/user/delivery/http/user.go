@@ -232,7 +232,6 @@ func (h Handler) Logout(c echo.Context) error {
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
 	deleteResponseCookie(c)
 
 	return models.SendResponse(c, nil)

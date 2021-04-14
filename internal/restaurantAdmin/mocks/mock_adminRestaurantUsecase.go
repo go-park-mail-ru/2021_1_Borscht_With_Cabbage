@@ -36,10 +36,10 @@ func (m *MockAdminRestaurantUsecase) EXPECT() *MockAdminRestaurantUsecaseMockRec
 }
 
 // CheckRestaurantExists mocks base method
-func (m *MockAdminRestaurantUsecase) CheckRestaurantExists(arg0 context.Context, arg1 models.RestaurantAuth) (*models.RestaurantInfo, error) {
+func (m *MockAdminRestaurantUsecase) CheckRestaurantExists(arg0 context.Context, arg1 models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckRestaurantExists", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
+	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +51,10 @@ func (mr *MockAdminRestaurantUsecaseMockRecorder) CheckRestaurantExists(arg0, ar
 }
 
 // CreateRestaurant mocks base method
-func (m *MockAdminRestaurantUsecase) CreateRestaurant(arg0 context.Context, arg1 models.RestaurantInfo) (*models.RestaurantInfo, error) {
+func (m *MockAdminRestaurantUsecase) CreateRestaurant(arg0 context.Context, arg1 models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRestaurant", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
+	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +66,10 @@ func (mr *MockAdminRestaurantUsecaseMockRecorder) CreateRestaurant(arg0, arg1 in
 }
 
 // GetByRid mocks base method
-func (m *MockAdminRestaurantUsecase) GetByRid(arg0 context.Context, arg1 int) (*models.RestaurantInfo, error) {
+func (m *MockAdminRestaurantUsecase) GetByRid(arg0 context.Context, arg1 int) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByRid", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
+	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,10 +81,10 @@ func (mr *MockAdminRestaurantUsecaseMockRecorder) GetByRid(arg0, arg1 interface{
 }
 
 // UpdateRestaurantData mocks base method
-func (m *MockAdminRestaurantUsecase) UpdateRestaurantData(arg0 context.Context, arg1 models.RestaurantUpdateData) (*models.RestaurantInfo, error) {
+func (m *MockAdminRestaurantUsecase) UpdateRestaurantData(arg0 context.Context, arg1 models.RestaurantUpdateData) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRestaurantData", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
+	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

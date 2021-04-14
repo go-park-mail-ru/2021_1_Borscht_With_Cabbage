@@ -144,7 +144,7 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	restaurants := new(models.RestaurantWithDishes)
-	*restaurants, err = restaurantRepo.GetById(ctx, 1)
+	restaurants, err = restaurantRepo.GetById(ctx, 1)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

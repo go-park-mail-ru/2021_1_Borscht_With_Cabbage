@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -39,7 +38,7 @@ func (u userRepo) checkExistingUser(ctx context.Context, email, number string) e
 	return nil
 }
 
-func (u userRepo) checkUserWithThisData(ctx context.Context, email, number string, currentUserId int) error {
+func (u userRepo) checkUserWithThisData(ctx context.Context, number, email string, currentUserId int) error {
 	var userInDB int
 
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)

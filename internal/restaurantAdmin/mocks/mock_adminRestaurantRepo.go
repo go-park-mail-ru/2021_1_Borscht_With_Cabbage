@@ -34,21 +34,6 @@ func (m *MockAdminRestaurantRepo) EXPECT() *MockAdminRestaurantRepoMockRecorder 
 	return m.recorder
 }
 
-// CheckRestaurantExists mocks base method
-func (m *MockAdminRestaurantRepo) CheckRestaurantExists(arg0 context.Context, arg1 models.RestaurantAuth) (*models.RestaurantInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckRestaurantExists", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckRestaurantExists indicates an expected call of CheckRestaurantExists
-func (mr *MockAdminRestaurantRepoMockRecorder) CheckRestaurantExists(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRestaurantExists", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).CheckRestaurantExists), arg0, arg1)
-}
-
 // CreateRestaurant mocks base method
 func (m *MockAdminRestaurantRepo) CreateRestaurant(arg0 context.Context, arg1 models.RestaurantInfo) (int, error) {
 	m.ctrl.T.Helper()
@@ -62,6 +47,21 @@ func (m *MockAdminRestaurantRepo) CreateRestaurant(arg0 context.Context, arg1 mo
 func (mr *MockAdminRestaurantRepoMockRecorder) CreateRestaurant(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRestaurant", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).CreateRestaurant), arg0, arg1)
+}
+
+// GetByLogin mocks base method
+func (m *MockAdminRestaurantRepo) GetByLogin(arg0 context.Context, arg1 string) (*models.RestaurantInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByLogin", arg0, arg1)
+	ret0, _ := ret[0].(*models.RestaurantInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByLogin indicates an expected call of GetByLogin
+func (mr *MockAdminRestaurantRepoMockRecorder) GetByLogin(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLogin", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).GetByLogin), arg0, arg1)
 }
 
 // GetByRid mocks base method
