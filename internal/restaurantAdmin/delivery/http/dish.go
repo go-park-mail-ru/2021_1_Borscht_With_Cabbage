@@ -58,7 +58,6 @@ func (a DishHandler) DeleteDish(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
-
 	response, err := a.DishUsecase.DeleteDish(ctx, idDish.ID)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
