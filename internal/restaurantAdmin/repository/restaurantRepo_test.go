@@ -153,7 +153,7 @@ func TestRestaurantRepo_UpdateRestaurantData(t *testing.T) {
 		WillReturnError(sql.ErrNoRows)
 	mock.
 		ExpectExec("update restaurants set name").
-		WithArgs("rest1", "dasha@mail.ru", "89111111111", "111111", 200, "yum", 1).
+		WithArgs("rest1", "dasha@mail.ru", "89111111111", 200, "yum", 1).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	ctx := new(context.Context)
@@ -312,18 +312,18 @@ func TestRestaurantRepo_CheckRestaurantExists(t *testing.T) {
 		Password: "111111",
 	}
 	restaurantFromBD := sqlmock.NewRows([]string{"rid", "name", "adminemail", "adminphone", "deliveryCost", "avgCheck",
-		"escription", "rating", "avatar"})
-	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", 5, config.DefaultAvatar)
+		"description", "rating", "avatar", "adminpassword"})
+	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", 5, config.DefaultAvatar, "111111")
 
 	mock.
 		ExpectQuery("select rid, name, adminemail,").
-		WithArgs(restaurant.Login, restaurant.Password).
+		WithArgs(restaurant.Login).
 		WillReturnRows(restaurantFromBD)
 
 	ctx := new(context.Context)
 
 	restaurantResponse := new(models.RestaurantInfo)
-	restaurantResponse, err = restaurantRepo.CheckRestaurantExists(*ctx, restaurant)
+	restaurantResponse, err = restaurantRepo.GetByLogin(*ctx, restaurant.Login)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

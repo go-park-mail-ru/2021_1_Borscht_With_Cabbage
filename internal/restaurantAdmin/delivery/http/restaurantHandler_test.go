@@ -35,10 +35,14 @@ func TestRestaurantHandler_UpdateRestaurantData(t *testing.T) {
 	restaurant := models.RestaurantUpdateData{
 		Title: "newName", Description: "yo", DeliveryCost: 200,
 	}
+
 	restaurantInfo := models.RestaurantInfo{
 		ID:          1,
 		Title:       "newName",
 		Description: "yo", // итд
+	}
+	response := models.SuccessRestaurantResponse{
+		restaurantInfo, config.RoleAdmin,
 	}
 	requestJSON := `{"Title":"newName","Description":"yo","deliveryCost":200}`
 
@@ -49,7 +53,7 @@ func TestRestaurantHandler_UpdateRestaurantData(t *testing.T) {
 	c := e.NewContext(req, rec)
 	ctx := models.GetContext(c)
 
-	RestaurantUsecaseMock.EXPECT().UpdateRestaurantData(ctx, restaurant).Return(&restaurantInfo, nil)
+	RestaurantUsecaseMock.EXPECT().UpdateRestaurantData(ctx, restaurant).Return(&response, nil)
 
 	err := restaurantHandler.UpdateRestaurantData(c)
 	if err != nil {
@@ -73,6 +77,9 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	}
 	createdRestaurant := newRestaurant
 	createdRestaurant.ID = 1
+	response := models.SuccessRestaurantResponse{
+		createdRestaurant, config.RoleAdmin,
+	}
 	requestJSON := `{"Title":"newName","password":"111111","number":"89111111111","email":"dasha@mail.ru"}`
 
 	e := echo.New()
@@ -87,7 +94,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 		Role: config.RoleAdmin,
 	}
 
-	RestaurantUsecaseMock.EXPECT().CreateRestaurant(ctx, newRestaurant).Return(&createdRestaurant, nil)
+	RestaurantUsecaseMock.EXPECT().CreateRestaurant(ctx, newRestaurant).Return(&response, nil)
 	SessionMock.EXPECT().Create(ctx, sessionInfo)
 
 	err := restaurantHandler.CreateRestaurant(c)
@@ -114,6 +121,9 @@ func TestRestaurantHandler_Login(t *testing.T) {
 		ID:    1,
 		Title: "rest1",
 	}
+	response := models.SuccessRestaurantResponse{
+		existingRestaurant, config.RoleAdmin,
+	}
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/restaurant/signin", strings.NewReader(requestJSON))
@@ -127,7 +137,7 @@ func TestRestaurantHandler_Login(t *testing.T) {
 		Role: config.RoleAdmin,
 	}
 
-	RestaurantUsecaseMock.EXPECT().CheckRestaurantExists(ctx, newRestaurant).Return(&existingRestaurant, nil)
+	RestaurantUsecaseMock.EXPECT().CheckRestaurantExists(ctx, newRestaurant).Return(&response, nil)
 	SessionMock.EXPECT().Create(ctx, sessionInfo)
 
 	err := restaurantHandler.Login(c)
