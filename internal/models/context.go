@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"net/http"
-	"reflect"
 
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -48,8 +47,6 @@ func GetContext(c echo.Context) context.Context {
 
 func SendResponse(c echo.Context, data ...Response) error {
 	ctx := GetContext(c)
-
-	logger.ResponseLevel().InfoLog(ctx, logger.Fields{"fields": reflect.ValueOf(data).Elem().NumField()})
 
 	for i := range data {
 		data[i].Sanitize()
