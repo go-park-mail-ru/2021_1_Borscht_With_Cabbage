@@ -109,7 +109,7 @@ func (a dishUsecase) DeleteDish(ctx context.Context, did int) (*models.DeleteSuc
 
 	// удаление изображения
 	oldDish, err := a.dishRepository.GetDish(ctx, did)
-	if oldDish.Image != config.DefaultAvatar {
+	if oldDish.Image != config.DefaultDishImage {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
@@ -142,7 +142,7 @@ func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dis
 	}
 	responseDish := dish
 	responseDish.ID = id
-	responseDish.Image = config.DefaultAvatar
+	responseDish.Image = config.DefaultDishImage
 	return &responseDish, nil
 }
 
@@ -170,7 +170,7 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 
 	// удаление изображения
 	oldDish, err := a.dishRepository.GetDish(ctx, idDish)
-	if oldDish.Image != config.DefaultAvatar {
+	if oldDish.Image != config.DefaultDishImage {
 		removeFile := strings.Replace(oldDish.Image, config.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
