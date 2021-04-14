@@ -32,6 +32,7 @@ func (s sectionRepo) AddSection(ctx context.Context, section models.Section) (in
 	}
 
 	var sid int
+
 	err = s.DB.QueryRow("insert into sections (restaurant, name) values ($1, $2) returning sid",
 		section.Restaurant, section.Name).Scan(&sid)
 	if err != nil {

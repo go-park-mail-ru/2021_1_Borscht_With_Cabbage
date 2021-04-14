@@ -119,7 +119,6 @@ func (a restaurantRepo) CheckRestaurantExists(ctx context.Context, restaurantToC
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
 			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
 			&restaurant.Rating, &restaurant.Avatar)
-
 	if err == sql.ErrNoRows {
 		return nil, errors.NewCustomError(http.StatusBadRequest, "user not found")
 	}

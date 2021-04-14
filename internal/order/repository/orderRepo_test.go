@@ -247,11 +247,10 @@ func TestOrderRepo_AddToBasket_NewRestaurant(t *testing.T) {
 		ExpectQuery("select basketID from").
 		WithArgs(1).
 		WillReturnRows(basketID)
-
 	mock.
-		ExpectExec("delete from baskets_food").
-		WithArgs(1).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+		ExpectQuery("select dish from baskets_food").
+		WithArgs(1, 1).
+		WillReturnError(sql.ErrNoRows)
 	mock.
 		ExpectExec("insert into baskets_food").
 		WithArgs(1, 1).
@@ -262,7 +261,7 @@ func TestOrderRepo_AddToBasket_NewRestaurant(t *testing.T) {
 
 	dishToBasket := models.DishToBasket{
 		DishID:     1,
-		SameBasket: false,
+		SameBasket: true,
 		IsPlus:     true,
 	}
 	err = orderRepo.AddToBasket(ctx, dishToBasket, 1)

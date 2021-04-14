@@ -83,7 +83,7 @@ func TestRestaurantUsecase_CreateRestaurant(t *testing.T) {
 		Title:        "rest1",
 		Description:  "hey",
 		DeliveryCost: 200,
-		Avatar:       config.DefaultAvatar,
+		Avatar:       config.DefaultRestaurantImage,
 	}
 
 	restaurantRepoMock.EXPECT().CreateRestaurant(*ctx, restaurantWithAvatar).Return(1, nil)

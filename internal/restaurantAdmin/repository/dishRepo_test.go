@@ -287,7 +287,7 @@ func TestDishRepo_AddDish(t *testing.T) {
 		WillReturnRows(rowsDishes)
 	mock.
 		ExpectQuery("insert into dishes").
-		WithArgs(1, 1, "newName", 120, 100, "new description", config.DefaultAvatar).
+		WithArgs(1, 1, "newName", 120, 100, "new description", config.DefaultDishImage).
 		WillReturnRows(rowsDid)
 	mock.
 		ExpectQuery("select name from restaurants").

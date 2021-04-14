@@ -58,6 +58,7 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		// если такого блюда в корзине нет
 		var dishID int
 		err := o.DB.QueryRow("select dish from baskets_food where dish = $1 and basket = $2", dishToBasket.DishID, basketID).Scan(&dishID)
+
 		if err == sql.ErrNoRows {
 			_, err = o.DB.Exec("insert into baskets_food (dish, basket, number) values ($1, $2, 1)", dishToBasket.DishID, basketID)
 			if err != nil {

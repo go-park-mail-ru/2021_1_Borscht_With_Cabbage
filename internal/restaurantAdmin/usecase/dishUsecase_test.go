@@ -137,7 +137,7 @@ func TestDishUsecase_DeleteDish(t *testing.T) {
 
 	dish := models.Dish{
 		ID: 1, Restaurant: 1,
-		Image: config.DefaultAvatar,
+		Image: config.DefaultDishImage,
 	}
 	dishFull := dish
 	dishFull.Restaurant = 1
@@ -188,7 +188,7 @@ func TestDishUsecase_AddDish(t *testing.T) {
 
 	require.EqualValues(t, dishResponse.ID, 1)
 	require.EqualValues(t, dishResponse.Name, "dish1")
-	require.EqualValues(t, dishResponse.Image, config.DefaultAvatar)
+	require.EqualValues(t, dishResponse.Image, config.DefaultDishImage)
 }
 
 func TestDishUsecase_UploadDishImage(t *testing.T) {

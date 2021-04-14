@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
@@ -59,7 +60,7 @@ func TestUserCreate(t *testing.T) {
 
 	mock.
 		ExpectQuery("insert into users").
-		WithArgs("Kate", "81111111111", "kate@mail.ru", "111111", "http://127.0.0.1:5000/default/avatar/stas.jpg").
+		WithArgs("Kate", "81111111111", "kate@mail.ru", "111111", config.DefaultUserImage).
 		WillReturnRows(rows)
 
 	ctx := new(context.Context)
