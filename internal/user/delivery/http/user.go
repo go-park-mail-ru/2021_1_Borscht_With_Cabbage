@@ -120,20 +120,15 @@ func (h Handler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessUserResponse{User: *oldUser, Role: config.RoleUser}
-
-	return models.SendResponse(c, response)
+	return models.SendResponse(c, oldUser)
 }
 
 func (h Handler) GetUserData(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	user := c.Get("User")
-
-	if user == nil {
-		userError := errors.AuthorizationError("not authorization")
-		logger.DeliveryLevel().ErrorLog(ctx, userError)
-		return models.SendResponseWithError(c, userError)
+	user, err := h.UserUcase.GetUserData(ctx)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
 	return models.SendResponse(c, user)
@@ -154,7 +149,7 @@ func (h Handler) UpdateData(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, *responseUser)
+	return models.SendResponse(c, responseUser)
 }
 
 func (h Handler) UploadAvatar(c echo.Context) error {
@@ -206,10 +201,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
-		return models.SendResponse(c, models.SuccessRestaurantResponse{
-			RestaurantInfo: *restaurant, // TODO: узнать что ждет фронтенд
-			Role:           config.RoleAdmin,
-		})
+		return models.SendResponse(c, restaurant)
 
 	case config.RoleUser:
 		user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
@@ -218,10 +210,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
-		return models.SendResponse(c, models.SuccessUserResponse{
-			User: user,
-			Role: config.RoleUser,
-		})
+		return models.SendResponse(c, user)
 	default:
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with roles")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -246,5 +235,5 @@ func (h Handler) Logout(c echo.Context) error {
 
 	deleteResponseCookie(c)
 
-	return models.SendResponse(c, "")
+	return models.SendResponse(c, nil)
 }

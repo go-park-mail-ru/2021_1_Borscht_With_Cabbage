@@ -21,7 +21,7 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 	}
 }
 
-func (u *userRepo) checkExistingUser(ctx context.Context, email, number string) error {
+func (u userRepo) checkExistingUser(ctx context.Context, email, number string) error {
 	var userInDB int
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows {
@@ -38,7 +38,7 @@ func (u *userRepo) checkExistingUser(ctx context.Context, email, number string) 
 	return nil
 }
 
-func (u *userRepo) checkUserWithThisData(ctx context.Context, email, number string, currentUserId int) error {
+func (u userRepo) checkUserWithThisData(ctx context.Context, email, number string, currentUserId int) error {
 	var userInDB int
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
@@ -55,7 +55,7 @@ func (u *userRepo) checkUserWithThisData(ctx context.Context, email, number stri
 	return nil
 }
 
-func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error) {
+func (u userRepo) Create(ctx context.Context, newUser models.User) (int, error) {
 	err := u.checkExistingUser(ctx, newUser.Email, newUser.Phone)
 	if err != nil {
 		return 0, err
@@ -63,7 +63,7 @@ func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error)
 
 	var uid int
 	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
-		newUser.Name, newUser.Phone, newUser.Email, newUser.Password, config.DefaultUserImage).Scan(&uid)
+		newUser.Name, newUser.Phone, newUser.Email, newUser.HashPassword, config.DefaultUserImage).Scan(&uid)
 	if err != nil {
 		insertError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, insertError)
@@ -73,12 +73,11 @@ func (u *userRepo) Create(ctx context.Context, newUser models.User) (int, error)
 	return uid, nil
 }
 
-func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserAuth) (*models.User, error) {
+func (u userRepo) GetByLogin(ctx context.Context, login string) (*models.User, error) {
 	user := new(models.User)
 
-	err := u.DB.QueryRow("select uid, name, phone, email, photo from users where (phone=$1 or email=$1) and password=$2",
-		userToCheck.Login, userToCheck.Password).
-		Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Avatar)
+	err := u.DB.QueryRow("select uid, name, phone, email, photo, password from users where (phone=$1 or email=$1)",
+		login).Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Avatar, &user.HashPassword)
 	if err == sql.ErrNoRows {
 		return nil, errors.AuthorizationError("user not found")
 	}
@@ -88,10 +87,12 @@ func (u *userRepo) CheckUserExists(ctx context.Context, userToCheck models.UserA
 		return nil, failError
 	}
 
+	logger.RepoLevel().InlineDebugLog(ctx, user.HashPassword)
+
 	return user, nil
 }
 
-func (u *userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
+func (u userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
 	if err != nil {
 		return models.User{}, errors.AuthorizationError("user not found")
@@ -113,7 +114,7 @@ func (u *userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 	return *user, nil
 }
 
-func (u *userRepo) UpdateData(ctx context.Context, user models.UserData) error {
+func (u userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 	err := u.checkUserWithThisData(ctx, user.Phone, user.Email, user.ID)
 	if err != nil {
 		return err

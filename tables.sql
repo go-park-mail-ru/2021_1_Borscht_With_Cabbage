@@ -17,8 +17,7 @@ CREATE TABLE users (
                        email TEXT,
                        photo TEXT,
     -- mainAddress text references addresses(address) on delete cascade ,
-                       password TEXT
-
+                       password BYTEA
 );
 
 CREATE TABLE addresses (
@@ -31,7 +30,7 @@ CREATE TABLE restaurants (
                              name TEXT UNIQUE,
                              adminEmail TEXT,
                              adminPhone TEXT,
-                             adminPassword TEXT,
+                             adminPassword BYTEA,
                              deliveryCost INTEGER DEFAULT 0,
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,

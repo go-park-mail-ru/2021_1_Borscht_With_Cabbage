@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	errors "github.com/borscht/backend/utils/errors"
@@ -49,8 +48,8 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
-		fmt.Println(basket)
-		return models.SendResponse(c, basket)
+		logger.DeliveryLevel().InlineDebugLog(ctx, basket)
+		return models.SendResponse(c, &basket)
 	}
 
 	err := h.OrderUcase.DeleteFromBasket(ctx, dish, userStruct.Uid)
@@ -63,7 +62,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, basket)
+	return models.SendResponse(c, &basket)
 }
 
 func (h Handler) Create(c echo.Context) error {
@@ -89,7 +88,7 @@ func (h Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, "")
+	return models.SendResponse(c, nil)
 }
 
 func (h Handler) GetUserOrders(c echo.Context) error {
@@ -108,7 +107,11 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, orders)
+	response := make([]models.Response, 0)
+	for _, val := range orders {
+		response = append(response, &val)
+	}
+	return models.SendResponse(c, response...)
 }
 
 func (h Handler) GetRestaurantOrders(c echo.Context) error {
@@ -127,7 +130,11 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, orders)
+	response := make([]models.Response, 0)
+	for _, val := range orders {
+		response = append(response, &val)
+	}
+	return models.SendResponse(c, response...)
 }
 
 func (h Handler) GetBasket(c echo.Context) error {
@@ -146,5 +153,5 @@ func (h Handler) GetBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, basket)
+	return models.SendResponse(c, &basket)
 }

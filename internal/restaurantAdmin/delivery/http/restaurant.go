@@ -44,7 +44,7 @@ func (a RestaurantHandler) UpdateRestaurantData(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, *responseRestaurant)
+	return models.SendResponse(c, responseRestaurant)
 }
 
 func setResponseCookie(c echo.Context, session string) {
@@ -87,8 +87,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 
 	setResponseCookie(c, session)
 
-	response := models.SuccessRestaurantResponse{RestaurantInfo: *responseRestaurant, Role: config.RoleAdmin} // TODO убрать config отсюда
-	return models.SendResponse(c, response)
+	return models.SendResponse(c, responseRestaurant)
 }
 
 func (a RestaurantHandler) Login(c echo.Context) error {
@@ -121,8 +120,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 	}
 	setResponseCookie(c, session)
 
-	response := models.SuccessRestaurantResponse{RestaurantInfo: *existingRest, Role: config.RoleAdmin}
-	return models.SendResponse(c, response)
+	return models.SendResponse(c, existingRest)
 }
 
 func (a RestaurantHandler) GetUserData(c echo.Context) error {
