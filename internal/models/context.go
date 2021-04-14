@@ -49,7 +49,9 @@ func SendResponse(c echo.Context, data ...Response) error {
 	ctx := GetContext(c)
 
 	for i := range data {
-		data[i].Sanitize()
+		if data[i] != nil {
+			data[i].Sanitize()
+		}
 	}
 
 	serverMessage := message{http.StatusOK, data}
