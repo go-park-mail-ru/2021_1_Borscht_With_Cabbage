@@ -110,10 +110,10 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 	}
 
 	response := make([]models.Response, 0)
-	for _, val := range orders {
-		response = append(response, &val)
+	for i := range orders {
+		response = append(response, &orders[i])
 	}
-	return models.SendResponse(c, response...)
+	return models.SendMoreResponse(c, response...)
 }
 
 func (h Handler) GetRestaurantOrders(c echo.Context) error {
@@ -133,10 +133,10 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 	}
 
 	response := make([]models.Response, 0)
-	for _, val := range orders {
-		response = append(response, &val)
+	for i := range orders {
+		response = append(response, &orders[i])
 	}
-	return models.SendResponse(c, response...)
+	return models.SendMoreResponse(c, response...)
 }
 
 func (h Handler) GetBasket(c echo.Context) error {

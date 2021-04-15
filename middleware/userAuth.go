@@ -41,8 +41,8 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 		user.Uid = sessionData.Id
-		c.Set("User", user)
-		logger.MiddleLevel().DataLog(ctx, "user auth", user)
+		c.Set("User", user.User)
+		logger.MiddleLevel().DataLog(ctx, "user auth", c.Get("User"))
 
 		return next(c)
 	}
