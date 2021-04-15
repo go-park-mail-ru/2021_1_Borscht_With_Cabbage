@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
@@ -19,7 +18,6 @@ type AuthMiddleware struct {
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("im here!!!")
 		ctx := models.GetContext(c)
 		logger.MiddleLevel().InlineDebugLog(ctx, "Autorization")
 		session, err := c.Cookie(config.SessionCookie)

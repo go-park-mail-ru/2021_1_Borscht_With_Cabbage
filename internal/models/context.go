@@ -56,6 +56,10 @@ func SendResponse(c echo.Context, data ...Response) error {
 
 	serverMessage := message{http.StatusOK, data}
 
+	if len(data) == 1 {
+		serverMessage.Data = data[0]
+	}
+
 	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     http.StatusOK,
 		"response": data,
