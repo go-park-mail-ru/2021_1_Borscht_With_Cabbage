@@ -29,7 +29,7 @@ type uidStruct struct {
 	Uid int `json:"uid"`
 }
 
-func TestUserCreate(t *testing.T) {
+func TestUserRepo_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
@@ -83,7 +83,7 @@ func TestUserCreate(t *testing.T) {
 	require.EqualValues(t, uid, 1)
 }
 
-func TestUserCreateNegative(t *testing.T) {
+func TestUserRepo_Create_UserExist(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
@@ -92,9 +92,6 @@ func TestUserCreateNegative(t *testing.T) {
 	userRepo := &userRepo{
 		DB: db,
 	}
-
-	//rows := sqlmock.NewRows([]string{"uid"})
-	//rows = rows.AddRow(1)
 
 	rows := sqlmock.NewRows([]string{"uid"})
 	expect := []*uidStruct{
@@ -134,7 +131,63 @@ func TestUserCreateNegative(t *testing.T) {
 	require.EqualValues(t, uid, 0)
 }
 
-func TestCheckUserExists(t *testing.T) {
+func TestUserRepo_Create_InsertError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &userRepo{
+		DB: db,
+	}
+
+	rows := sqlmock.NewRows([]string{"uid"})
+	expect := []*uidStruct{
+		{1},
+	}
+	for _, item := range expect {
+		rows = rows.AddRow(item.Uid)
+	}
+
+	mock.
+		ExpectQuery("select uid from users where email =").
+		WithArgs("kate@mail.ru").
+		WillReturnError(sql.ErrNoRows)
+
+	mock.
+		ExpectQuery("select uid from users where phone =").
+		WithArgs("81111111111").
+		WillReturnError(sql.ErrNoRows)
+
+	mock.
+		ExpectQuery("insert into users").
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	user := models.User{
+		Email:    "kate@mail.ru",
+		Name:     "Kate",
+		Phone:    "81111111111",
+		Password: "111111",
+		Avatar:   "",
+	}
+
+	_, err = userRepo.Create(ctx, user)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestUserRepo_GetByLogin(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
@@ -178,11 +231,47 @@ func TestCheckUserExists(t *testing.T) {
 	require.EqualValues(t, foundUser.Phone, "89111111111")
 }
 
-func TestCheckUserExistsNegative(t *testing.T) {
-	// TODO
+func TestUserRepo_GetByLogin_GetUserError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &userRepo{
+		DB: db,
+	}
+
+	rows := sqlmock.NewRows([]string{"uid", "name", "phone", "email", "photo", "password"})
+	expect := []*models.User{
+		{1, "Kate", "kate@mail.ru", "89111111111", []byte(""), "89111111111", "http://127.0.0.1:5000/default/avatar/stas.jpg", ""},
+	}
+	for _, item := range expect {
+		rows = rows.AddRow(item.Uid, item.Name, item.Phone, item.Email, item.Avatar, item.Password)
+	}
+
+	mock.
+		ExpectQuery("select uid, name").
+		WithArgs("kate@mail.ru").
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+	_, err = userRepo.GetByLogin(ctx, "kate@mail.ru")
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
 }
 
-func TestGetByUid(t *testing.T) {
+func TestUserRepo_GetByUid(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
@@ -221,11 +310,7 @@ func TestGetByUid(t *testing.T) {
 	}
 }
 
-func TestGetByUidNegative(t *testing.T) {
-	// TODO
-}
-
-func TestEditProfile(t *testing.T) {
+func TestUserRepo_UpdateData(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("cant create mock: %s", err)
@@ -278,10 +363,62 @@ func TestEditProfile(t *testing.T) {
 	}
 }
 
-func TestEditProfileNegative(t *testing.T) {
-	// TODO
+func TestUserRepo_UpdateAvatar(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &userRepo{
+		DB: db,
+	}
+
+	mock.
+		ExpectExec("UPDATE users SET").
+		WithArgs("img.jpg", 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	ctx := new(context.Context)
+
+	err = userRepo.UpdateAvatar(*ctx, 1, "img.jpg")
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
 }
 
-func TestUploadAvatar(t *testing.T) {
-	// TODO
+func TestUserRepo_UpdateAvatar_Error(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &userRepo{
+		DB: db,
+	}
+
+	mock.
+		ExpectExec("UPDATE users SET").
+		WithArgs("img.jpg", 1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	err = userRepo.UpdateAvatar(ctx, 1, "img.jpg")
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
 }
