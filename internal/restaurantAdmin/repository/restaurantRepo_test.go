@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewRestaurantRepo(t *testing.T) {
@@ -313,7 +314,7 @@ func TestRestaurantRepo_CheckRestaurantExists(t *testing.T) {
 	}
 	restaurantFromBD := sqlmock.NewRows([]string{"rid", "name", "adminemail", "adminphone", "deliveryCost", "avgCheck",
 		"description", "rating", "avatar", "adminpassword"})
-	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", 5, config.DefaultAvatar, "111111")
+	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", 5, config.DefaultRestaurantImage, "111111")
 
 	mock.
 		ExpectQuery("select rid, name, adminemail,").
@@ -348,7 +349,7 @@ func TestRestaurantRepo_GetByRid(t *testing.T) {
 	}
 
 	restaurantFromBD := sqlmock.NewRows([]string{"title", "adminphone", "adminemail", "avatar"})
-	restaurantFromBD.AddRow("rest1", "89111111111", "dasha@mail.ru", config.DefaultAvatar)
+	restaurantFromBD.AddRow("rest1", "89111111111", "dasha@mail.ru", config.DefaultRestaurantImage)
 
 	mock.
 		ExpectQuery("select name, adminphone,").
