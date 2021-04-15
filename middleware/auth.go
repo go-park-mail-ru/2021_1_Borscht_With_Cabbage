@@ -43,7 +43,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 				return models.SendRedirectLogin(c)
 			}
 			user.Uid = sessionData.Id
-			c.Set("User", user)
+			c.Set("User", user.User)
 		}
 
 		if sessionData.Role == config.RoleAdmin {
@@ -52,7 +52,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 				return models.SendRedirectLogin(c)
 			}
 			restaurant.ID = sessionData.Id
-			c.Set("Restaurant", restaurant)
+			c.Set("Restaurant", restaurant.RestaurantInfo)
 		}
 
 		return next(c)
