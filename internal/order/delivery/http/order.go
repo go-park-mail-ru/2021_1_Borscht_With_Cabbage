@@ -113,7 +113,7 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 	for _, val := range orders {
 		response = append(response, &val)
 	}
-	return models.SendResponse(c, response...)
+	return models.SendMoreResponse(c, response...)
 }
 
 func (h Handler) GetRestaurantOrders(c echo.Context) error {
@@ -136,7 +136,7 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 	for _, val := range orders {
 		response = append(response, &val)
 	}
-	return models.SendResponse(c, response...)
+	return models.SendMoreResponse(c, response...)
 }
 
 func (h Handler) GetBasket(c echo.Context) error {

@@ -32,7 +32,7 @@ func (a DishHandler) GetAllDishes(c echo.Context) error {
 	for _, val := range result {
 		response = append(response, &val)
 	}
-	return models.SendResponse(c, response...)
+	return models.SendMoreResponse(c, response...)
 }
 
 func (a DishHandler) UpdateDishData(c echo.Context) error {

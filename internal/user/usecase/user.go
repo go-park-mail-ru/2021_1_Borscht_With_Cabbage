@@ -97,8 +97,8 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 
 	responseUser, ok := user.(models.User)
 	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
-		logger.DeliveryLevel().ErrorLog(ctx, failError)
+		failError := errors.FailServerError("failed to convert to models.User")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
 

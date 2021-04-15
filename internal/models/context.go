@@ -45,7 +45,7 @@ func GetContext(c echo.Context) context.Context {
 	return context.WithValue(ctx, "request_id", c.Get("request_id"))
 }
 
-func SendResponse(c echo.Context, data ...Response) error {
+func SendMoreResponse(c echo.Context, data ...Response) error {
 	ctx := GetContext(c)
 
 	for i := range data {
@@ -56,9 +56,22 @@ func SendResponse(c echo.Context, data ...Response) error {
 
 	serverMessage := message{http.StatusOK, data}
 
-	if len(data) == 1 {
-		serverMessage.Data = data[0]
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
+		"code":     http.StatusOK,
+		"response": data,
+	})
+
+	return c.JSON(http.StatusOK, serverMessage)
+}
+
+func SendResponse(c echo.Context, data Response) error {
+	ctx := GetContext(c)
+
+	if data != nil {
+		data.Sanitize()
 	}
+
+	serverMessage := message{http.StatusOK, data}
 
 	logger.ResponseLevel().InfoLog(ctx, logger.Fields{
 		"code":     http.StatusOK,
