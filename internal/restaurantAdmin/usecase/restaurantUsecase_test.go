@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"testing"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/image/mocks"
 	"github.com/borscht/backend/internal/models"
@@ -10,7 +12,6 @@ import (
 	"github.com/borscht/backend/utils/secure"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewRestaurantUsecase(t *testing.T) {
@@ -38,7 +39,7 @@ func TestRestaurantUsecase_UpdateRestaurantData(t *testing.T) {
 		ID:       1,
 		Rating:   4,
 		AvgCheck: 1400,
-		Avatar:   config.DefaultAvatar,
+		Avatar:   config.DefaultRestaurantImage,
 	}
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", restaurantAdmin)
