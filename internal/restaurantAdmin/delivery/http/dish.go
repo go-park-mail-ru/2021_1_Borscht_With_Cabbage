@@ -29,8 +29,8 @@ func (a DishHandler) GetAllDishes(c echo.Context) error {
 	}
 
 	response := make([]models.Response, 0)
-	for _, val := range result {
-		response = append(response, &val)
+	for i := range result {
+		response = append(response, &result[i])
 	}
 	return models.SendMoreResponse(c, response...)
 }

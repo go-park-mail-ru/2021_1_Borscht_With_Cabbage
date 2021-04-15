@@ -48,6 +48,7 @@ func GetContext(c echo.Context) context.Context {
 func SendMoreResponse(c echo.Context, data ...Response) error {
 	ctx := GetContext(c)
 
+	logger.ResponseLevel().InfoLog(ctx, logger.Fields{"restaurants": data})
 	for i := range data {
 		if data[i] != nil {
 			data[i].Sanitize()

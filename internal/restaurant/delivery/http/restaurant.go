@@ -39,10 +39,13 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"restaurant": result})
+
 	response := make([]models.Response, 0)
-	for _, val := range result {
-		response = append(response, &val)
+	for i := range result {
+		response = append(response, &result[i])
 	}
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"restaurant": &response})
 	return models.SendMoreResponse(c, response...)
 }
 
