@@ -71,7 +71,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 }
 
 func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	restaurant.Avatar = config.DefaultUserImage
+	restaurant.Avatar = config.DefaultRestaurantImage
 
 	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
 
@@ -100,6 +100,7 @@ func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurant
 		logger.UsecaseLevel().ErrorLog(ctx, err)
 		return nil, err
 	}
+
 	restaurant.AdminHashPassword = nil
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: *restaurant,

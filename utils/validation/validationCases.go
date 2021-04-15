@@ -56,6 +56,7 @@ func ValidateUserEdit(user models.UserData) error {
 
 	return nil
 }
+
 func ValidateRestRegistration(newRest models.RestaurantInfo) error {
 	err := ValidateEmail(newRest.AdminEmail)
 	if err != nil {

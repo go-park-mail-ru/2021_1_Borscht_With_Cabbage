@@ -52,17 +52,17 @@ func (a restaurantRepo) UpdateRestaurantData(ctx context.Context, restaurant mod
 func (a restaurantRepo) checkExistingRestaurant(ctx context.Context, restaurantData models.CheckRestaurantExists) error {
 	var userInDB int
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", restaurantData.Email).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
+	if err != sql.ErrNoRows && userInDB == restaurantData.CurrentRestId {
 		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this email already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", restaurantData.Number).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
+	if err != sql.ErrNoRows && userInDB == restaurantData.CurrentRestId {
 		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this number already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where name = $1", restaurantData.Name).Scan(&userInDB)
-	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
+	if err != sql.ErrNoRows && userInDB == restaurantData.CurrentRestId {
 		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this name already exists")
 	}
 

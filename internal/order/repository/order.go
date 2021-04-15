@@ -58,6 +58,7 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 		// если такого блюда в корзине нет
 		var dishID int
 		err := o.DB.QueryRow("select dish from baskets_food where dish = $1 and basket = $2", dishToBasket.DishID, basketID).Scan(&dishID)
+
 		if err == sql.ErrNoRows {
 			_, err = o.DB.Exec("insert into baskets_food (dish, basket, number) values ($1, $2, 1)", dishToBasket.DishID, basketID)
 			if err != nil {
@@ -69,7 +70,6 @@ func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBa
 
 		// если есть - увеличиваем количество в корзине
 		_, err = o.DB.Exec("update baskets_food set number=number+1 where dish = $1 and basket = $2", dishToBasket.DishID, basketID)
-		fmt.Println(err)
 		if err != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error while inc dish count in basket")
 			return errors.BadRequestError("Error while inc dish count in basket")
@@ -151,6 +151,7 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 	var deliveryCost int
 	err = o.DB.QueryRow("select deliverycost from restaurants where name=$1", basketRestaurant).Scan(&deliveryCost)
 	if err != nil {
+		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting delivery cost")
 		return errors.BadRequestError("Error with getting delivery cost")
 	}

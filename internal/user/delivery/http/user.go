@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -31,7 +32,6 @@ func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.Admin
 
 	return handler
 }
-
 func setResponseCookie(c echo.Context, session string) {
 	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(24 * time.Hour),
@@ -100,6 +100,7 @@ func (h Handler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
+		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
 
@@ -173,7 +174,6 @@ func (h Handler) UploadAvatar(c echo.Context) error {
 // TODO: подумать как это можно изменить
 func (h Handler) CheckAuth(c echo.Context) error {
 	ctx := models.GetContext(c)
-
 	cookie, err := c.Cookie(config.SessionCookie)
 	if err != nil {
 		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
@@ -232,7 +232,6 @@ func (h Handler) Logout(c echo.Context) error {
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
 	deleteResponseCookie(c)
 
 	return models.SendResponse(c, nil)

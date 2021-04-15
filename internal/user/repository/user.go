@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -24,12 +23,13 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 func (u userRepo) checkExistingUser(ctx context.Context, email, number string) error {
 	var userInDB int
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
+
 	if err != sql.ErrNoRows {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this email already exists")
 		return errors.BadRequestError("User with this email already exists")
 	}
 
-	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	err = u.DB.QueryRow("select uid from users where phone = $1", number).Scan(&userInDB)
 	if err != sql.ErrNoRows {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this number already exists")
 		return errors.BadRequestError("User with this number already exists")
@@ -38,8 +38,9 @@ func (u userRepo) checkExistingUser(ctx context.Context, email, number string) e
 	return nil
 }
 
-func (u userRepo) checkUserWithThisData(ctx context.Context, email, number string, currentUserId int) error {
+func (u userRepo) checkUserWithThisData(ctx context.Context, number, email string, currentUserId int) error {
 	var userInDB int
+
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this email already exists")
@@ -116,6 +117,7 @@ func (u userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 
 func (u userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 	err := u.checkUserWithThisData(ctx, user.Phone, user.Email, user.ID)
+
 	if err != nil {
 		return err
 	}

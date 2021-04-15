@@ -35,8 +35,6 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 }
 
 func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
-
-	// TODO валидация какая нибудь
 	newUser.Avatar = config.DefaultUserImage
 
 	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
