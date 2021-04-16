@@ -34,6 +34,15 @@ func (m *MockOrderUsecase) EXPECT() *MockOrderUsecaseMockRecorder {
 	return m.recorder
 }
 
+// AddBasket mocks base method
+func (m *MockOrderUsecase) AddBasket(arg0 context.Context, arg1 models.BasketForUser) (*models.BasketForUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddBasket", arg0, arg1)
+	ret0, _ := ret[0].(models.BasketForUser)
+	ret1, _ := ret[1].(error)
+	return &ret0, ret1
+}
+
 // AddToBasket mocks base method
 func (m *MockOrderUsecase) AddToBasket(arg0 context.Context, arg1 models.DishToBasket, arg2 int) error {
 	m.ctrl.T.Helper()
@@ -77,12 +86,12 @@ func (mr *MockOrderUsecaseMockRecorder) DeleteFromBasket(arg0, arg1, arg2 interf
 }
 
 // GetBasket mocks base method
-func (m *MockOrderUsecase) GetBasket(arg0 context.Context, arg1 int) (models.BasketForUser, error) {
+func (m *MockOrderUsecase) GetBasket(arg0 context.Context, arg1 int) (*models.BasketForUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBasket", arg0, arg1)
 	ret0, _ := ret[0].(models.BasketForUser)
 	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return &ret0, ret1
 }
 
 // GetBasket indicates an expected call of GetBasket

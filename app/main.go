@@ -75,6 +75,7 @@ func route(data initRoute) {
 	userGroup.POST("/order", data.order.Create)
 	userGroup.PUT("/basket", data.order.AddToBasket)
 	userGroup.GET("/basket", data.order.GetBasket)
+	userGroup.POST("/basket", data.order.AddBasket)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
@@ -88,9 +89,9 @@ func initServer(e *echo.Echo) {
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
-	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "header:X-XSRF-TOKEN",
-	}))
+	// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+	// 	TokenLookup: "header:X-XSRF-TOKEN",
+	// }))
 
 	e.Use(middleware.Secure())
 

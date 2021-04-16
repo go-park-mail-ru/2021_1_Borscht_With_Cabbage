@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
-	"time"
 )
 
 type orderRepo struct {
@@ -20,6 +21,73 @@ func NewOrderRepo(db *sql.DB) order.OrderRepo {
 	return &orderRepo{
 		DB: db,
 	}
+}
+
+func (o orderRepo) AddBasket(ctx context.Context, userID, restaurantID int) (basketID int, err error) {
+
+	// TODO: убрать когда будут внешние ключи id
+	var restaurantName string
+	err = o.DB.QueryRow("select name from restaurants where rid = $1", restaurantID).Scan(&restaurantName)
+	//////
+
+	err = o.DB.QueryRow("insert into baskets (restaurant) values ($1) returning bid", restaurantName).Scan(&basketID)
+	if err != nil {
+		insertError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, insertError)
+		return 0, insertError
+	}
+
+	// вносим ее в табличку связи юзер-корзина
+	_, err = o.DB.Exec("insert into basket_users (basketid, userid) values ($1, $2)", basketID, userID)
+	if err != nil {
+		insertError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, insertError)
+		return 0, insertError
+	}
+
+	return basketID, nil
+}
+
+func (o orderRepo) DeleteBasket(ctx context.Context, userID, basketID int) error {
+	_, err := o.DB.Exec("delete from basket_users where basketID = $1 and userID = $2", basketID, userID)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	_, err = o.DB.Exec("delete from baskets where bid = $1", basketID)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	return nil
+}
+
+func (o orderRepo) AddDishToBasket(ctx context.Context, basketID int, dish models.DishInBasket) error {
+	// если такого блюда в корзине нет
+	var dishID int
+	err := o.DB.QueryRow("select dish from baskets_food where dish = $1 and basket = $2", dish.ID, basketID).Scan(&dishID)
+	if err == sql.ErrNoRows {
+		_, err = o.DB.Exec("insert into baskets_food (dish, basket, number) values ($1, $2, $3)", dish.ID, basketID, dish.Number)
+		if err != nil {
+			failError := errors.FailServerError(err.Error() + "error with add dish")
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return failError
+		}
+		return nil
+	}
+
+	// если есть - увеличиваем количество в корзине
+	_, err = o.DB.Exec("update baskets_food set number=number+$1 where dish = $2 and basket = $3", dish.Number, dish.ID, basketID)
+	if err != nil {
+		failError := errors.FailServerError(err.Error() + "error with add dish")
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+	return nil
 }
 
 func (o orderRepo) AddToBasket(ctx context.Context, dishToBasket models.DishToBasket, uid int) error {
@@ -301,16 +369,16 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 	return orders, nil
 }
 
-func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser, error) {
+func (o orderRepo) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {
 	var basketRestaurant, imageRestaurant string
 	var basketID, restaurantID, deliveryCost int
 	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
 	if err == sql.ErrNoRows {
-		return models.BasketForUser{}, nil
+		return nil, nil
 	}
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket through user")
-		return models.BasketForUser{}, errors.BadRequestError("Error with getting basket through user")
+		return nil, errors.BadRequestError("Error with getting basket through user")
 	}
 
 	basketResponse := models.BasketForUser{
@@ -320,21 +388,21 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(&basketRestaurant)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurant through basket")
-		return models.BasketForUser{}, errors.BadRequestError("Error with finding restaurant through basket")
+		return nil, errors.BadRequestError("Error with finding restaurant through basket")
 	}
 	basketResponse.Restaurant = basketRestaurant
 
 	err = o.DB.QueryRow("select avatar from restaurants where name = $1", basketRestaurant).Scan(&imageRestaurant)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant image")
-		return models.BasketForUser{}, errors.BadRequestError("Error with getting restaurant image")
+		return nil, errors.BadRequestError("Error with getting restaurant image")
 	}
 	basketResponse.RestaurantImage = imageRestaurant
 
 	err = o.DB.QueryRow("select rid, deliverycost from restaurants where name = $1", basketRestaurant).Scan(&restaurantID, &deliveryCost)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurantID through name")
-		return models.BasketForUser{}, errors.BadRequestError("Error with finding restaurantID through name")
+		return nil, errors.BadRequestError("Error with finding restaurantID through name")
 	}
 	basketResponse.RID = restaurantID
 	basketResponse.DeliveryCost = deliveryCost
@@ -342,7 +410,7 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	dishesDB, errr := o.DB.Query("select d.did, d.name, d.price, bf.number, d.image from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID)
 	if errr != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket's dishes")
-		return models.BasketForUser{}, errors.BadRequestError("Error with getting basket's dishes")
+		return nil, errors.BadRequestError("Error with getting basket's dishes")
 	}
 
 	sum := 0
@@ -361,5 +429,5 @@ func (o orderRepo) GetBasket(ctx context.Context, uid int) (models.BasketForUser
 	basketResponse.Foods = dishes
 	basketResponse.Summary = sum
 
-	return basketResponse, nil
+	return &basketResponse, nil
 }

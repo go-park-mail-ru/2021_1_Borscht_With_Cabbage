@@ -20,6 +20,25 @@ func NewOrderHandler(orderUcase order.OrderUsecase) order.OrderHandler {
 	return handler
 }
 
+func (h Handler) AddBasket(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	basket := models.BasketForUser{}
+	if err := c.Bind(&basket); err != nil {
+		sendErr := errors.BadRequestError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"basket": basket})
+
+	result, err := h.OrderUcase.AddBasket(ctx, basket)
+	if err != nil {
+		models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, result)
+}
+
 func (h Handler) AddToBasket(c echo.Context) error {
 	ctx := models.GetContext(c)
 
@@ -51,7 +70,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		}
 
 		logger.DeliveryLevel().InlineDebugLog(ctx, basket)
-		return models.SendResponse(c, &basket)
+		return models.SendResponse(c, basket)
 	}
 
 	err := h.OrderUcase.DeleteFromBasket(ctx, dish, userStruct.Uid)
@@ -64,7 +83,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, &basket)
+	return models.SendResponse(c, basket)
 }
 
 func (h Handler) Create(c echo.Context) error {
@@ -155,5 +174,5 @@ func (h Handler) GetBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	return models.SendResponse(c, &basket)
+	return models.SendResponse(c, basket)
 }

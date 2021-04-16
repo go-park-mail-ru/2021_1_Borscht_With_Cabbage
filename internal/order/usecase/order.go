@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type orderUsecase struct {
@@ -36,6 +39,45 @@ func (o orderUsecase) GetRestaurantOrders(ctx context.Context, restaurantName st
 	return o.orderRepository.GetRestaurantOrders(ctx, restaurantName)
 }
 
-func (o orderUsecase) GetBasket(ctx context.Context, uid int) (models.BasketForUser, error) {
+func (o orderUsecase) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {
 	return o.orderRepository.GetBasket(ctx, uid)
+}
+
+func (o orderUsecase) AddBasket(ctx context.Context, basket models.BasketForUser) (*models.BasketForUser, error) {
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	// пока что удаляем предыдущую корзину, в будущем надо будет изменить логику
+	basketOld, err := o.orderRepository.GetBasket(ctx, user.Uid)
+	if err != nil {
+		return nil, err
+	}
+
+	// у пользователя уже есть корзина, удаляем ее
+	if basketOld != nil {
+		err = o.orderRepository.DeleteBasket(ctx, user.Uid, basketOld.BID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	newBasketId, err := o.orderRepository.AddBasket(ctx, user.Uid, basket.RID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: попробовать сделать одной транзакцией это
+	// а то может записать только половину корзины
+	for _, value := range basket.Foods {
+		err = o.orderRepository.AddDishToBasket(ctx, newBasketId, value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return o.orderRepository.GetBasket(ctx, user.Uid)
 }
