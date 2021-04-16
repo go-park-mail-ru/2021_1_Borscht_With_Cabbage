@@ -2,6 +2,12 @@ package http
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
@@ -10,11 +16,6 @@ import (
 	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestHandler_CreateUser(t *testing.T) {
@@ -471,7 +472,7 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 
 	ctx := models.GetContext(c)
 	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
-	UserUsecaseMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, errors.NewCustomError(400, "err"))
+	UserUsecaseMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, errors.BadRequestError("err"))
 
 	err := userHandler.CheckAuth(c)
 	b := errors.SendError{}
@@ -519,7 +520,7 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 
 	ctx := models.GetContext(c)
 	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
-	AdminUsecaseMock.EXPECT().GetByRid(ctx, sessionInfo.Id).Return(&responseRest, errors.NewCustomError(400, "err"))
+	AdminUsecaseMock.EXPECT().GetByRid(ctx, sessionInfo.Id).Return(&responseRest, errors.BadRequestError("err"))
 
 	err := userHandler.CheckAuth(c)
 	b := errors.SendError{}

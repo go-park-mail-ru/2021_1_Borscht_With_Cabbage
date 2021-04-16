@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"net/http"
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
@@ -122,7 +121,7 @@ func (a dishRepo) checkExistingDish(ctx context.Context, dishData models.CheckDi
 		didDish := new(int)
 		dishes.Scan(&didDish, &nameDish)
 		if *nameDish == dishData.Name && *didDish != dishData.Id {
-			return errors.NewCustomError(http.StatusBadRequest, "There is already such a dish")
+			return errors.NewErrorWithMessage("There is already such a dish")
 		}
 	}
 

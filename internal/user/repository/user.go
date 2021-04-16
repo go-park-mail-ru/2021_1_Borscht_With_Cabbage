@@ -27,13 +27,13 @@ func (u userRepo) checkUserWithThisData(ctx context.Context, number, email strin
 	err := u.DB.QueryRow("select uid from users where email = $1", email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this email already exists")
-		return errors.BadRequestError("User with this email already exists")
+		return errors.NewErrorWithMessage("User with this email already exists")
 	}
 
 	err = u.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this number already exists")
-		return errors.BadRequestError("User with this number already exists")
+		return errors.NewErrorWithMessage("User with this number already exists")
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (u userRepo) GetByLogin(ctx context.Context, login string) (*models.User, e
 func (u userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
 	if err != nil {
-		return models.User{}, errors.AuthorizationError("user not found")
+		return models.User{}, errors.NewErrorWithMessage("user not authorization").SetDescription("user not found")
 	}
 	user := new(models.User)
 	for DBuser.Next() {
@@ -108,7 +108,7 @@ func (u userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3 where uid = $4",
 		user.Phone, user.Email, user.Name, user.ID)
 	if err != nil {
-		return errors.AuthorizationError("curUser not found")
+		return errors.FailServerError("curUser not found")
 	}
 
 	return nil

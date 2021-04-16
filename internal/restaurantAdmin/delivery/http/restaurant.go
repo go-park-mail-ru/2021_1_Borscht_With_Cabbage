@@ -62,7 +62,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	ctx := models.GetContext(c)
 	newRestaurant := new(models.RestaurantInfo)
 	if err := c.Bind(newRestaurant); err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
@@ -95,7 +95,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 	newRest := new(models.RestaurantAuth)
 
 	if err := c.Bind(newRest); err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
@@ -125,7 +125,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 
 func (a RestaurantHandler) GetUserData(c echo.Context) error {
 	ctx := models.GetContext(c)
-	sendErr := errors.NewCustomError(500, "не реализовано")
+	sendErr := errors.FailServerError("не реализовано")
 	logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 	return models.SendResponseWithError(c, sendErr) // TODO
 }

@@ -89,12 +89,6 @@ func (u *userUsecase) GetByUid(ctx context.Context, uid int) (*models.SuccessUse
 func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserResponse, error) {
 	user := ctx.Value("User")
 
-	if user == nil {
-		userError := errors.AuthorizationError("not authorization")
-		logger.DeliveryLevel().ErrorLog(ctx, userError)
-		return nil, userError
-	}
-
 	responseUser, ok := user.(models.User)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.User")

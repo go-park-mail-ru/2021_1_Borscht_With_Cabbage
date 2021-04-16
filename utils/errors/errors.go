@@ -4,6 +4,8 @@ import (
 	"net/http"
 )
 
+const ServerErrorCode = 420
+
 type CustomError struct {
 	SendError
 	Description string
@@ -18,13 +20,18 @@ func (err *CustomError) Error() string {
 	return err.Description
 }
 
-func NewCustomError(code int, mess string) *CustomError {
+func (err *CustomError) SetDescription(description string) *CustomError {
+	err.Description = description
+	return err
+}
+
+func NewErrorWithMessage(message string) *CustomError {
 	return &CustomError{
 		SendError: SendError{
-			Code:    code,
-			Message: mess,
+			Code:    ServerErrorCode,
+			Message: message,
 		},
-		Description: mess,
+		Description: message,
 	}
 }
 

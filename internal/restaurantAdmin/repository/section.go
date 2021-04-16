@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"net/http"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
@@ -135,7 +134,7 @@ func (s sectionRepo) checkExistingSection(ctx context.Context, sectionData model
 		sidSection := new(int)
 		sections.Scan(&sidSection, &nameSection)
 		if *nameSection == sectionData.Name && *sidSection != sectionData.ID {
-			return errors.NewCustomError(http.StatusBadRequest, "There is already such a section")
+			return errors.NewErrorWithMessage("There is already such a section")
 		}
 	}
 

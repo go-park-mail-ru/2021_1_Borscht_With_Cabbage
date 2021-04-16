@@ -176,7 +176,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 	ctx := models.GetContext(c)
 	cookie, err := c.Cookie(config.SessionCookie)
 	if err != nil {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
@@ -188,7 +188,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 	if !exist {
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with request data")
+		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
@@ -197,7 +197,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 	case config.RoleAdmin:
 		restaurant, err := h.AdminUcase.GetByRid(ctx, sessionData.Id)
 		if err != nil {
-			sendErr := errors.NewCustomError(http.StatusUnauthorized, err.Error())
+			sendErr := errors.BadRequestError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
@@ -206,13 +206,13 @@ func (h Handler) CheckAuth(c echo.Context) error {
 	case config.RoleUser:
 		user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
 		if err != nil {
-			sendErr := errors.NewCustomError(http.StatusUnauthorized, err.Error())
+			sendErr := errors.BadRequestError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
 		return models.SendResponse(c, user)
 	default:
-		sendErr := errors.NewCustomError(http.StatusUnauthorized, "error with roles")
+		sendErr := errors.BadRequestError("error with roles")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"net/http"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
@@ -53,17 +52,17 @@ func (a restaurantRepo) checkExistingRestaurant(ctx context.Context, restaurantD
 	var userInDB int
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", restaurantData.Email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this email already exists")
+		return errors.NewErrorWithMessage("Restaurant with this email already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", restaurantData.Number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this number already exists")
+		return errors.NewErrorWithMessage("Restaurant with this number already exists")
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where name = $1", restaurantData.Name).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewCustomError(http.StatusBadRequest, "Restaurant with this name already exists")
+		return errors.NewErrorWithMessage("Restaurant with this name already exists")
 	}
 
 	return nil
@@ -121,7 +120,7 @@ func (a restaurantRepo) GetByLogin(ctx context.Context, login string) (*models.R
 			&restaurant.Rating, &restaurant.Avatar, &restaurant.AdminHashPassword)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.NewCustomError(http.StatusBadRequest, "user not found")
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
 	}
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
@@ -135,7 +134,7 @@ func (a restaurantRepo) GetByLogin(ctx context.Context, login string) (*models.R
 func (a restaurantRepo) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
 	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
 	if err != nil {
-		return nil, errors.AuthorizationError("user not found")
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
 	}
 
 	restaurant := new(models.RestaurantInfo)
