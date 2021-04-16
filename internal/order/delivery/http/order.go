@@ -36,6 +36,9 @@ func (h Handler) AddBasket(c echo.Context) error {
 		models.SendResponseWithError(c, err)
 	}
 
+	if result == nil {
+		result = &models.BasketForUser{}
+	}
 	return models.SendResponse(c, result)
 }
 
@@ -83,6 +86,9 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
+	if basket == nil {
+		basket = &models.BasketForUser{}
+	}
 	return models.SendResponse(c, basket)
 }
 
@@ -174,5 +180,9 @@ func (h Handler) GetBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
+	if basket == nil {
+		basket = &models.BasketForUser{}
+	}
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"basket": basket})
 	return models.SendResponse(c, basket)
 }

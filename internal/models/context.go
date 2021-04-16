@@ -69,6 +69,7 @@ func SendResponse(c echo.Context, data Response) error {
 	ctx := GetContext(c)
 
 	if data != nil {
+		logger.ResponseLevel().DebugLog(ctx, logger.Fields{"to sanitizer": data})
 		data.Sanitize()
 	}
 
