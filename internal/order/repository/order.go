@@ -298,7 +298,7 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			dishes = append(dishes, *dish)
 		}
 		order.Foods = dishes
-		order.Summary = sum
+		order.Summary = sum + order.DeliveryCost
 
 		var restaurantImage string
 		err = o.DB.QueryRow("select avatar from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage)
