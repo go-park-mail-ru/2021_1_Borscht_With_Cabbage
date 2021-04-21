@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/utils/errors"
@@ -262,19 +261,16 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 	for ordersDB.Next() {
 		order := new(models.Order)
 
-		var deliveryTime, orderTime time.Time
 		err = ordersDB.Scan(
 			&order.OID,
 			&order.Restaurant,
-			&orderTime,
+			&order.OrderTime,
 			&order.Address,
 			&order.DeliveryCost,
 			&order.Summary,
 			&order.Status,
-			&deliveryTime,
+			&order.DeliveryTime,
 		)
-		order.OrderTime = orderTime.Format(config.TimeFormat)
-		order.DeliveryTime = deliveryTime.Format(config.TimeFormat)
 
 		var basketID string
 		err = o.DB.QueryRow("select basketid from basket_orders where orderid=$1", order.OID).Scan(&basketID)
