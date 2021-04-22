@@ -65,7 +65,7 @@ CREATE TABLE orders (
                         deliveryCost INTEGER,
                         sum INTEGER,
                         status TEXT,
-                        deliveryTime TIME
+                        deliveryTime TIMESTAMP
 );
 
 CREATE TABLE baskets (

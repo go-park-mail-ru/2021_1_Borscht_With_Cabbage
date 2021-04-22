@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/borscht/backend/config"
 	"time"
 
 	"github.com/borscht/backend/internal/models"
@@ -27,7 +28,6 @@ func (o orderRepo) AddBasket(ctx context.Context, userID, restaurantID int) (bas
 	// TODO: убрать когда будут внешние ключи id
 	var restaurantName string
 	err = o.DB.QueryRow("select name from restaurants where rid = $1", restaurantID).Scan(&restaurantName)
-	//////
 
 	err = o.DB.QueryRow("insert into baskets (restaurant) values ($1) returning bid", restaurantName).Scan(&basketID)
 	if err != nil {
@@ -331,6 +331,12 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 			&order.DeliveryTime,
 		)
 
+		err = o.DB.QueryRow("select name, phone from users where uid=$1", order.UID).Scan(&order.UserName, &order.UserPhone)
+		if err != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting user's info")
+			return nil, errors.BadRequestError("Error with getting user's info")
+		}
+
 		var basketID string
 		err = o.DB.QueryRow("select basketid from basket_orders where orderid=$1", order.OID).Scan(&basketID)
 		if err != nil {
@@ -363,6 +369,35 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 	}
 
 	return orders, nil
+}
+
+func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
+	var status string
+	switch newStatus.Status {
+	case "cooking":
+		status = models.StatusOrderCooking
+	case "delivering":
+		status = models.StatusOrderDelivering
+	case "done":
+		status = models.StatusOrderDone
+	default:
+		status = models.StatusOrderAdded
+	}
+
+	timeToDB, err := time.Parse(config.TimeFormat, newStatus.DeliveryTime)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error while converting time")
+		return errors.BadRequestError("Error while converting time")
+	}
+
+	_, err = o.DB.Exec("UPDATE orders SET status=$1, deliverytime=$2 where restaurant=$3 and oid=$4",
+		status, timeToDB, newStatus.Restaurant, newStatus.OID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with updating order status in DB")
+		return errors.BadRequestError("Error with updating order status in DB")
+	}
+
+	return nil
 }
 
 func (o orderRepo) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {

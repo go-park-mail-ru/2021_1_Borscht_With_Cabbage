@@ -138,6 +138,7 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 	for i := range orders {
 		response = append(response, &orders[i])
 	}
+
 	return models.SendMoreResponse(c, response...)
 }
 
@@ -161,7 +162,26 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 	for i := range orders {
 		response = append(response, &orders[i])
 	}
+
 	return models.SendMoreResponse(c, response...)
+}
+
+func (h Handler) SetNewStatus(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	newStatus := models.SetNewStatus{}
+	if err := c.Bind(&newStatus); err != nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := h.OrderUcase.SetNewStatus(ctx, newStatus)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
 }
 
 func (h Handler) GetBasket(c echo.Context) error {

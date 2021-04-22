@@ -8,6 +8,8 @@ var StatusOrderDone = "доставлен"
 type Order struct {
 	OID             int           `json:"orderID"`
 	UID             int           `json:"user"`
+	UserName        string        `json:"userName"`
+	UserPhone       string        `json:"userPhone"`
 	Restaurant      string        `json:"store"`
 	RestaurantImage string        `json:"restaurantImage"`
 	Address         string        `json:"address"`
@@ -35,4 +37,11 @@ type DishToBasket struct {
 	DishID     int  `json:"dishID"`
 	IsPlus     bool `json:"isPlus"`
 	SameBasket bool `json:"same"`
+}
+
+type SetNewStatus struct {
+	OID          int `json:"order"`
+	Restaurant   string
+	Status       string `json:"status"`
+	DeliveryTime string `json:"deliveryTime"`
 }

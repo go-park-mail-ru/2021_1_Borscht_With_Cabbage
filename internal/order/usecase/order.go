@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/utils/errors"
@@ -37,6 +36,18 @@ func (o orderUsecase) GetUserOrders(ctx context.Context, uid int) ([]models.Orde
 
 func (o orderUsecase) GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error) {
 	return o.orderRepository.GetRestaurantOrders(ctx, restaurantName)
+}
+
+func (o orderUsecase) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
+	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	newStatus.Restaurant = restaurant.Title
+	return o.orderRepository.SetNewStatus(ctx, newStatus)
 }
 
 func (o orderUsecase) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {
