@@ -20,6 +20,38 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	}
 }
 
+func (a restaurantRepo) DeleteAllCategories(ctx context.Context, idRestaurant int) error {
+	queri :=
+		`
+	DELETE FROM categories_restaurants
+	WHERE restaurantID = $1
+	`
+
+	_, err := a.DB.Exec(queri, idRestaurant)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	return nil
+}
+
+func (a restaurantRepo) AddCategories(ctx context.Context, idRestaurant int, nameCategories []string) error {
+	queri :=
+		`
+	INSERT INTO categories_restaurants (categoryID, restaurantID)
+	VALUES ($1, $2)
+	`
+
+	// TODO: подумать как это можно сделать одним запросом
+	for _, values := range nameCategories {
+		a.DB.QueryRow(queri, values, idRestaurant)
+	}
+
+	return nil
+}
+
 // TODO: update password
 func (a restaurantRepo) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) error {
 	dataToExistingCheck := models.CheckRestaurantExists{

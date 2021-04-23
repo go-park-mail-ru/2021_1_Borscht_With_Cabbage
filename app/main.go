@@ -56,6 +56,7 @@ func route(data initRoute) {
 	auth.GET("/auth", data.user.CheckAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.POST("/categories", data.restaurantAdmin.AddCategories)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
 	restaurantGroup.DELETE("/dish", data.dishAdmin.DeleteDish)
 	restaurantGroup.PUT("/dish", data.dishAdmin.UpdateDishData)

@@ -35,6 +35,21 @@ func (m *MockAdminRestaurantUsecase) EXPECT() *MockAdminRestaurantUsecaseMockRec
 	return m.recorder
 }
 
+// TODO: исправить и понять че вообще происходит
+// GetByRid mocks base method
+func (m *MockAdminRestaurantUsecase) AddCategories(arg0 context.Context, arg1 models.Categories) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCategories", arg0, arg1)
+	ret1, _ := ret[1].(error)
+	return ret1
+}
+
+// GetByRid indicates an expected call of GetByRid
+func (mr *MockAdminRestaurantUsecaseMockRecorder) AddCategories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCategories", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).AddCategories), arg0, arg1)
+}
+
 // CheckRestaurantExists mocks base method
 func (m *MockAdminRestaurantUsecase) CheckRestaurantExists(arg0 context.Context, arg1 models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()

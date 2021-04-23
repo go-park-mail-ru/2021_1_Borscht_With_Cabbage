@@ -29,6 +29,25 @@ func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase,
 	}
 }
 
+func (a RestaurantHandler) AddCategories(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	nameCategories := new(models.Categories)
+	if err := c.Bind(nameCategories); err != nil {
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := a.RestaurantUsecase.AddCategories(ctx, *nameCategories)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	// TODO: подумать что должен вернуть бэк
+	return models.SendResponse(c, nil)
+}
+
 func (a RestaurantHandler) UpdateRestaurantData(c echo.Context) error {
 	ctx := models.GetContext(c)
 

@@ -14,6 +14,7 @@ type AdminRestaurantHandler interface {
 	Login(c echo.Context) error
 	GetUserData(c echo.Context) error
 	UploadRestaurantImage(c echo.Context) error
+	AddCategories(c echo.Context) error
 }
 
 type AdminDishHandler interface {
@@ -36,6 +37,7 @@ type AdminRestaurantUsecase interface {
 	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.SuccessRestaurantResponse, error)
 	GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error)
 	UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error)
+	AddCategories(ctx context.Context, categories models.Categories) error
 }
 
 type AdminDishUsecase interface {
@@ -58,6 +60,8 @@ type AdminRestaurantRepo interface {
 	GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error)
 	GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error)
 	UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error
+	AddCategories(ctx context.Context, idRestaurant int, nameCategories []string) error
+	DeleteAllCategories(ctx context.Context, idRestaurant int) error
 }
 
 type AdminDishRepo interface {

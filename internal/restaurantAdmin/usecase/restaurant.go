@@ -34,6 +34,21 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	}
 }
 
+func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.Categories) error {
+	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+	err := a.restaurantRepository.DeleteAllCategories(ctx, restaurantAdmin.ID)
+	if err != nil {
+		return err
+	}
+
+	return a.restaurantRepository.AddCategories(ctx, restaurantAdmin.ID, categories.CategoriesID)
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 

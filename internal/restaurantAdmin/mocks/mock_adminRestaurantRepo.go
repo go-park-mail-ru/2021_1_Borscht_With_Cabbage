@@ -34,6 +34,36 @@ func (m *MockAdminRestaurantRepo) EXPECT() *MockAdminRestaurantRepoMockRecorder 
 	return m.recorder
 }
 
+// TODO: написать нормально этот метод
+// CreateRestaurant mocks base method
+func (m *MockAdminRestaurantRepo) DeleteAllCategories(arg0 context.Context, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAllCategories", arg0, arg1)
+	ret1, _ := ret[1].(error)
+	return ret1
+}
+
+// CreateRestaurant indicates an expected call of CreateRestaurant
+func (mr *MockAdminRestaurantRepoMockRecorder) DeleteAllCategories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllCategories", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).DeleteAllCategories), arg0, arg1)
+}
+
+// TODO: написать нормально этот метод
+// CreateRestaurant mocks base method
+func (m *MockAdminRestaurantRepo) AddCategories(arg0 context.Context, arg1 int, arg2 []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCategories", arg0, arg1, arg2)
+	ret1, _ := ret[1].(error)
+	return ret1
+}
+
+// CreateRestaurant indicates an expected call of CreateRestaurant
+func (mr *MockAdminRestaurantRepoMockRecorder) AddCategories(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCategories", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).AddCategories), arg0, arg1, arg2)
+}
+
 // CreateRestaurant mocks base method
 func (m *MockAdminRestaurantRepo) CreateRestaurant(arg0 context.Context, arg1 models.RestaurantInfo) (int, error) {
 	m.ctrl.T.Helper()
