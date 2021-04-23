@@ -8,6 +8,7 @@ import (
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
+	"github.com/lib/pq"
 )
 
 type restaurantRepo struct {
@@ -20,9 +21,52 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
-func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
-	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar from restaurants "+
-		"where rid >= $1 and rid <= $2", offset, limit+offset)
+func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
+	query := `
+	SELECT DISTINCT r.rid, r.name, r.deliveryCost, r.avgCheck, r.description, r.rating, r.avatar
+	FROM restaurants AS r
+	JOIN categories_restaurants AS cr
+	ON r.rid = cr.restaurantID
+	JOIN categories AS c
+	ON cr.categoryID = c.cid
+	WHERE c.cid = ANY ($1)
+	ORDER BY r.rating DESC, r.rid OFFSET $2 LIMIT $3;
+  	`
+
+	restaurantsDB, err := r.DB.Query(query, pq.Array(request.Categories), request.Offset, request.Limit)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return []models.RestaurantInfo{}, failError
+	}
+
+	var restaurants []models.RestaurantInfo
+	for restaurantsDB.Next() {
+		restaurant := new(models.RestaurantInfo)
+		err = restaurantsDB.Scan(
+			&restaurant.ID,
+			&restaurant.Title,
+			&restaurant.DeliveryCost,
+			&restaurant.AvgCheck,
+			&restaurant.Description,
+			&restaurant.Rating,
+			&restaurant.Avatar,
+		)
+
+		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
+		restaurants = append(restaurants, *restaurant)
+	}
+
+	return restaurants, nil
+}
+
+func (r *restaurantRepo) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
+	query := `
+	SELECT DISTINCT rid, name, deliveryCost, avgCheck, description, rating, avatar FROM restaurants
+	ORDER BY rating DESC, rid OFFSET $1 LIMIT $2;
+  	`
+
+	restaurantsDB, err := r.DB.Query(query, request.Offset, request.Limit)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

@@ -50,9 +50,9 @@ func (mr *MockRestaurantUsecaseMockRecorder) GetById(arg0, arg1 interface{}) *go
 }
 
 // GetVendor mocks base method
-func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1, arg2 int) ([]models.RestaurantInfo, error) {
+func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1 models.RestaurantRequest) ([]models.RestaurantInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVendor", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetVendor", arg0, arg1)
 	ret0, _ := ret[0].([]models.RestaurantInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1

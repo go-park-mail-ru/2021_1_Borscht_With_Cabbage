@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 type RestaurantInfo struct {
@@ -75,7 +76,11 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	restaurants := make([]models.RestaurantInfo, 0)
-	restaurants, err = restaurantRepo.GetVendor(ctx, 2, 1)
+	// TODO: подправить
+	restaurants, err = restaurantRepo.GetVendor(ctx, models.RestaurantRequest{
+		Offset: 1,
+		Limit:  2,
+	})
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

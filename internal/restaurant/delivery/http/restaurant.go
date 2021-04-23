@@ -2,6 +2,7 @@ package http
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
@@ -22,24 +23,32 @@ func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.Resta
 }
 
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
-	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
-	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
-
 	ctx := models.GetContext(c)
 
+	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
+	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
+	categories := strings.Split(c.QueryParam("category"), ",")
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"categories": categories, "size": len(categories)})
+
 	if errLimit != nil {
-		return models.SendResponseWithError(c, errors.BadRequestError(errLimit.Error()))
+		requestError := errors.BadRequestError(errLimit.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
 	}
 	if errOffset != nil {
-		return models.SendResponseWithError(c, errors.BadRequestError(errOffset.Error()))
+		requestError := errors.BadRequestError(errOffset.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
 	}
 
-	result, err := h.restaurantUsecase.GetVendor(ctx, limit, offset)
+	result, err := h.restaurantUsecase.GetVendor(ctx, models.RestaurantRequest{
+		Limit:      limit,
+		Offset:     offset,
+		Categories: categories,
+	})
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
-	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"restaurant": result})
 
 	response := make([]models.Response, 0)
 	for i := range result {

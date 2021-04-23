@@ -30,6 +30,12 @@ type RestaurantInfo struct {
 	Avatar            string  `json:"avatar"`
 }
 
+type RestaurantRequest struct {
+	Limit      int `json:"limit"`
+	Offset     int `json:"offset"`
+	Categories []string
+}
+
 type RestaurantImageResponse struct {
 	Filename string `json:"avatar"`
 }

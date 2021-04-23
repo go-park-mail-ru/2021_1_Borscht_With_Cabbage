@@ -9,6 +9,8 @@ DROP TABLE IF EXISTS baskets CASCADE;
 DROP TABLE IF EXISTS baskets_food;
 DROP TABLE IF EXISTS basket_users;
 DROP TABLE IF EXISTS basket_orders;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS categories_restaurants;
 
 CREATE TABLE users (
                        uid SERIAL PRIMARY KEY,
@@ -90,6 +92,24 @@ CREATE TABLE basket_orders(
                               orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
 );
 
+CREATE TABLE categories(
+                            cid TEXT PRIMARY KEY,
+                            name TEXT
+);
+
+INSERT INTO categories (cid, name) VALUES
+    ('sushi', 'Суши'),
+    ('pizza', 'Пицца'),
+    ('burgers', 'Бургеры'),
+    ('meat', 'Мясо'),
+    ('fast_food', 'Фастфуд'),
+    ('zosh', 'Здоровая еда');
+
+CREATE TABLE categories_restaurants(
+                            categoryID TEXT REFERENCES categories(cid) ON DELETE CASCADE,
+                            restaurantID INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
+);
+
 
 -- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
@@ -101,4 +121,6 @@ CREATE TABLE basket_orders(
 -- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE categories TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE categories_restaurants TO delivery;
 -- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
