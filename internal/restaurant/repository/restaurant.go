@@ -138,3 +138,39 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 	restaurant.Dishes = dishes
 	return restaurant, nil
 }
+
+func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
+	reviewsDB, err := r.DB.Query("select review, stars, (select name from users where uid=userid) from orders"+
+		" where restaurant=(select name from restaurants where rid=$1) and status=$2", id, models.StatusOrderDone)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	reviews := make([]models.RestaurantReview, 0)
+	for reviewsDB.Next() {
+		review := models.RestaurantReview{}
+		err = reviewsDB.Scan(
+			&review.Review,
+			&review.Stars,
+			&review.UserName,
+		)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+		logger.RepoLevel().InlineDebugLog(ctx, review)
+
+		reviews = append(reviews, review)
+	}
+	err = reviewsDB.Close()
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	return reviews, nil
+}

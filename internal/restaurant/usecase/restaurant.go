@@ -24,3 +24,7 @@ func (r *restaurantUsecase) GetVendor(ctx context.Context, limit, offset int) ([
 func (r *restaurantUsecase) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
 	return r.restaurantRepo.GetById(ctx, id)
 }
+
+func (r *restaurantUsecase) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
+	return r.restaurantRepo.GetReviews(ctx, id)
+}

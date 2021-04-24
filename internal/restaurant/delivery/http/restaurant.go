@@ -66,3 +66,28 @@ func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
 
 	return models.SendResponse(c, restaurant)
 }
+
+func (h *RestaurantHandler) GetReviews(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		badRequest := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, badRequest)
+		return models.SendResponseWithError(c, badRequest)
+	}
+
+	reviews, err := h.restaurantUsecase.GetReviews(ctx, id)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"reviews": reviews})
+
+	response := make([]models.Response, 0)
+	for i := range reviews {
+		response = append(response, &reviews[i])
+	}
+
+	return models.SendMoreResponse(c, response...)
+}

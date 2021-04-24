@@ -16,6 +16,12 @@ type SuccessRestaurantResponse struct {
 	Role string `json:"role"`
 }
 
+type RestaurantReview struct {
+	Review   string `json:"review"`
+	Stars    int    `json:"stars"`
+	UserName string `json:"user"`
+}
+
 type RestaurantInfo struct {
 	ID                int    `json:"id"`
 	AdminEmail        string `json:"email"`

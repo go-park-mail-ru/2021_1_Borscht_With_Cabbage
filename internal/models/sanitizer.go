@@ -96,6 +96,12 @@ func (u *RestaurantInfo) Sanitize() {
 	u.Title = sanitizer.Sanitize(u.Title)
 }
 
+func (u *RestaurantReview) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Review = sanitizer.Sanitize(u.Review)
+	u.UserName = sanitizer.Sanitize(u.UserName)
+}
+
 func (u *DishInOrder) Sanitize() {
 	sanitizer := bluemonday.UGCPolicy()
 	u.Name = sanitizer.Sanitize(u.Name)
