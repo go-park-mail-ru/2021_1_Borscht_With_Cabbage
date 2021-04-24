@@ -35,7 +35,9 @@ CREATE TABLE restaurants (
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,
                              rating FLOAT DEFAULT 0,
-                             avatar TEXT
+                             avatar TEXT,
+                             ratingsSum INTEGER DEFAULT 0,
+                             reviewsCount INTEGER DEFAULT 0
 );
 
 CREATE TABLE sections (
@@ -65,7 +67,9 @@ CREATE TABLE orders (
                         deliveryCost INTEGER,
                         sum INTEGER,
                         status TEXT,
-                        deliveryTime TIMESTAMP
+                        deliveryTime TIMESTAMP,
+                        review TEXT,
+                        stars INTEGER
 );
 
 CREATE TABLE baskets (
@@ -87,7 +91,7 @@ CREATE TABLE basket_users (
 
 CREATE TABLE basket_orders(
                               basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
-                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
+                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE
 );
 
 

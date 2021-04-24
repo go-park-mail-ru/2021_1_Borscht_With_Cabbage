@@ -251,8 +251,8 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 }
 
 func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, error) {
-	ordersDB, err := o.DB.Query("select oid, restaurant, orderTime, address, deliverycost, sum, status, deliverytime "+
-		"from orders where userID=$1", uid)
+	ordersDB, err := o.DB.Query("select oid, restaurant, orderTime, address, deliverycost, sum, status, deliverytime, review, stars "+
+		"from orders where userID=$1 order by orderTime desc", uid)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant orders")
 		return nil, errors.BadRequestError("Error with getting restaurant orders")
@@ -260,7 +260,6 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 	orders := make([]models.Order, 0)
 	for ordersDB.Next() {
 		order := new(models.Order)
-
 		err = ordersDB.Scan(
 			&order.OID,
 			&order.Restaurant,
@@ -270,6 +269,8 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.Summary,
 			&order.Status,
 			&order.DeliveryTime,
+			&order.Review,
+			&order.Stars,
 		)
 
 		var basketID string
@@ -311,7 +312,8 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 }
 
 func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error) {
-	ordersDB, err := o.DB.Query("select oid, userID, orderTime, address, deliverycost, sum, status, deliverytime from orders where restaurant=$1", restaurantName)
+	ordersDB, err := o.DB.Query("select oid, userID, orderTime, address, deliverycost, sum, status, deliverytime from orders where restaurant=$1 "+
+		"order by orderTime desc", restaurantName)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant orders")
 		return nil, errors.BadRequestError("Error with getting restaurant orders")
@@ -396,6 +398,21 @@ func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStat
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with updating order status in DB")
 		return errors.BadRequestError("Error with updating order status in DB")
 	}
+
+	return nil
+}
+
+func (o orderRepo) CreateReview(ctx context.Context, newReview models.SetNewReview) error {
+	var restaurant string
+	err := o.DB.QueryRow("UPDATE orders SET review=$1, stars=$2 WHERE oid=$3 returning restaurant",
+		newReview.Review, newReview.Stars, newReview.OID).Scan(&restaurant)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with setting order review in DB")
+		return errors.BadRequestError("Error with setting order review in DB")
+	}
+
+	_, err = o.DB.Exec("UPDATE restaurants SET ratingsSum=ratingsSum+$1, reviewsCount=reviewsCount+1 where name=$2",
+		newReview.Stars, restaurant)
 
 	return nil
 }

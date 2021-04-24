@@ -12,6 +12,8 @@ type Order struct {
 	UserPhone       string        `json:"userPhone"`
 	Restaurant      string        `json:"store"`
 	RestaurantImage string        `json:"restaurantImage"`
+	Review          string        `json:"review"`
+	Stars           int           `json:"stars"`
 	Address         string        `json:"address"`
 	OrderTime       string        `json:"orderTime"`
 	DeliveryCost    int           `json:"ship"`
@@ -40,8 +42,15 @@ type DishToBasket struct {
 }
 
 type SetNewStatus struct {
-	OID          int `json:"order"`
-	Restaurant   string
+	OID          int    `json:"order"`
 	Status       string `json:"status"`
 	DeliveryTime string `json:"deliveryTime"`
+	Restaurant   string
+}
+
+type SetNewReview struct {
+	OID    int    `json:"oid"`
+	Review string `json:"review"`
+	Stars  int    `json:"stars"`
+	User   int
 }

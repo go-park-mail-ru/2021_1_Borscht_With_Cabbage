@@ -50,6 +50,18 @@ func (o orderUsecase) SetNewStatus(ctx context.Context, newStatus models.SetNewS
 	return o.orderRepository.SetNewStatus(ctx, newStatus)
 }
 
+func (o orderUsecase) CreateReview(ctx context.Context, newReview models.SetNewReview) error {
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	newReview.User = user.Uid
+	return o.orderRepository.CreateReview(ctx, newReview)
+}
+
 func (o orderUsecase) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {
 	return o.orderRepository.GetBasket(ctx, uid)
 }

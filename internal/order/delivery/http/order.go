@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	errors "github.com/borscht/backend/utils/errors"
@@ -177,6 +178,25 @@ func (h Handler) SetNewStatus(c echo.Context) error {
 	}
 
 	err := h.OrderUcase.SetNewStatus(ctx, newStatus)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}
+
+func (h Handler) CreateReview(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	newReview := models.SetNewReview{}
+	if err := c.Bind(&newReview); err != nil {
+		fmt.Println(err)
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := h.OrderUcase.CreateReview(ctx, newReview)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
