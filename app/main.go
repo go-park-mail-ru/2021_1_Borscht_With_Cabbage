@@ -25,6 +25,8 @@ import (
 	userDelivery "github.com/borscht/backend/internal/user/delivery/http"
 	userRepo "github.com/borscht/backend/internal/user/repository"
 	userUcase "github.com/borscht/backend/internal/user/usecase"
+	"github.com/borscht/backend/internal/websocket"
+	websocketDelivery "github.com/borscht/backend/internal/websocket/delivery/http"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
@@ -42,6 +44,7 @@ type initRoute struct {
 	dishAdmin       restaurantAdmin.AdminDishHandler
 	sectionAdmin    restaurantAdmin.AdminSectionHandler
 	order           order.OrderHandler
+	websocket       websocket.WebSocketHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
@@ -54,6 +57,7 @@ func route(data initRoute) {
 	userGroup.PUT("", data.user.UpdateData)
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
 	auth.GET("/auth", data.user.CheckAuth)
+	data.e.GET("/ws", data.websocket.Connect)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
@@ -84,6 +88,7 @@ func route(data initRoute) {
 
 func initServer(e *echo.Echo) {
 	e.Static("/static", config.Static)
+	e.Static("/", "../public")
 	e.Static("/default", config.DefaultStatic)
 
 	logger.InitLogger()
@@ -147,6 +152,7 @@ func main() {
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 	orderHandler := http.NewOrderHandler(orderUsecase)
+	websocketHandler := websocketDelivery.NewWebSocketHandler()
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
@@ -160,6 +166,7 @@ func main() {
 		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
 		order:           orderHandler,
+		websocket:       websocketHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,
