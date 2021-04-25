@@ -140,7 +140,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 }
 
 func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
-	reviewsDB, err := r.DB.Query("select review, stars, (select name from users where uid=userid) from orders"+
+	reviewsDB, err := r.DB.Query("select review, stars, deliveryTime, (select name from users where uid=userid) from orders"+
 		" where restaurant=(select name from restaurants where rid=$1) and status=$2", id, models.StatusOrderDone)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
@@ -154,6 +154,7 @@ func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.Resta
 		err = reviewsDB.Scan(
 			&review.Review,
 			&review.Stars,
+			&review.Time,
 			&review.UserName,
 		)
 		if err != nil {
