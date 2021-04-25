@@ -6,6 +6,9 @@ import (
 	"log"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/address"
+	addressDelivery "github.com/borscht/backend/internal/address/delivery/http"
+	addressUsecase "github.com/borscht/backend/internal/address/usecase"
 	imageRepo "github.com/borscht/backend/internal/image/repository"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/internal/order/delivery/http"
@@ -42,6 +45,7 @@ type initRoute struct {
 	dishAdmin       restaurantAdmin.AdminDishHandler
 	sectionAdmin    restaurantAdmin.AdminSectionHandler
 	order           order.OrderHandler
+	address         address.AddressDelivery
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
@@ -54,6 +58,7 @@ func route(data initRoute) {
 	userGroup.PUT("", data.user.UpdateData)
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
 	auth.GET("/auth", data.user.CheckAuth)
+	auth.POST("/address", data.address.UpdateMainAddress)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
@@ -140,6 +145,7 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+	addressUsecase := addressUsecase.NewAddressUsecase(userRepo, adminRestaurantRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
@@ -147,6 +153,7 @@ func main() {
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 	orderHandler := http.NewOrderHandler(orderUsecase)
+	addressHandler := addressDelivery.NewAddressHandler(addressUsecase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
@@ -160,6 +167,7 @@ func main() {
 		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
 		order:           orderHandler,
+		address:         addressHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,

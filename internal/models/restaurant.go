@@ -28,6 +28,7 @@ type RestaurantInfo struct {
 	DeliveryCost      int     `json:"deliveryCost"`
 	Rating            float64 `json:"rating"`
 	Avatar            string  `json:"avatar"`
+	MainAddress       string  `json:"address"`
 }
 
 type RestaurantImageResponse struct {
@@ -43,6 +44,7 @@ type RestaurantUpdateData struct {
 	Title             string `json:"title"`
 	Description       string `json:"description"`
 	DeliveryCost      int    `json:"deliveryCost"`
+	MainAddress       string `json:"address"`
 }
 
 type CheckRestaurantExists struct {

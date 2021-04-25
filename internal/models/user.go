@@ -8,7 +8,7 @@ type User struct {
 	HashPassword []byte
 	Phone        string `json:"number"`
 	Avatar       string `json:"avatar"`
-	MainAddress  string `json:"activeAddress"`
+	MainAddress  string `json:"address"`
 }
 
 type UserAuth struct {

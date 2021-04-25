@@ -16,7 +16,7 @@ CREATE TABLE users (
                        phone TEXT,
                        email TEXT,
                        photo TEXT,
-    -- mainAddress text references addresses(address) on delete cascade ,
+                       mainAddress TEXT DEFAULT '' NOT NULL,
                        password BYTEA
 );
 
@@ -35,7 +35,8 @@ CREATE TABLE restaurants (
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,
                              rating FLOAT DEFAULT 0,
-                             avatar TEXT
+                             avatar TEXT,
+                             mainAddress TEXT DEFAULT '' NOT NULL
 );
 
 CREATE TABLE sections (
