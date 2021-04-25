@@ -90,6 +90,13 @@ CREATE TABLE basket_orders(
                               orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
 );
 
+CREATE TABLE messages(
+                            mid SERIAL PRIMARY KEY,
+                            sentFrom INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                            sentTo INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                            sentWhen TIME
+);
+
 
 -- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
@@ -101,4 +108,5 @@ CREATE TABLE basket_orders(
 -- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE messahges TO delivery;
 -- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
