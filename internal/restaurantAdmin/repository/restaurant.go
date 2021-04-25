@@ -20,6 +20,19 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	}
 }
 
+func (r restaurantRepo) GetMainAddress(ctx context.Context, rid int) (address string, err error) {
+	queri := `SELECT mainAddress FROM restaurants WHERE rid = $1`
+
+	err = r.DB.QueryRow(queri, rid).Scan(&address)
+	if err != nil {
+		err := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, err)
+		return "", err
+	}
+
+	return address, nil
+}
+
 func (r restaurantRepo) UpdateMainAddress(ctx context.Context, rid int, address string) error {
 	logger.RepoLevel().InlineDebugLog(ctx, "address repo restaurants")
 	query := `UPDATE restaurants SET mainAddress = $1 where rid = $2`

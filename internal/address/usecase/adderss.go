@@ -47,3 +47,34 @@ func (a AddressUsecase) UpdateMainAddress(ctx context.Context, address models.Ad
 
 	return a.UserRepo.UpdateMainAddress(ctx, user.Uid, address.Address)
 }
+
+func (a AddressUsecase) GetMainAddress(ctx context.Context) (*models.Address, error) {
+	restaurantInterface := ctx.Value("Restaurant")
+	if restaurantInterface != nil {
+		restaurant, ok := restaurantInterface.(models.RestaurantInfo)
+		if !ok {
+			failError := errors.FailServerError("failed to convert to models.Restaurant")
+			logger.UsecaseLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+
+		address, err := a.RestaurantRepo.GetMainAddress(ctx, restaurant.ID)
+		if err != nil {
+			return nil, err
+		}
+		return &models.Address{Address: address}, nil
+	}
+
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.User")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	address, err := a.UserRepo.GetMainAddress(ctx, user.Uid)
+	if err != nil {
+		return nil, err
+	}
+	return &models.Address{Address: address}, nil
+}

@@ -9,8 +9,10 @@ import (
 
 type AddressDelivery interface {
 	UpdateMainAddress(c echo.Context) error
+	GetMainAddress(c echo.Context) error
 }
 
 type AddressUsecase interface {
 	UpdateMainAddress(ctx context.Context, address models.Address) error
+	GetMainAddress(ctx context.Context) (*models.Address, error)
 }

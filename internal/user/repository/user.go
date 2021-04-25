@@ -21,6 +21,19 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 	}
 }
 
+func (u userRepo) GetMainAddress(ctx context.Context, uid int) (address string, err error) {
+	queri := `SELECT mainAddress FROM users WHERE uid = $1`
+
+	err = u.DB.QueryRow(queri, uid).Scan(&address)
+	if err != nil {
+		err := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, err)
+		return "", err
+	}
+
+	return address, nil
+}
+
 func (u userRepo) UpdateMainAddress(ctx context.Context, uid int, address string) error {
 	query := `UPDATE users SET mainAddress = $1 where uid = $2`
 	_, err := u.DB.Exec(query, address, uid)

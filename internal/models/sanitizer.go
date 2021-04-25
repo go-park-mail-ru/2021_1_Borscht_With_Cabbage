@@ -130,3 +130,8 @@ func (u *BasketForUser) Sanitize() {
 		u.Foods[i].Sanitize()
 	}
 }
+
+func (u *Address) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Address = sanitizer.Sanitize(u.Address)
+}

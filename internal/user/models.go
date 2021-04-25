@@ -34,4 +34,5 @@ type UserRepo interface {
 	UpdateAvatar(ctx context.Context, idUser int, filename string) error
 	GetByLogin(ctx context.Context, login string) (*models.User, error)
 	UpdateMainAddress(ctx context.Context, uid int, address string) error
+	GetMainAddress(ctx context.Context, uid int) (string, error)
 }

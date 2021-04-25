@@ -59,6 +59,7 @@ func route(data initRoute) {
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
 	auth.GET("/auth", data.user.CheckAuth)
 	auth.POST("/address", data.address.UpdateMainAddress)
+	auth.GET("/address", data.address.GetMainAddress)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)

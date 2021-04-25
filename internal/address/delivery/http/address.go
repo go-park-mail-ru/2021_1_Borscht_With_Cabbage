@@ -36,3 +36,13 @@ func (h AddressHandler) UpdateMainAddress(c echo.Context) error {
 
 	return models.SendResponse(c, nil)
 }
+
+func (h AddressHandler) GetMainAddress(c echo.Context) error {
+	ctx := models.GetContext(c)
+	result, err := h.AddressUsecase.GetMainAddress(ctx)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, result)
+}
