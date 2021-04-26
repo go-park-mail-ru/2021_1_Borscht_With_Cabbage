@@ -61,7 +61,7 @@ func (u restaurantRepo) UpdateAddress(ctx context.Context, rid int, address mode
 	UPDATE addresses SET name = $1, latitude = $2, longitude = $3, radius = $4
 	WHERE rid = $5
 	`
-	_, err := u.DB.Exec(query, address.Name, address.Latitude, address.Longitude, address.Latitude, rid)
+	_, err := u.DB.Exec(query, address.Name, address.Latitude, address.Longitude, address.Radius, rid)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
