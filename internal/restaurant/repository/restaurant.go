@@ -23,7 +23,8 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
 	queri :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar, mainAddress
+	SELECT rid, name, deliveryCost, avgCheck, description, rating, 
+		avatar, mainAddress, mainAddressRadius
 	FROM restaurants
 	WHERE rid >= $1 and rid <= $2
 	`
@@ -46,7 +47,8 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 			&restaurant.Description,
 			&restaurant.Rating,
 			&restaurant.Avatar,
-			&restaurant.MainAddress,
+			&restaurant.Address.Address,
+			&restaurant.Address.Radius,
 		)
 
 		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
@@ -61,14 +63,16 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 
 	queri :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar, mainAddress
+	SELECT rid, name, deliveryCost, avgCheck, description, 
+		rating, avatar, mainAddress, mainAddressRadius
 	FROM restaurants 
 	WHERE rid=$1
 	`
 
 	err := r.DB.QueryRow(queri, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar, &restaurant.MainAddress)
+			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar,
+			&restaurant.Address.Address, &restaurant.Address.Radius)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

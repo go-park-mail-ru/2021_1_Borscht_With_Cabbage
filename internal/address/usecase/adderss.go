@@ -35,7 +35,7 @@ func (a AddressUsecase) UpdateMainAddress(ctx context.Context, address models.Ad
 			return failError
 		}
 
-		return a.RestaurantRepo.UpdateMainAddress(ctx, restaurant.ID, address.Address)
+		return a.RestaurantRepo.UpdateMainAddress(ctx, restaurant.ID, address)
 	}
 
 	user, ok := ctx.Value("User").(models.User)
@@ -45,7 +45,7 @@ func (a AddressUsecase) UpdateMainAddress(ctx context.Context, address models.Ad
 		return failError
 	}
 
-	return a.UserRepo.UpdateMainAddress(ctx, user.Uid, address.Address)
+	return a.UserRepo.UpdateMainAddress(ctx, user.Uid, address)
 }
 
 func (a AddressUsecase) GetMainAddress(ctx context.Context) (*models.Address, error) {
@@ -58,11 +58,7 @@ func (a AddressUsecase) GetMainAddress(ctx context.Context) (*models.Address, er
 			return nil, failError
 		}
 
-		address, err := a.RestaurantRepo.GetMainAddress(ctx, restaurant.ID)
-		if err != nil {
-			return nil, err
-		}
-		return &models.Address{Address: address}, nil
+		return a.RestaurantRepo.GetMainAddress(ctx, restaurant.ID)
 	}
 
 	user, ok := ctx.Value("User").(models.User)
@@ -72,9 +68,5 @@ func (a AddressUsecase) GetMainAddress(ctx context.Context) (*models.Address, er
 		return nil, failError
 	}
 
-	address, err := a.UserRepo.GetMainAddress(ctx, user.Uid)
-	if err != nil {
-		return nil, err
-	}
-	return &models.Address{Address: address}, nil
+	return a.UserRepo.GetMainAddress(ctx, user.Uid)
 }

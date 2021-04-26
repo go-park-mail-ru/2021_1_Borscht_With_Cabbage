@@ -21,22 +21,22 @@ func NewUserRepo(db *sql.DB) user.UserRepo {
 	}
 }
 
-func (u userRepo) GetMainAddress(ctx context.Context, uid int) (address string, err error) {
-	queri := `SELECT mainAddress FROM users WHERE uid = $1`
+func (u userRepo) GetMainAddress(ctx context.Context, uid int) (address *models.Address, err error) {
+	queri := `SELECT mainAddress, mainAddressRadius FROM users WHERE uid = $1`
 
-	err = u.DB.QueryRow(queri, uid).Scan(&address)
+	err = u.DB.QueryRow(queri, uid).Scan(&address.Address, &address.Radius)
 	if err != nil {
 		err := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, err)
-		return "", err
+		return nil, err
 	}
 
 	return address, nil
 }
 
-func (u userRepo) UpdateMainAddress(ctx context.Context, uid int, address string) error {
-	query := `UPDATE users SET mainAddress = $1 where uid = $2`
-	_, err := u.DB.Exec(query, address, uid)
+func (u userRepo) UpdateMainAddress(ctx context.Context, uid int, address models.Address) error {
+	query := `UPDATE users SET mainAddress = $1, mainAddressRadius = $2 where uid = $3`
+	_, err := u.DB.Exec(query, address.Address, address.Radius, uid)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -147,13 +147,13 @@ func (u userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
 
 func (u userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 	err := u.checkUserWithThisData(ctx, user.Phone, user.Email, user.ID)
-
 	if err != nil {
 		return err
 	}
 
-	_, err = u.DB.Exec("UPDATE users SET phone = $1, email = $2, name = $3 where uid = $4",
-		user.Phone, user.Email, user.Name, user.ID)
+	queri := `UPDATE users SET phone = $1, email = $2, name = $3, mainAddress = $4 WHERE uid = $5`
+
+	_, err = u.DB.Exec(queri, user.Phone, user.Email, user.Name, user.MainAddress, user.ID)
 	if err != nil {
 		return errors.FailServerError("curUser not found")
 	}

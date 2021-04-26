@@ -33,6 +33,6 @@ type UserRepo interface {
 	UpdateData(ctx context.Context, newUser models.UserData) error
 	UpdateAvatar(ctx context.Context, idUser int, filename string) error
 	GetByLogin(ctx context.Context, login string) (*models.User, error)
-	UpdateMainAddress(ctx context.Context, uid int, address string) error
-	GetMainAddress(ctx context.Context, uid int) (string, error)
+	UpdateMainAddress(ctx context.Context, uid int, address models.Address) error
+	GetMainAddress(ctx context.Context, uid int) (*models.Address, error)
 }

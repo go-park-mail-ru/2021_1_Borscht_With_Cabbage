@@ -20,23 +20,23 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	}
 }
 
-func (r restaurantRepo) GetMainAddress(ctx context.Context, rid int) (address string, err error) {
-	queri := `SELECT mainAddress FROM restaurants WHERE rid = $1`
+func (r restaurantRepo) GetMainAddress(ctx context.Context, rid int) (address *models.Address, err error) {
+	queri := `SELECT mainAddress, mainAddressRadius FROM restaurants WHERE rid = $1`
 
-	err = r.DB.QueryRow(queri, rid).Scan(&address)
+	err = r.DB.QueryRow(queri, rid).Scan(&address.Address, &address.Radius)
 	if err != nil {
 		err := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, err)
-		return "", err
+		return nil, err
 	}
 
 	return address, nil
 }
 
-func (r restaurantRepo) UpdateMainAddress(ctx context.Context, rid int, address string) error {
+func (r restaurantRepo) UpdateMainAddress(ctx context.Context, rid int, address models.Address) error {
 	logger.RepoLevel().InlineDebugLog(ctx, "address repo restaurants")
-	query := `UPDATE restaurants SET mainAddress = $1 where rid = $2`
-	_, err := r.DB.Exec(query, address, rid)
+	query := `UPDATE restaurants SET mainAddress = $1, mainAddressRadius = $2 where rid = $3`
+	_, err := r.DB.Exec(query, address.Address, address.Radius, rid)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -62,13 +62,14 @@ func (a restaurantRepo) UpdateRestaurantData(ctx context.Context, restaurant mod
 	query :=
 		`
 	UPDATE restaurants SET name = $1, adminemail = $2, adminphone = $3,
-		deliverycost = $4, description = $5
-	WHERE rid = $6
+		deliverycost = $4, description = $5, mainAddress = $6, mainAddressRadius = $7
+	WHERE rid = $8
 	`
 
 	_, err = a.DB.Exec(query,
 		restaurant.Title, restaurant.AdminEmail, restaurant.AdminPhone,
-		restaurant.DeliveryCost, restaurant.Description, restaurant.ID)
+		restaurant.DeliveryCost, restaurant.Description, restaurant.Address.Address,
+		restaurant.Address.Radius, restaurant.ID)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -112,9 +113,10 @@ func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant mode
 	logger.RepoLevel().InlineDebugLog(ctx, "correct restaurant")
 
 	query :=
-		`INSERT INTO restaurants (name, adminphone, adminemail, adminpassword, 
-		avatar, deliveryCost, avgCheck, description, rating, mainAddress) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+		`
+	INSERT INTO restaurants (name, adminphone, adminemail, adminpassword, 
+		avatar, deliveryCost, avgCheck, description, rating, mainAddress, mainAddressRadius) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
 	RETURNING rid
 	`
 	var rid int
@@ -122,7 +124,7 @@ func (a restaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant mode
 		newRestaurant.Title, newRestaurant.AdminPhone, newRestaurant.AdminEmail,
 		newRestaurant.AdminHashPassword, newRestaurant.Avatar, newRestaurant.DeliveryCost,
 		newRestaurant.AvgCheck, newRestaurant.Description, newRestaurant.Rating,
-		newRestaurant.MainAddress).Scan(&rid)
+		newRestaurant.Address.Address, newRestaurant.Address.Radius).Scan(&rid)
 
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
@@ -148,15 +150,17 @@ func (a restaurantRepo) UpdateRestaurantImage(ctx context.Context, idRestaurant 
 func (a restaurantRepo) GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error) {
 	restaurant := new(models.RestaurantInfo)
 	query :=
-		`SELECT rid, name, adminemail, adminphone, deliveryCost, avgCheck, 
-		description, rating, avatar, adminpassword, mainAddress 
+		`
+	SELECT rid, name, adminemail, adminphone, deliveryCost, avgCheck, 
+		description, rating, avatar, adminpassword, mainAddress, mainAddressRadius 
 	FROM restaurants 
 	WHERE (adminphone=$1 or adminemail=$1)
 	`
 	err := a.DB.QueryRow(query, login).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
 			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
-			&restaurant.Rating, &restaurant.Avatar, &restaurant.AdminHashPassword, &restaurant.MainAddress)
+			&restaurant.Rating, &restaurant.Avatar, &restaurant.AdminHashPassword,
+			&restaurant.Address.Address, &restaurant.Address.Radius)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
@@ -173,7 +177,7 @@ func (a restaurantRepo) GetByLogin(ctx context.Context, login string) (*models.R
 func (a restaurantRepo) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT name, adminphone, adminemail, avatar, mainAddress 
+	SELECT name, adminphone, adminemail, avatar, mainAddress, mainAddressRadius
 	FROM restaurants 
 	WHERE rid=$1
 	`
@@ -189,7 +193,8 @@ func (a restaurantRepo) GetByRid(ctx context.Context, rid int) (*models.Restaura
 			&restaurant.AdminPhone,
 			&restaurant.AdminEmail,
 			&restaurant.Avatar,
-			&restaurant.MainAddress,
+			&restaurant.Address.Address,
+			&restaurant.Address.Radius,
 		)
 		if err != nil {
 			custError := errors.FailServerError(err.Error())

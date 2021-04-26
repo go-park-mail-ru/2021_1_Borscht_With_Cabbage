@@ -17,6 +17,7 @@ CREATE TABLE users (
                        email TEXT,
                        photo TEXT,
                        mainAddress TEXT DEFAULT '' NOT NULL,
+                       mainAddressRadius REAL DEFAULT 0 NOT NULL,
                        password BYTEA
 );
 
@@ -36,7 +37,8 @@ CREATE TABLE restaurants (
                              description TEXT,
                              rating FLOAT DEFAULT 0,
                              avatar TEXT,
-                             mainAddress TEXT DEFAULT '' NOT NULL
+                             mainAddress TEXT DEFAULT '' NOT NULL,
+                             mainAddressRadius REAL DEFAULT 0 NOT NULL,
 );
 
 CREATE TABLE sections (

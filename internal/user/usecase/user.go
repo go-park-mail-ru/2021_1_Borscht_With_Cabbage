@@ -102,6 +102,23 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 	}, nil
 }
 
+func correctUserData(newUser *models.UserData, oldUser *models.User) {
+
+	newUser.ID = oldUser.Uid
+	if newUser.Name == "" {
+		newUser.Name = oldUser.Name
+	}
+	if newUser.Email == "" {
+		newUser.Email = oldUser.Email
+	}
+	if newUser.Phone == "" {
+		newUser.Phone = oldUser.Phone
+	}
+	if newUser.MainAddress == "" {
+		newUser.MainAddress = oldUser.MainAddress
+	}
+}
+
 func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error) {
 	user, ok := ctx.Value("User").(models.User)
 	if !ok {
@@ -110,7 +127,7 @@ func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (
 		return nil, failError
 	}
 
-	newUser.ID = user.Uid
+	correctUserData(&newUser, &user)
 	err := u.userRepository.UpdateData(ctx, newUser)
 	if err != nil {
 		return nil, err

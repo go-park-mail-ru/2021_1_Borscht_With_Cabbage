@@ -28,6 +28,7 @@ type UserData struct {
 	Password    string `json:"password"`
 	PasswordOld string `json:"password_current"`
 	Avatar      string `json:"avatar"`
+	MainAddress string `json:"address"`
 }
 
 type SuccessUserResponse struct {

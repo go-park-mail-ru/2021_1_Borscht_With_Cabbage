@@ -34,6 +34,33 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	}
 }
 
+func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.RestaurantUpdateData,
+	oldRestaurant *models.RestaurantInfo) {
+
+	newRestaurant.ID = oldRestaurant.ID
+	if newRestaurant.Title == "" {
+		newRestaurant.Title = oldRestaurant.Title
+	}
+	if newRestaurant.AdminEmail == "" {
+		newRestaurant.AdminEmail = oldRestaurant.AdminEmail
+	}
+	if newRestaurant.AdminPhone == "" {
+		newRestaurant.AdminPhone = oldRestaurant.AdminPhone
+	}
+	if newRestaurant.Address.Address == "" {
+		newRestaurant.Address.Address = oldRestaurant.Address.Address
+	}
+	if newRestaurant.DeliveryCost == 0 {
+		newRestaurant.DeliveryCost = oldRestaurant.DeliveryCost
+	}
+	if newRestaurant.Description == "" {
+		newRestaurant.Description = oldRestaurant.Description
+	}
+	if newRestaurant.Address.Radius == 0 {
+		newRestaurant.Address.Radius = oldRestaurant.Address.Radius
+	}
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 
@@ -44,7 +71,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, failError
 	}
 
-	restaurant.ID = restaurantAdmin.ID
+	a.correcRestaurantData(&restaurant, &restaurantAdmin)
 	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {
 		return nil, err
@@ -61,6 +88,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		AvgCheck:     restaurantAdmin.AvgCheck,
 		DeliveryCost: restaurant.DeliveryCost,
 		Avatar:       restaurantAdmin.Avatar,
+		Address:      restaurant.Address,
 	}
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 
@@ -71,6 +99,10 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 }
 
 func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
+	if restaurant.Address.Address == "" {
+		return nil, errors.NewErrorWithMessage("please enter the address")
+	}
+
 	restaurant.Avatar = config.DefaultRestaurantImage
 
 	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
