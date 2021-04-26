@@ -5,22 +5,56 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
+	"github.com/borscht/backend/internal/restaurantAdmin"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type restaurantUsecase struct {
-	restaurantRepo restModel.RestaurantRepo
+	restaurantRepo      restModel.RestaurantRepo
+	restaurantAdminRepo restaurantAdmin.AdminRestaurantRepo
 }
 
-func NewRestaurantUsecase(repo restModel.RestaurantRepo) restModel.RestaurantUsecase {
+func NewRestaurantUsecase(repo restModel.RestaurantRepo,
+	repoAdmin restaurantAdmin.AdminRestaurantRepo) restModel.RestaurantUsecase {
+
 	return &restaurantUsecase{
-		restaurantRepo: repo,
+		restaurantRepo:      repo,
+		restaurantAdminRepo: repoAdmin,
 	}
 }
 
-func (r *restaurantUsecase) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
-	return r.restaurantRepo.GetVendor(ctx, limit, offset)
+func (r *restaurantUsecase) GetVendor(ctx context.Context, limit, offset int) (
+	restaurants []models.RestaurantInfo, err error) {
+
+	restaurants, err = r.restaurantRepo.GetVendor(ctx, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, value := range restaurants {
+		address, err := r.restaurantAdminRepo.GetAddress(ctx, value.ID)
+		if err != nil {
+			return nil, err
+		}
+		logger.UsecaseLevel().InlineDebugLog(ctx, address)
+		restaurants[i].Address = *address
+	}
+	logger.UsecaseLevel().InlineInfoLog(ctx, "finish GetVendor")
+	return restaurants, nil
 }
 
-func (r *restaurantUsecase) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
-	return r.restaurantRepo.GetById(ctx, id)
+func (r *restaurantUsecase) GetById(ctx context.Context, id int) (
+	restaurant *models.RestaurantWithDishes, err error) {
+	restaurant, err = r.restaurantRepo.GetById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	address, err := r.restaurantAdminRepo.GetAddress(ctx, restaurant.ID)
+	if err != nil {
+		return nil, err
+	}
+	restaurant.Address = *address
+
+	return restaurant, nil
 }

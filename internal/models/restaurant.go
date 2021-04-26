@@ -17,11 +17,11 @@ type SuccessRestaurantResponse struct {
 }
 
 type RestaurantInfo struct {
-	Address
-	ID                int    `json:"id"`
-	AdminEmail        string `json:"email"`
-	AdminPhone        string `json:"number"`
-	AdminPassword     string `json:"password"`
+	Address           Address `json:"address"`
+	ID                int     `json:"id"`
+	AdminEmail        string  `json:"email"`
+	AdminPhone        string  `json:"number"`
+	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
 	AvgCheck          int     `json:"cost"`
 	Title             string  `json:"title"`
@@ -36,11 +36,11 @@ type RestaurantImageResponse struct {
 }
 
 type RestaurantUpdateData struct {
-	Address
-	ID                int    `json:"id"`
-	AdminEmail        string `json:"email"`
-	AdminPhone        string `json:"number"`
-	AdminPassword     string `json:"password"`
+	Address           Address `json:"address"`
+	ID                int     `json:"id"`
+	AdminEmail        string  `json:"email"`
+	AdminPhone        string  `json:"number"`
+	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
 	Title             string `json:"title"`
 	Description       string `json:"description"`

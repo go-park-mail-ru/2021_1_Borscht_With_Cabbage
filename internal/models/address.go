@@ -1,6 +1,8 @@
 package models
 
 type Address struct {
-	Address string  `json:"address"`
-	Radius  float32 `json:"radius"`
+	Name      string `json:"name"`
+	Longitude string `json:"longitude"`
+	Latitude  string `json:"latitude"`
+	Radius    int    `json:"radius"`
 }

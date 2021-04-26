@@ -17,13 +17,17 @@ CREATE TABLE users (
                        email TEXT,
                        photo TEXT,
                        mainAddress TEXT DEFAULT '' NOT NULL,
-                       mainAddressRadius REAL DEFAULT 0 NOT NULL,
                        password BYTEA
 );
 
 CREATE TABLE addresses (
-                           address TEXT,
-                           "user" INTEGER REFERENCES users(uid) ON DELETE CASCADE
+                           aid SERIAL PRIMARY KEY,
+                           name TEXT DEFAULT '' NOT NULL,
+                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                           latitude TEXT DEFAULT '' NOT NULL,
+                           longitude TEXT DEFAULT '' NOT NULL,
+                           radius INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE restaurants (
@@ -36,9 +40,7 @@ CREATE TABLE restaurants (
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,
                              rating FLOAT DEFAULT 0,
-                             avatar TEXT,
-                             mainAddress TEXT DEFAULT '' NOT NULL,
-                             mainAddressRadius REAL DEFAULT 0 NOT NULL,
+                             avatar TEXT
 );
 
 CREATE TABLE sections (

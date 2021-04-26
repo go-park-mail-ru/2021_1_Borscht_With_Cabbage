@@ -23,8 +23,7 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
 	queri :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, rating, 
-		avatar, mainAddress, mainAddressRadius
+	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar
 	FROM restaurants
 	WHERE rid >= $1 and rid <= $2
 	`
@@ -36,10 +35,11 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 		return []models.RestaurantInfo{}, failError
 	}
 
-	var restaurants []models.RestaurantInfo
+	restaurants := make([]models.RestaurantInfo, 0)
 	for restaurantsDB.Next() {
-		restaurant := new(models.RestaurantInfo)
-		err = restaurantsDB.Scan(
+		logger.RepoLevel().InlineInfoLog(ctx, "start scan")
+		var restaurant models.RestaurantInfo
+		restaurantsDB.Scan(
 			&restaurant.ID,
 			&restaurant.Title,
 			&restaurant.DeliveryCost,
@@ -47,12 +47,11 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 			&restaurant.Description,
 			&restaurant.Rating,
 			&restaurant.Avatar,
-			&restaurant.Address.Address,
-			&restaurant.Address.Radius,
 		)
 
-		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
-		restaurants = append(restaurants, *restaurant)
+		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
+		restaurants = append(restaurants, restaurant)
+		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
 	return restaurants, nil
@@ -63,16 +62,14 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 
 	queri :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, 
-		rating, avatar, mainAddress, mainAddressRadius
+	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar
 	FROM restaurants 
 	WHERE rid=$1
 	`
 
 	err := r.DB.QueryRow(queri, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar,
-			&restaurant.Address.Address, &restaurant.Address.Radius)
+			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
