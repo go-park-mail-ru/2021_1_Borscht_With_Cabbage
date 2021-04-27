@@ -119,7 +119,9 @@ func (u *userUsecase) GetByUid(ctx context.Context, uid int) (*models.SuccessUse
 		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
 		return nil, err
 	}
-	user.Address = *address
+	if address != nil {
+		user.Address = *address
+	}
 
 	return &models.SuccessUserResponse{
 		User: user,

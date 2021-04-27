@@ -49,14 +49,18 @@ func (o orderUsecase) GetBasket(ctx context.Context, uid int) (*models.BasketFor
 	if err != nil {
 		return nil, err
 	}
+	if restaurant == nil {
+		return restaurant, nil
+	}
 
 	address, err := o.restaurantRepository.GetAddress(ctx, restaurant.RID)
 	if err != nil {
 		return nil, err
 	}
-	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address": *address})
-
-	restaurant.Address = *address
+	if address != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address": *address})
+		restaurant.Address = *address
+	}
 	return restaurant, nil
 }
 
