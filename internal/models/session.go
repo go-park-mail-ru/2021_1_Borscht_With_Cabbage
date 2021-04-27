@@ -17,7 +17,12 @@ type SessionInfo struct {
 }
 
 type SessionData struct {
-	Session string `json:"session"`
-	Id      int    `json:"uid"`
-	Role    string `json:"role"`
+	LifeTimeSeconds int    `json:"life"`
+	Session         string `json:"session"`
+	Id              int    `json:"uid"`
+	Role            string `json:"role"`
+}
+
+type Key struct {
+	Key string `json:"key"`
 }

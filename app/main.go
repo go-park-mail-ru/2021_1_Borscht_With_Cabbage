@@ -27,6 +27,7 @@ import (
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	"github.com/borscht/backend/internal/websocket"
 	websocketDelivery "github.com/borscht/backend/internal/websocket/delivery/http"
+	wsUsecase "github.com/borscht/backend/internal/websocket/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
@@ -57,6 +58,7 @@ func route(data initRoute) {
 	userGroup.PUT("", data.user.UpdateData)
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
 	auth.GET("/auth", data.user.CheckAuth)
+	auth.GET("/connect/ws", data.websocket.GetKey)
 	data.e.GET("/ws", data.websocket.Connect)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
@@ -145,6 +147,7 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+	wsUsecase := wsUsecase.NewWebSocketUsecase()
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
@@ -152,7 +155,7 @@ func main() {
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 	orderHandler := http.NewOrderHandler(orderUsecase)
-	websocketHandler := websocketDelivery.NewWebSocketHandler()
+	websocketHandler := websocketDelivery.NewWebSocketHandler(wsUsecase, sessionUcase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)

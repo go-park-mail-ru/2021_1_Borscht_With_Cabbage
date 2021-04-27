@@ -130,3 +130,5 @@ func (u *BasketForUser) Sanitize() {
 		u.Foods[i].Sanitize()
 	}
 }
+
+func (u *Key) Sanitize() {}
