@@ -16,4 +16,5 @@ type BasketForUser struct {
 	DeliveryCost    int            `json:"deliveryPrice"`
 	Summary         int            `json:"totalPrice"`
 	Foods           []DishInBasket `json:"foods"`
+	Address         Address        `json:"address"`
 }

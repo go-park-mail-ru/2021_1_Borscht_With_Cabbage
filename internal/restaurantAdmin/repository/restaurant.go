@@ -23,6 +23,7 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 func (u restaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
 	queri := `SELECT name, latitude, longitude, radius FROM addresses WHERE rid = $1`
 
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"rid": rid})
 	var address models.Address
 	err := u.DB.QueryRow(queri, rid).Scan(&address.Name, &address.Latitude,
 		&address.Longitude, &address.Radius)
@@ -36,6 +37,7 @@ func (u restaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Addres
 		return nil, err
 	}
 
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"address": address})
 	return &address, nil
 }
 
