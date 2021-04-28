@@ -69,18 +69,20 @@ func (w WebSocketHandler) Connect(c echo.Context) error {
 
 func (w WebSocketHandler) startRead(ctx context.Context, ws *websocket.Conn) error {
 	for {
-		_, msg, err := ws.ReadMessage()
+		logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"start read": ""})
+		msg := new(models.FromClient)
+		err := ws.ReadJSON(msg)
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"error": failError.Error()})
 			return failError
 		}
-		err = w.WsUsecase.MessageCame(ctx, ws, string(msg))
+		logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"new message": msg})
+		err = w.WsUsecase.MessageCame(ctx, ws, *msg)
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, failError)
 			return failError
 		}
-		logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"message": string(msg)})
 	}
 }

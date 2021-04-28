@@ -105,7 +105,7 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error) {
 	user, ok := ctx.Value("User").(models.User)
 	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.User")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
@@ -145,7 +145,7 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 	// удаление изображения
 	user, ok := ctx.Value("User").(models.User)
 	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.User")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
