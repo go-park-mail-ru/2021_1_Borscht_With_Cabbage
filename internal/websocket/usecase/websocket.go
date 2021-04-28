@@ -19,10 +19,12 @@ type connectionPool struct {
 type WebSocketUsecase struct {
 	poolUsers      connectionPool
 	poolRestaurant connectionPool
+	WsRepo         custWebsocket.WebSocketRepo
 }
 
-func NewWebSocketUsecase() custWebsocket.WebSocketUsecase {
+func NewWebSocketUsecase(wsRepo custWebsocket.WebSocketRepo) custWebsocket.WebSocketUsecase {
 	return &WebSocketUsecase{
+		WsRepo: wsRepo,
 		poolUsers: connectionPool{
 			connections: make(map[int]*websocket.Conn),
 		},
@@ -107,10 +109,33 @@ func (w *WebSocketUsecase) UnConnect(ctx context.Context, ws *websocket.Conn) er
 func (w *WebSocketUsecase) MessageCame(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error {
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"message": msg})
 
+	saveInfo := models.WsMessageForRepo{
+		Date:     msg.Payload.Message.Date,
+		Content:  msg.Payload.Message.Text,
+		SentToId: msg.Payload.To.Id,
+	}
 	if user, ok := checkUser(ctx); ok {
+		// сохранение в бд
+		saveInfo.SentFromId = user.Uid
+		mid, err := w.WsRepo.SaveMessageFromUser(ctx, saveInfo)
+		if err != nil {
+			return err
+		}
+
+		// отправить пользователю
+		msg.Payload.Message.Id = mid
 		return w.MessageFromUser(ctx, *user, ws, msg)
 	}
 	if restaurant, ok := checkRestaurant(ctx); ok {
+		// сохранение в бд
+		saveInfo.SentFromId = restaurant.ID
+		mid, err := w.WsRepo.SaveMessageFromRestaurant(ctx, saveInfo)
+		if err != nil {
+			return err
+		}
+
+		// отпавить пользователю
+		msg.Payload.Message.Id = mid
 		return w.MessageFromRestaurant(ctx, *restaurant, ws, msg)
 	}
 

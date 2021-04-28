@@ -31,3 +31,11 @@ type ToClient struct {
 	Action  string          `json:"action"`
 	Payload ToClientPayload `json:"payload"`
 }
+
+type WsMessageForRepo struct {
+	IdMessage  int    `json:"idMessage"`
+	Date       string `json:"date"`
+	Content    string `json:"content"`
+	SentFromId int    `json:"sendFromId"`
+	SentToId   int    `json:"sendToId"`
+}

@@ -27,6 +27,7 @@ import (
 	userUcase "github.com/borscht/backend/internal/user/usecase"
 	"github.com/borscht/backend/internal/websocket"
 	websocketDelivery "github.com/borscht/backend/internal/websocket/delivery/http"
+	wsRepo "github.com/borscht/backend/internal/websocket/repository"
 	wsUsecase "github.com/borscht/backend/internal/websocket/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
@@ -97,9 +98,9 @@ func initServer(e *echo.Echo) {
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
-	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "header:X-XSRF-TOKEN",
-	}))
+	// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+	// 	TokenLookup: "header:X-XSRF-TOKEN",
+	// }))
 
 	e.Use(middleware.Secure())
 
@@ -139,6 +140,7 @@ func main() {
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	imageRepo := imageRepo.NewImageRepo()
+	wsRepo := wsRepo.NewWebsocketRepo(db)
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	orderRepo := repository.NewOrderRepo(db)
@@ -148,7 +150,7 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo)
-	wsUsecase := wsUsecase.NewWebSocketUsecase()
+	wsUsecase := wsUsecase.NewWebSocketUsecase(wsRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)

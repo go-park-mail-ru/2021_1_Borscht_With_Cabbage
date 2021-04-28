@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS baskets CASCADE;
 DROP TABLE IF EXISTS baskets_food;
 DROP TABLE IF EXISTS basket_users;
 DROP TABLE IF EXISTS basket_orders;
+DROP TABLE IF EXISTS messages;
 
 CREATE TABLE users (
                        uid SERIAL PRIMARY KEY,
@@ -92,9 +93,12 @@ CREATE TABLE basket_orders(
 
 CREATE TABLE messages(
                             mid SERIAL PRIMARY KEY,
-                            sentFrom INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                            sentTo INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                            sentWhen TIME
+                            sentFromUser INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                            sentToUser INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                            sentFromRestaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                            sentToRestaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                            content TEXT DEFAULT '' NOT NULL,
+                            sentWhen TEXT DEFAULT '' NOT NULL
 );
 
 
@@ -108,5 +112,5 @@ CREATE TABLE messages(
 -- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE messahges TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE messages TO delivery;
 -- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;

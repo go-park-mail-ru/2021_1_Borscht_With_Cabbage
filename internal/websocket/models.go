@@ -18,3 +18,8 @@ type WebSocketUsecase interface {
 	UnConnect(ctx context.Context, ws *websocket.Conn) error
 	MessageCame(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error
 }
+
+type WebSocketRepo interface {
+	SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
+	SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
+}
