@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"sync"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/session"
@@ -25,13 +24,6 @@ func NewWebSocketHandler(wsUsecase custWebsocket.WebSocketUsecase,
 		WsUsecase:      wsUsecase,
 		SessionUsecase: sessionUsecase,
 	}
-}
-
-var connectionPool = struct {
-	sync.RWMutex
-	connections map[*websocket.Conn]struct{}
-}{
-	connections: make(map[*websocket.Conn]struct{}),
 }
 
 var (
@@ -62,19 +54,20 @@ func (w WebSocketHandler) Connect(c echo.Context) error {
 		return failError
 	}
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"Open websocket": ws.RemoteAddr()})
+	err = w.WsUsecase.Connect(ctx, ws)
+	if err != nil {
+		return err
+	}
 
-	connectionPool.Lock()
-	connectionPool.connections[ws] = struct{}{}
+	defer func() {
+		logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"Close websocket": ws.RemoteAddr()})
+		w.WsUsecase.UnConnect(ctx, ws)
+	}()
 
-	defer func(connection *websocket.Conn) {
-		logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"Close websocket": ws.LocalAddr()})
-		connectionPool.Lock()
-		delete(connectionPool.connections, connection)
-		connectionPool.Unlock()
-	}(ws)
+	return w.startRead(ctx, ws)
+}
 
-	connectionPool.Unlock()
-
+func (w WebSocketHandler) startRead(ctx context.Context, ws *websocket.Conn) error {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
@@ -82,7 +75,7 @@ func (w WebSocketHandler) Connect(c echo.Context) error {
 			logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"error": failError.Error()})
 			return failError
 		}
-		err = sendMessageToAllPool(ctx, string(msg))
+		err = w.WsUsecase.MessageCame(ctx, ws, string(msg))
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, failError)
@@ -90,20 +83,4 @@ func (w WebSocketHandler) Connect(c echo.Context) error {
 		}
 		logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"message": string(msg)})
 	}
-
-	return err
-}
-
-func sendMessageToAllPool(ctx context.Context, message string) error {
-	connectionPool.RLock()
-	defer connectionPool.RUnlock()
-	for connection := range connectionPool.connections {
-		err := connection.WriteMessage(websocket.TextMessage, []byte(message))
-		if err != nil {
-			failError := errors.FailServerError(err.Error())
-			logger.DeliveryLevel().ErrorLog(ctx, failError)
-			return err
-		}
-	}
-	return nil
 }

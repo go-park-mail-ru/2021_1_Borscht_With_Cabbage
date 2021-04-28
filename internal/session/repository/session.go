@@ -28,7 +28,9 @@ func (repo *sessionRepo) Check(ctx context.Context, sessionToCheck string) (mode
 	mkey := sessionToCheck
 	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
 	if err != nil {
-		return models.SessionInfo{}, false, err
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return models.SessionInfo{}, false, custError
 	}
 	sess := &models.SessionInfo{}
 	err = json.Unmarshal(data, sess)

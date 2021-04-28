@@ -49,6 +49,7 @@ type initRoute struct {
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
+	wsMiddleware    custMiddleware.WsAuthMiddleware
 }
 
 func route(data initRoute) {
@@ -59,7 +60,7 @@ func route(data initRoute) {
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
 	auth.GET("/auth", data.user.CheckAuth)
 	auth.GET("/connect/ws", data.websocket.GetKey)
-	data.e.GET("/ws", data.websocket.Connect)
+	data.e.GET("/ws/:key", data.websocket.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
@@ -160,6 +161,7 @@ func main() {
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
 	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
+	initWsMiddleware := custMiddleware.InitWsMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
 
 	route(initRoute{
 		e:               e,
@@ -173,6 +175,7 @@ func main() {
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,
+		wsMiddleware:    *initWsMiddleware,
 	})
 
 	e.Logger.Fatal(e.Start(":5000"))

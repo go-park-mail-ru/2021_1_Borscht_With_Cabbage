@@ -1,6 +1,9 @@
 package websocket
 
 import (
+	"context"
+
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
 
@@ -10,4 +13,7 @@ type WebSocketHandler interface {
 }
 
 type WebSocketUsecase interface {
+	Connect(ctx context.Context, ws *websocket.Conn) error
+	UnConnect(ctx context.Context, ws *websocket.Conn) error
+	MessageCame(ctx context.Context, ws *websocket.Conn, msg string) error
 }
