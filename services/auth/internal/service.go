@@ -82,14 +82,25 @@ func (s *service) CheckUserExists(ctx context.Context, user protoAuth.UserAuth) 
 	return response, nil
 }
 
-// будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *service) Check(ctx context.Context, session string) (models.SessionInfo, bool, error) {
+func (s *service) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
 
+}
+
+func (s *service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
+
+}
+
+func (a *service) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
+
+}
+
+// будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
+func (s *service) CheckSession(ctx context.Context, session string) (models.SessionInfo, bool, error) {
 	return s.sessionRepo.Check(ctx, session)
 }
 
 // создание уникальной сессии
-func (s *service) Create(ctx context.Context, sessionInfo models.SessionInfo) (string, error) {
+func (s *service) CreateSession(ctx context.Context, sessionInfo models.SessionInfo) (string, error) {
 	session := ""
 	for {
 		session = uuid.New().String()
@@ -113,7 +124,7 @@ func (s *service) Create(ctx context.Context, sessionInfo models.SessionInfo) (s
 	return session, nil
 }
 
-func (s *service) Delete(ctx context.Context, session string) error {
+func (s *service) DeleteSession(ctx context.Context, session string) error {
 	return s.sessionRepo.Delete(ctx, session)
 
 }
