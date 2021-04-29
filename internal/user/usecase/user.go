@@ -102,6 +102,16 @@ func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserA
 		return nil, err
 	}
 	user.HashPassword = nil
+
+	address, err := u.userRepository.GetAddress(ctx, user.Uid)
+	if err != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
+		return nil, err
+	}
+	if address != nil {
+		user.Address = *address
+	}
+
 	return &models.SuccessUserResponse{
 		User: *user,
 		Role: config.RoleUser,
