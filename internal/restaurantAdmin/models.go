@@ -58,6 +58,9 @@ type AdminRestaurantRepo interface {
 	GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error)
 	GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error)
 	UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error
+	AddAddress(ctx context.Context, rid int, address models.Address) error
+	UpdateAddress(ctx context.Context, rid int, address models.Address) error
+	GetAddress(ctx context.Context, rid int) (*models.Address, error)
 }
 
 type AdminDishRepo interface {
