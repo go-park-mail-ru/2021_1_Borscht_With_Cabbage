@@ -65,6 +65,7 @@ func route(data initRoute) {
 	auth.GET("/auth", data.user.CheckAuth)
 	auth.GET("/connect/ws", data.websocket.GetKey)
 	auth.GET("/chats", data.chat.GetAllChats)
+	auth.GET("/chat/:id", data.chat.GetAllMessages)
 	data.e.GET("/ws/:key", data.websocket.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)

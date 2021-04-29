@@ -26,13 +26,19 @@ type WebSocketRepo interface {
 
 type ChatHandler interface {
 	GetAllChats(c echo.Context) error
+	GetAllMessages(c echo.Context) error
 }
 
 type ChatUsecase interface {
 	GetAllChats(ctx context.Context) ([]models.BriefInfoChat, error)
+	GetAllMessages(ctx context.Context, id int) (*models.InfoChat, error)
 }
 
 type ChatRepo interface {
 	GetAllChatsUser(ctx context.Context, uid int) ([]models.BriefInfoChat, error)
 	GetAllChatsRestaurant(ctx context.Context, rid int) ([]models.BriefInfoChat, error)
+	GetAllMessagesFromUser(ctx context.Context, uid, rid int) ([]models.InfoMessage, error)
+	GetAllMessagesFromRestaurant(ctx context.Context, rid, uid int) ([]models.InfoMessage, error)
+	GetUser(ctx context.Context, uid int) (*models.InfoOpponent, error)
+	GetRestaurant(ctx context.Context, rid int) (*models.InfoOpponent, error)
 }
