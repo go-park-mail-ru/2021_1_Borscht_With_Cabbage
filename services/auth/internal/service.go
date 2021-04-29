@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
@@ -22,7 +23,7 @@ func NewService(userAuthRepo auth.UserAuthRepo, restaurantAuthRepo auth.Restaura
 	}
 }
 
-func (s *service) Create(ctx context.Context, user *protoAuth.User) (*protoAuth.SuccessUserResponse, error) {
+func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoAuth.SuccessUserResponse, error) {
 	newUser := models.User{
 		Email:    user.Email,
 		Phone:    user.Phone,
@@ -83,15 +84,66 @@ func (s *service) CheckUserExists(ctx context.Context, user *protoAuth.UserAuth)
 }
 
 func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.User) (*protoAuth.SuccessRestaurantResponse, error) {
-	panic("implement me")
+	newRestaurant := models.RestaurantInfo{
+		Title:         restaurant.Name,
+		AdminEmail:    restaurant.Email,
+		AdminPhone:    restaurant.Phone,
+		AdminPassword: restaurant.Password,
+	}
+
+	rid, err := s.restaurantAuthRepo.CreateRestaurant(ctx, newRestaurant)
+	if err != nil {
+		return nil, err
+	}
+
+	response := protoAuth.SuccessRestaurantResponse{
+		Title: restaurant.Name,
+		Email: restaurant.Email,
+		Phone: restaurant.Phone,
+		Role:  config.RoleAdmin,
+		RID:   int32(rid),
+	}
+
+	return &response, nil
 }
 
-func (a *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *protoAuth.UserAuth) (*protoAuth.SuccessRestaurantResponse, error) {
-	panic("implement me")
+func (s *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *protoAuth.UserAuth) (*protoAuth.SuccessRestaurantResponse, error) {
+	restaurant, err := s.restaurantAuthRepo.GetByLogin(ctx, restaurantAuth.Login)
+	if err != nil {
+		return nil, err
+	}
+
+	response := protoAuth.SuccessRestaurantResponse{
+		RID:          int32(restaurant.ID),
+		Title:        restaurant.Title,
+		Email:        restaurant.AdminEmail,
+		Phone:        restaurant.AdminPhone,
+		DeliveryCost: int32(restaurant.DeliveryCost),
+		AvgCheck:     int32(restaurant.AvgCheck),
+		Description:  restaurant.Description,
+		Rating:       float32(restaurant.Rating),
+		Avatar:       restaurant.Avatar,
+		Role:         config.RoleAdmin,
+	}
+
+	return &response, nil
 }
 
 func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.SuccessRestaurantResponse, error) {
-	panic("implement me")
+	restaurant, err := s.restaurantAuthRepo.GetByRid(ctx, int(rid.Rid))
+	if err != nil {
+		return nil, err
+	}
+
+	response := protoAuth.SuccessRestaurantResponse{
+		RID:    int32(restaurant.ID),
+		Title:  restaurant.Title,
+		Email:  restaurant.AdminEmail,
+		Phone:  restaurant.AdminPhone,
+		Avatar: restaurant.Avatar,
+	}
+
+	return &response, nil
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом

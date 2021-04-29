@@ -39,12 +39,8 @@ message SuccessUserResponse {
   string MainAddress = 8;
 }
 
-message Restaurant {
-
-}
-
 message RID {
-  int32 uid = 1;
+  int32 rid = 1;
 }
 
 message SuccessRestaurantResponse {
@@ -54,7 +50,11 @@ message SuccessRestaurantResponse {
   string Phone = 4;
   string Role = 5;
   string Avatar = 6;
-  int32 UID = 7;
+  int32 RID = 7;
+  float Rating = 8;
+  int32 DeliveryCost = 9;
+  int32 AvgCheck = 10;
+  string Description = 11;
 }
 
 message SessionValue {

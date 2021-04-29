@@ -69,29 +69,6 @@ func (a authRestaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant 
 	return rid, nil
 }
 
-func (a authRestaurantRepo) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
-	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
-	if err != nil {
-		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
-	}
-
-	restaurant := new(models.RestaurantInfo)
-	for DBuser.Next() {
-		err = DBuser.Scan(
-			&restaurant.Title,
-			&restaurant.AdminPhone,
-			&restaurant.AdminEmail,
-			&restaurant.Avatar,
-		)
-		if err != nil {
-			custError := errors.FailServerError(err.Error())
-			logger.RepoLevel().ErrorLog(ctx, custError)
-			return nil, custError
-		}
-	}
-	return restaurant, nil
-}
-
 func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error) {
 	restaurant := new(models.RestaurantInfo)
 	err := a.DB.QueryRow(`select rid, name, adminemail, adminphone, deliveryCost, avgCheck,
@@ -110,5 +87,28 @@ func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*mode
 		return nil, custError
 	}
 
+	return restaurant, nil
+}
+
+func (a authRestaurantRepo) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
+	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
+	if err != nil {
+		return nil, errors.NewErrorWithMessage("error with getting restaurant's data").SetDescription("user not found")
+	}
+
+	restaurant := new(models.RestaurantInfo)
+	for DBuser.Next() {
+		err = DBuser.Scan(
+			&restaurant.Title,
+			&restaurant.AdminPhone,
+			&restaurant.AdminEmail,
+			&restaurant.Avatar,
+		)
+		if err != nil {
+			custError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, custError)
+			return nil, custError
+		}
+	}
 	return restaurant, nil
 }

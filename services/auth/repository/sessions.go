@@ -66,6 +66,7 @@ func (s sessionRepo) Check(ctx context.Context, sessionToCheck string) (models.S
 	if err != nil {
 		return models.SessionInfo{}, false, err
 	}
+
 	return *sess, true, nil
 }
 

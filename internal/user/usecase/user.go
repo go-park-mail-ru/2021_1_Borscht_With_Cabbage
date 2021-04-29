@@ -33,58 +33,6 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 	}
 }
 
-//func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
-//	newUser.Avatar = config.DefaultUserImage
-//
-//	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
-//
-//	uid, err := u.userRepository.Create(ctx, newUser)
-//	if err != nil {
-//		return nil, err
-//	}
-//	newUser.Uid = uid
-//	newUser.Password = "" // TODO: подумать как это более аккуратно сделать
-//	newUser.HashPassword = nil
-//
-//	response := &models.SuccessUserResponse{
-//		User: newUser,
-//		Role: config.RoleUser,
-//	}
-//
-//	return response, nil
-//}
-
-//func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserAuth) (*models.SuccessUserResponse, error) {
-//	user, err := u.userRepository.GetByLogin(ctx, userAuth.Login)
-//	if err != nil {
-//		return nil, err
-//	}
-//	logger.UsecaseLevel().InlineDebugLog(ctx, &user.HashPassword)
-//
-//	if !secure.CheckPassword(ctx, user.HashPassword, userAuth.Password) {
-//		err = errors.AuthorizationError("bad password")
-//		logger.UsecaseLevel().ErrorLog(ctx, err)
-//		return nil, err
-//	}
-//	user.HashPassword = nil
-//	return &models.SuccessUserResponse{
-//		User: *user,
-//		Role: config.RoleUser,
-//	}, nil
-//}
-
-//func (u *userUsecase) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResponse, error) {
-//	user, err := u.userRepository.GetByUid(ctx, uid)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return &models.SuccessUserResponse{
-//		User: user,
-//		Role: config.RoleUser,
-//	}, nil
-//}
-
 func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserResponse, error) {
 	user := ctx.Value("User")
 

@@ -3,8 +3,8 @@ package middleware
 import (
 	"fmt"
 	restaurantMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-	sessionMock "github.com/borscht/backend/internal/session/mocks"
 	userMock "github.com/borscht/backend/internal/user/mocks"
+	"github.com/borscht/backend/services/auth/repository/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -16,7 +16,7 @@ func TestInitAuthMiddleware(t *testing.T) {
 	defer ctrl.Finish()
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 	restaurantUcase := restaurantMock.NewMockAdminRestaurantUsecase(ctrl)
-	sessionUsecase := sessionMock.NewMockSessionUsecase(ctrl)
+	sessionUsecase := mocks.NewMockSessionUsecase(ctrl)
 
 	authMiddleware := InitAuthMiddleware(userUcase, restaurantUcase, sessionUsecase)
 	if authMiddleware == nil {
@@ -68,7 +68,7 @@ func TestInitUserMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	userUcase := userMock.NewMockUserUsecase(ctrl)
-	sessionUsecase := sessionMock.NewMockSessionUsecase(ctrl)
+	sessionUsecase := mocks.NewMockSessionUsecase(ctrl)
 
 	userMiddleware := InitUserMiddleware(userUcase, sessionUsecase)
 	if userMiddleware == nil {
@@ -85,7 +85,7 @@ func TestInitAdminMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	restaurantUcase := restaurantMock.NewMockAdminRestaurantUsecase(ctrl)
-	sessionUsecase := sessionMock.NewMockSessionUsecase(ctrl)
+	sessionUsecase := mocks.NewMockSessionUsecase(ctrl)
 
 	adminMiddleware := InitAdminMiddleware(restaurantUcase, sessionUsecase)
 	if adminMiddleware == nil {

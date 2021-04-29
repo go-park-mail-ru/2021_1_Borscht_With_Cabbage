@@ -5,7 +5,7 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-	"github.com/borscht/backend/internal/session/mocks"
+	mocks2 "github.com/borscht/backend/services/auth/repository/mocks"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -19,7 +19,7 @@ func TestNewRestaurantHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 	if restaurantHandler == nil {
 		t.Errorf("incorrect result")
@@ -31,7 +31,7 @@ func TestRestaurantHandler_UpdateRestaurantData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	restaurant := models.RestaurantUpdateData{
@@ -68,7 +68,7 @@ func TestRestaurantHandler_UpdateRestaurantData_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	requestJSON := `{"Title""newName","Description":"yo","deliveryCost":200}`
@@ -98,7 +98,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	newRestaurant := models.RestaurantInfo{
@@ -140,7 +140,7 @@ func TestRestaurantHandler_CreateRestaurant_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	requestJSON := `{"Title""newName","password":"111111","number":"89111111111","email":"dasha@mail.ru"}`
@@ -170,7 +170,7 @@ func TestRestaurantHandler_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	newRestaurant := models.RestaurantAuth{
@@ -213,7 +213,7 @@ func TestRestaurantHandler_Login_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	requestJSON := `{"password""111111","login":"dasha@mail.ru"}`
@@ -251,7 +251,7 @@ func TestRestaurantHandler_UploadRestaurantImage_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionMock := mocks.NewMockSessionUsecase(ctrl)
+	SessionMock := mocks2.NewMockSessionUsecase(ctrl)
 	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, SessionMock)
 
 	e := echo.New()

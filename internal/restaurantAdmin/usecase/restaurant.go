@@ -69,56 +69,6 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 	}, nil
 }
 
-//func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-//	restaurant.Avatar = config.DefaultRestaurantImage
-//
-//	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
-//
-//	id, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
-//	if err != nil {
-//		return nil, err
-//	}
-//	restaurant.ID = id
-//	restaurant.AdminPassword = ""
-//	restaurant.AdminHashPassword = nil
-//
-//	return &models.SuccessRestaurantResponse{
-//		RestaurantInfo: restaurant,
-//		Role:           config.RoleAdmin,
-//	}, nil
-//}
-//
-//func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
-//	restaurant, err := a.restaurantRepository.GetByLogin(ctx, restaurantAuth.Login)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if !secure.CheckPassword(ctx, restaurant.AdminHashPassword, restaurantAuth.Password) {
-//		err = errors.AuthorizationError("bad password")
-//		logger.UsecaseLevel().ErrorLog(ctx, err)
-//		return nil, err
-//	}
-//
-//	restaurant.AdminHashPassword = nil
-//	return &models.SuccessRestaurantResponse{
-//		RestaurantInfo: *restaurant,
-//		Role:           config.RoleAdmin,
-//	}, nil
-//}
-//
-//func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
-//	response, err := a.restaurantRepository.GetByRid(ctx, rid)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return &models.SuccessRestaurantResponse{
-//		RestaurantInfo: *response,
-//		Role:           config.RoleAdmin,
-//	}, nil
-//}
-
 func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error) {
 	// парсим расширение
 	expansion := filepath.Ext(image.Filename)

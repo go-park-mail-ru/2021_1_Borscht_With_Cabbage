@@ -19,7 +19,6 @@ type ServiceAuth interface {
 	CheckSession(ctx context.Context, value string) (models.SessionInfo, bool, error)
 	CreateSession(ctx context.Context, sessionInfo models.SessionInfo) (string, error)
 	DeleteSession(ctx context.Context, session string) error
-	//	GetUserData(ctx context.Context) (*models.SuccessUserResponse, error)
 }
 
 type service struct {
@@ -40,7 +39,7 @@ func (s service) Create(ctx context.Context, user models.User) (*models.SuccessU
 		Phone:    user.Phone,
 		Password: user.Password,
 	}
-	userResponse, err := s.authService.Create(ctx, &request)
+	userResponse, err := s.authService.CreateUser(ctx, &request)
 	if err != nil {
 		return &models.SuccessUserResponse{}, err
 	}
@@ -70,6 +69,7 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 
 	userResponse := models.User{
 		Uid:    int(userResult.UID),
+		Name:   userResult.Name,
 		Phone:  userResult.Phone,
 		Email:  userResult.Email,
 		Avatar: userResult.Avatar,
@@ -92,12 +92,11 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 	}
 
 	UserResponse := models.User{
-		Uid:         uid,
-		Email:       user.Email,
-		Phone:       user.Phone,
-		MainAddress: user.MainAddress,
-		Avatar:      user.Avatar,
-		Name:        user.Name,
+		Uid:    uid,
+		Email:  user.Email,
+		Phone:  user.Phone,
+		Avatar: user.Avatar,
+		Name:   user.Name,
 	}
 
 	return &models.SuccessUserResponse{
@@ -141,8 +140,15 @@ func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.Re
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{
-		Title:  restaurantResult.Title,
-		Avatar: restaurantResult.Avatar,
+		ID:           int(restaurantResult.RID),
+		Title:        restaurantResult.Title,
+		AdminPhone:   restaurantResult.Phone,
+		AdminEmail:   restaurantResult.Email,
+		DeliveryCost: int(restaurantResult.DeliveryCost),
+		Description:  restaurantResult.Description,
+		Rating:       float64(restaurantResult.Rating),
+		AvgCheck:     int(restaurantResult.AvgCheck),
+		Avatar:       restaurantResult.Avatar,
 	}
 
 	return &models.SuccessRestaurantResponse{
@@ -153,7 +159,7 @@ func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.Re
 
 func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
 	RID := protoAuth.RID{
-		Uid: int32(rid),
+		Rid: int32(rid),
 	}
 
 	restaurantResult, err := s.authService.GetByRid(ctx, &RID)
@@ -161,8 +167,10 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{
-		Title:  restaurantResult.Title,
-		Avatar: restaurantResult.Avatar,
+		Title:      restaurantResult.Title,
+		AdminPhone: restaurantResult.Phone,
+		AdminEmail: restaurantResult.Email,
+		Avatar:     restaurantResult.Avatar,
 	}
 
 	return &models.SuccessRestaurantResponse{

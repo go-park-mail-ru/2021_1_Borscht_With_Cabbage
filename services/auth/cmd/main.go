@@ -37,7 +37,7 @@ func main() {
 	}
 	defer redisConn.Close()
 
-	lis, err := net.Listen("tcp", ":8081") // todo address
+	lis, err := net.Listen("tcp", ":8081")
 	if err != nil {
 		log.Fatalln("cant listen port", err)
 	}

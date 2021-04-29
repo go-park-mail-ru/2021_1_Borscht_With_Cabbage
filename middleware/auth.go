@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/services/auth"
@@ -26,6 +27,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		sessionData := new(models.SessionInfo)
 		var exists bool
 		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
+		fmt.Println("session data: ", sessionData)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -44,6 +46,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		if sessionData.Role == config.RoleAdmin {
 			restaurant, err := m.AuthService.GetByRid(ctx, sessionData.Id)
+			fmt.Println("rest ", restaurant)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}

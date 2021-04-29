@@ -38,65 +38,6 @@ func (u userRepo) checkUserWithThisData(ctx context.Context, number, email strin
 	return nil
 }
 
-//func (u userRepo) Create(ctx context.Context, newUser models.User) (int, error) {
-//	err := u.checkUserWithThisData(ctx, newUser.Phone, newUser.Email, 0)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	var uid int
-//	err = u.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
-//		newUser.Name, newUser.Phone, newUser.Email, newUser.HashPassword, config.DefaultUserImage).Scan(&uid)
-//	if err != nil {
-//		insertError := errors.FailServerError(err.Error())
-//		logger.RepoLevel().ErrorLog(ctx, insertError)
-//		return 0, insertError
-//	}
-//
-//	return uid, nil
-//}
-
-//func (u userRepo) GetByLogin(ctx context.Context, login string) (*models.User, error) {
-//	user := new(models.User)
-//
-//	err := u.DB.QueryRow("select uid, name, phone, email, photo, password from users where (phone=$1 or email=$1)",
-//		login).Scan(&user.Uid, &user.Name, &user.Phone, &user.Email, &user.Avatar, &user.HashPassword)
-//	if err == sql.ErrNoRows {
-//		return nil, errors.AuthorizationError("user not found")
-//	}
-//	if err != nil {
-//		failError := errors.FailServerError(err.Error())
-//		logger.RepoLevel().ErrorLog(ctx, failError)
-//		return nil, failError
-//	}
-//
-//	logger.RepoLevel().InlineDebugLog(ctx, user.HashPassword)
-//
-//	return user, nil
-//}
-
-//func (u userRepo) GetByUid(ctx context.Context, uid int) (models.User, error) {
-//	DBuser, err := u.DB.Query("select name, phone, email, photo from users where uid=$1", uid)
-//	if err != nil {
-//		return models.User{}, errors.NewErrorWithMessage("user not authorization").SetDescription("user not found")
-//	}
-//	user := new(models.User)
-//	for DBuser.Next() {
-//		err = DBuser.Scan(
-//			&user.Name,
-//			&user.Phone,
-//			&user.Email,
-//			&user.Avatar,
-//		)
-//		if err != nil {
-//			failError := errors.FailServerError(err.Error())
-//			logger.RepoLevel().ErrorLog(ctx, failError)
-//			return models.User{}, failError
-//		}
-//	}
-//	return *user, nil
-//}
-
 func (u userRepo) UpdateData(ctx context.Context, user models.UserData) error {
 	err := u.checkUserWithThisData(ctx, user.Phone, user.Email, user.ID)
 
