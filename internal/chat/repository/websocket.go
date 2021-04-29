@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/websocket"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 )
@@ -14,7 +14,7 @@ type websocketRepo struct {
 	DB *sql.DB
 }
 
-func NewWebsocketRepo(db *sql.DB) websocket.WebSocketRepo {
+func NewWebsocketRepo(db *sql.DB) chat.WebSocketRepo {
 	return &websocketRepo{
 		DB: db,
 	}
@@ -23,14 +23,14 @@ func NewWebsocketRepo(db *sql.DB) websocket.WebSocketRepo {
 func (w websocketRepo) SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (
 	mid int, err error) {
 
-	queri :=
+	query :=
 		`
 	INSERT INTO messages (sentFromUser, sentToRestaurant, content, sentWhen) 
 	VALUES ($1, $2, $3, $4) 
 	RETURNING mid
 	`
 
-	err = w.DB.QueryRow(queri, info.SentFromId, info.SentToId,
+	err = w.DB.QueryRow(query, info.SentFromId, info.SentToId,
 		info.Content, info.Date).Scan(&mid)
 
 	if err != nil {
@@ -45,14 +45,14 @@ func (w websocketRepo) SaveMessageFromUser(ctx context.Context, info models.WsMe
 func (w websocketRepo) SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (
 	mid int, err error) {
 
-	queri :=
+	query :=
 		`
 	INSERT INTO messages (sentFromRestaurant, sentToUser, content, sentWhen) 
 	VALUES ($1, $2, $3, $4) 
 	RETURNING mid
 	`
 
-	err = w.DB.QueryRow(queri, info.SentFromId, info.SentToId,
+	err = w.DB.QueryRow(query, info.SentFromId, info.SentToId,
 		info.Content, info.Date).Scan(&mid)
 
 	if err != nil {

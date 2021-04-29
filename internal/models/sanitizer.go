@@ -142,3 +142,10 @@ func (u *Address) Sanitize() {
 	u.Latitude = sanitizer.Sanitize(u.Latitude)
 	u.Longitude = sanitizer.Sanitize(u.Longitude)
 }
+
+func (u *BriefInfoChat) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Avatar = sanitizer.Sanitize(u.Avatar)
+	u.LastMessage = sanitizer.Sanitize(u.LastMessage)
+}

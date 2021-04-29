@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	custWebsocket "github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/session"
-	custWebsocket "github.com/borscht/backend/internal/websocket"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/gorilla/websocket"

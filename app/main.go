@@ -6,6 +6,10 @@ import (
 	"log"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/chat"
+	chatDelivery "github.com/borscht/backend/internal/chat/delivery/http"
+	chatRepo "github.com/borscht/backend/internal/chat/repository"
+	chatUsecase "github.com/borscht/backend/internal/chat/usecase"
 	imageRepo "github.com/borscht/backend/internal/image/repository"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/internal/order/delivery/http"
@@ -25,10 +29,6 @@ import (
 	userDelivery "github.com/borscht/backend/internal/user/delivery/http"
 	userRepo "github.com/borscht/backend/internal/user/repository"
 	userUcase "github.com/borscht/backend/internal/user/usecase"
-	"github.com/borscht/backend/internal/websocket"
-	websocketDelivery "github.com/borscht/backend/internal/websocket/delivery/http"
-	wsRepo "github.com/borscht/backend/internal/websocket/repository"
-	wsUsecase "github.com/borscht/backend/internal/websocket/usecase"
 	custMiddleware "github.com/borscht/backend/middleware"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
@@ -46,7 +46,8 @@ type initRoute struct {
 	dishAdmin       restaurantAdmin.AdminDishHandler
 	sectionAdmin    restaurantAdmin.AdminSectionHandler
 	order           order.OrderHandler
-	websocket       websocket.WebSocketHandler
+	websocket       chat.WebSocketHandler
+	chat            chat.ChatHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
@@ -63,6 +64,7 @@ func route(data initRoute) {
 	userGroup.GET("/address", data.user.GetMainAddress)
 	auth.GET("/auth", data.user.CheckAuth)
 	auth.GET("/connect/ws", data.websocket.GetKey)
+	auth.GET("/chats", data.chat.GetAllChats)
 	data.e.GET("/ws/:key", data.websocket.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
@@ -142,7 +144,8 @@ func main() {
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	imageRepo := imageRepo.NewImageRepo()
-	wsRepo := wsRepo.NewWebsocketRepo(db)
+	wsRepo := chatRepo.NewWebsocketRepo(db)
+	chatRepo := chatRepo.NewChattRepo(db)
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	orderRepo := repository.NewOrderRepo(db)
@@ -150,9 +153,10 @@ func main() {
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
-	wsUsecase := wsUsecase.NewWebSocketUsecase(wsRepo)
+	wsUsecase := chatUsecase.NewWebSocketUsecase(wsRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
+	chatUsecase := chatUsecase.NewChatUsecase(chatRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
@@ -160,7 +164,8 @@ func main() {
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 	orderHandler := http.NewOrderHandler(orderUsecase)
-	websocketHandler := websocketDelivery.NewWebSocketHandler(wsUsecase, sessionUcase)
+	websocketHandler := chatDelivery.NewWebSocketHandler(wsUsecase, sessionUcase)
+	chatHandler := chatDelivery.NewChatHandler(chatUsecase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
@@ -176,6 +181,7 @@ func main() {
 		restaurant:      restaurantHandler,
 		order:           orderHandler,
 		websocket:       websocketHandler,
+		chat:            chatHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,

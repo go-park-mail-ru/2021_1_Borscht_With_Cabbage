@@ -1,4 +1,4 @@
-package websocket
+package chat
 
 import (
 	"context"
@@ -22,4 +22,17 @@ type WebSocketUsecase interface {
 type WebSocketRepo interface {
 	SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
 	SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
+}
+
+type ChatHandler interface {
+	GetAllChats(c echo.Context) error
+}
+
+type ChatUsecase interface {
+	GetAllChats(ctx context.Context) ([]models.BriefInfoChat, error)
+}
+
+type ChatRepo interface {
+	GetAllChatsUser(ctx context.Context, uid int) ([]models.BriefInfoChat, error)
+	GetAllChatsRestaurant(ctx context.Context, rid int) ([]models.BriefInfoChat, error)
 }
