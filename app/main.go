@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/borscht/backend/internal/services/auth"
-	"github.com/borscht/backend/services/proto/auth"
+	protoAuth "github.com/borscht/backend/services/proto/auth"
 	"google.golang.org/grpc"
 	"log"
 

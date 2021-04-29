@@ -22,7 +22,7 @@ func NewService(userAuthRepo auth.UserAuthRepo, restaurantAuthRepo auth.Restaura
 	}
 }
 
-func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (protoAuth.SuccessUserResponse, error) {
+func (s *service) Create(ctx context.Context, user *protoAuth.User) (*protoAuth.SuccessUserResponse, error) {
 	newUser := models.User{
 		Email:    user.Email,
 		Phone:    user.Phone,
@@ -32,7 +32,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (protoAu
 
 	uid, err := s.userAuthRepo.Create(ctx, newUser)
 	if err != nil {
-		return protoAuth.SuccessUserResponse{}, err
+		return nil, err
 	}
 
 	response := protoAuth.SuccessUserResponse{
@@ -43,13 +43,13 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (protoAu
 		Avatar: "",
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (s *service) GetByUid(ctx context.Context, uid int) (protoAuth.SuccessUserResponse, error) {
-	userResult, err := s.userAuthRepo.GetByUid(ctx, uid)
+func (s *service) GetByUid(ctx context.Context, uid *protoAuth.UID) (*protoAuth.SuccessUserResponse, error) {
+	userResult, err := s.userAuthRepo.GetByUid(ctx, int(uid.Uid))
 	if err != nil {
-		return protoAuth.SuccessUserResponse{}, err
+		return nil, err
 	}
 
 	response := protoAuth.SuccessUserResponse{
@@ -57,17 +57,17 @@ func (s *service) GetByUid(ctx context.Context, uid int) (protoAuth.SuccessUserR
 		Phone:       userResult.Phone,
 		Name:        userResult.Name,
 		MainAddress: userResult.MainAddress,
-		UID:         int32(uid),
+		UID:         int32(uid.Uid),
 		Avatar:      "",
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (s *service) CheckUserExists(ctx context.Context, user protoAuth.UserAuth) (protoAuth.SuccessUserResponse, error) {
+func (s *service) CheckUserExists(ctx context.Context, user *protoAuth.UserAuth) (*protoAuth.SuccessUserResponse, error) {
 	userResult, err := s.userAuthRepo.GetByLogin(ctx, user.Login)
 	if err != nil {
-		return protoAuth.SuccessUserResponse{}, err
+		return nil, err
 	}
 
 	response := protoAuth.SuccessUserResponse{
@@ -79,28 +79,38 @@ func (s *service) CheckUserExists(ctx context.Context, user protoAuth.UserAuth) 
 		Avatar:      "",
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func (s *service) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-
+func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.User) (*protoAuth.SuccessRestaurantResponse, error) {
+	panic("implement me")
 }
 
-func (s *service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
-
+func (a *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *protoAuth.UserAuth) (*protoAuth.SuccessRestaurantResponse, error) {
+	panic("implement me")
 }
 
-func (a *service) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
-
+func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.SuccessRestaurantResponse, error) {
+	panic("implement me")
 }
 
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
-func (s *service) CheckSession(ctx context.Context, session string) (models.SessionInfo, bool, error) {
-	return s.sessionRepo.Check(ctx, session)
+func (s *service) CheckSession(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.SessionInfo, error) {
+	sessionInfo, exists, err := s.sessionRepo.Check(ctx, session.Session)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionOutput := protoAuth.SessionInfo{
+		Id:     int32(sessionInfo.Id),
+		Role:   sessionInfo.Role,
+		Exists: exists,
+	}
+	return &sessionOutput, nil
 }
 
 // создание уникальной сессии
-func (s *service) CreateSession(ctx context.Context, sessionInfo models.SessionInfo) (string, error) {
+func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.SessionInfo) (*protoAuth.SessionValue, error) {
 	session := ""
 	for {
 		session = uuid.New().String()
@@ -113,18 +123,22 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo models.SessionI
 
 	sessionData := models.SessionData{
 		Session: session,
-		Id:      sessionInfo.Id,
+		Id:      int(sessionInfo.Id),
 		Role:    sessionInfo.Role,
 	}
 	err := s.sessionRepo.Create(ctx, sessionData)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return session, nil
+	sessionOutput := protoAuth.SessionValue{
+		Session: session,
+	}
+
+	return &sessionOutput, nil
 }
 
-func (s *service) DeleteSession(ctx context.Context, session string) error {
-	return s.sessionRepo.Delete(ctx, session)
-
+func (s *service) DeleteSession(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.Error, error) {
+	err := s.sessionRepo.Delete(ctx, session.Session)
+	return nil, err
 }

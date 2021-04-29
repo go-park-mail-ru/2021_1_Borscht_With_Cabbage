@@ -11,7 +11,6 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
-	//sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -19,17 +18,15 @@ import (
 )
 
 type Handler struct {
-	UserUcase  userModel.UserUsecase
-	AdminUcase adminModel.AdminRestaurantUsecase
-	//SessionUcase sessionModel.SessionUsecase
+	UserUcase   userModel.UserUsecase
+	AdminUcase  adminModel.AdminRestaurantUsecase
 	AuthService auth.ServiceAuth
 }
 
 func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminRestaurantUsecase, serviceAuth auth.ServiceAuth) userModel.UserHandler {
 	handler := &Handler{
-		UserUcase:  userUcase,
-		AdminUcase: adminUcase,
-		//SessionUcase: sessionUcase,
+		UserUcase:   userUcase,
+		AdminUcase:  adminUcase,
 		AuthService: serviceAuth,
 	}
 
@@ -59,7 +56,6 @@ func (h Handler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	newUser := new(models.User)
-
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -71,7 +67,6 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	responseUser, err := h.AuthService.Create(ctx, *newUser)
-	//responseUser, err := h.UserUcase.Create(ctx, *newUser)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -104,12 +99,11 @@ func (h Handler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
-		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
 
-	//oldUser, err := h.UserUcase.CheckUserExists(ctx, *newUser)
 	oldUser, err := h.AuthService.CheckUserExists(ctx, *newUser)
+	fmt.Println(err)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -119,6 +113,7 @@ func (h Handler) Login(c echo.Context) error {
 		Role: config.RoleUser,
 	}
 	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
+	fmt.Println(err)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -209,7 +204,6 @@ func (h Handler) CheckAuth(c echo.Context) error {
 
 	case config.RoleUser:
 		user, err := h.AuthService.GetByUid(ctx, sessionData.Id)
-		//user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
 		if err != nil {
 			sendErr := errors.BadRequestError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)

@@ -108,26 +108,111 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 
 // restaurants
 func (s service) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	panic("implement me")
+	restaurantToService := protoAuth.User{
+		Name:     restaurant.Title,
+		Email:    restaurant.AdminEmail,
+		Phone:    restaurant.AdminPhone,
+		Password: restaurant.AdminPassword,
+	}
+
+	restaurantResult, err := s.authService.CreateRestaurant(ctx, &restaurantToService)
+	if err != nil {
+		return nil, err
+	}
+	restaurantResponse := models.RestaurantInfo{
+		Title:  restaurantResult.Title,
+		Avatar: restaurant.Avatar,
+	}
+
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: restaurantResponse,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
-func (s service) CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
-	panic("implement me")
+func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
+	authParametres := protoAuth.UserAuth{
+		Login:    restaurant.Login,
+		Password: restaurant.Password,
+	}
+
+	restaurantResult, err := s.authService.CheckRestaurantExists(ctx, &authParametres)
+	if err != nil {
+		return nil, err
+	}
+	restaurantResponse := models.RestaurantInfo{
+		Title:  restaurantResult.Title,
+		Avatar: restaurantResult.Avatar,
+	}
+
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: restaurantResponse,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
 func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
-	panic("implement me")
+	RID := protoAuth.RID{
+		Uid: int32(rid),
+	}
+
+	restaurantResult, err := s.authService.GetByRid(ctx, &RID)
+	if err != nil {
+		return nil, err
+	}
+	restaurantResponse := models.RestaurantInfo{
+		Title:  restaurantResult.Title,
+		Avatar: restaurantResult.Avatar,
+	}
+
+	return &models.SuccessRestaurantResponse{
+		RestaurantInfo: restaurantResponse,
+		Role:           config.RoleAdmin,
+	}, nil
 }
 
 // sessions
 func (s service) CheckSession(ctx context.Context, value string) (models.SessionInfo, bool, error) {
-	panic("implement me")
+	session := protoAuth.SessionValue{
+		Session: value,
+	}
+
+	sessionInfo, err := s.authService.CheckSession(ctx, &session)
+	if err != nil {
+		return models.SessionInfo{}, false, err
+	}
+
+	sessionOutput := models.SessionInfo{
+		Id:   int(sessionInfo.Id),
+		Role: sessionInfo.Role,
+	}
+
+	return sessionOutput, true, nil
 }
 
 func (s service) CreateSession(ctx context.Context, sessionInfo models.SessionInfo) (string, error) {
-	panic("implement me")
+	session := protoAuth.SessionInfo{
+		Id:   int32(sessionInfo.Id),
+		Role: sessionInfo.Role,
+	}
+
+	sessionValue, err := s.authService.CreateSession(ctx, &session)
+	if err != nil {
+		return "", err
+	}
+
+	return sessionValue.Session, nil
 }
 
 func (s service) DeleteSession(ctx context.Context, session string) error {
-	panic("implement me")
+	sessionValue := protoAuth.SessionValue{
+		Session: session,
+	}
+
+	_, err := s.authService.DeleteSession(ctx, &sessionValue)
+	if err != nil {
+		return nil
+	}
+
+	return nil
 }

@@ -1,4 +1,4 @@
-package authService
+package main
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	repo "github.com/borscht/backend/services/auth/repository"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
 	"github.com/gomodule/redigo/redis"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"log"
 	"net"

@@ -4,7 +4,7 @@
 // 	protoc        v3.6.1
 // source: auth.proto
 
-package protoAuth
+package auth
 
 import (
 	context "context"
@@ -355,6 +355,367 @@ func (x *SuccessUserResponse) GetMainAddress() string {
 	return ""
 }
 
+type Restaurant struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Title    string `protobuf:"bytes,1,opt,name=Title,proto3" json:"Title,omitempty"`
+	Email    string `protobuf:"bytes,2,opt,name=Email,proto3" json:"Email,omitempty"`
+	Password string `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"`
+	Phone    string `protobuf:"bytes,4,opt,name=Phone,proto3" json:"Phone,omitempty"`
+}
+
+func (x *Restaurant) Reset() {
+	*x = Restaurant{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_auth_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Restaurant) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Restaurant) ProtoMessage() {}
+
+func (x *Restaurant) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Restaurant.ProtoReflect.Descriptor instead.
+func (*Restaurant) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Restaurant) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Restaurant) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Restaurant) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *Restaurant) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+type RID struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Uid int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+}
+
+func (x *RID) Reset() {
+	*x = RID{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_auth_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RID) ProtoMessage() {}
+
+func (x *RID) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RID.ProtoReflect.Descriptor instead.
+func (*RID) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RID) GetUid() int32 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+type SuccessRestaurantResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Title    string `protobuf:"bytes,1,opt,name=Title,proto3" json:"Title,omitempty"`
+	Email    string `protobuf:"bytes,2,opt,name=Email,proto3" json:"Email,omitempty"`
+	Password string `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"`
+	Phone    string `protobuf:"bytes,4,opt,name=Phone,proto3" json:"Phone,omitempty"`
+	Role     string `protobuf:"bytes,5,opt,name=Role,proto3" json:"Role,omitempty"`
+	Avatar   string `protobuf:"bytes,6,opt,name=Avatar,proto3" json:"Avatar,omitempty"`
+	UID      int32  `protobuf:"varint,7,opt,name=UID,proto3" json:"UID,omitempty"`
+}
+
+func (x *SuccessRestaurantResponse) Reset() {
+	*x = SuccessRestaurantResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_auth_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SuccessRestaurantResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuccessRestaurantResponse) ProtoMessage() {}
+
+func (x *SuccessRestaurantResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuccessRestaurantResponse.ProtoReflect.Descriptor instead.
+func (*SuccessRestaurantResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SuccessRestaurantResponse) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SuccessRestaurantResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *SuccessRestaurantResponse) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *SuccessRestaurantResponse) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *SuccessRestaurantResponse) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *SuccessRestaurantResponse) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
+func (x *SuccessRestaurantResponse) GetUID() int32 {
+	if x != nil {
+		return x.UID
+	}
+	return 0
+}
+
+type SessionValue struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Session string `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+}
+
+func (x *SessionValue) Reset() {
+	*x = SessionValue{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_auth_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SessionValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionValue) ProtoMessage() {}
+
+func (x *SessionValue) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionValue.ProtoReflect.Descriptor instead.
+func (*SessionValue) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SessionValue) GetSession() string {
+	if x != nil {
+		return x.Session
+	}
+	return ""
+}
+
+type SessionInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id     int32  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Role   string `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	Exists bool   `protobuf:"varint,3,opt,name=exists,proto3" json:"exists,omitempty"`
+}
+
+func (x *SessionInfo) Reset() {
+	*x = SessionInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_auth_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SessionInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionInfo) ProtoMessage() {}
+
+func (x *SessionInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionInfo.ProtoReflect.Descriptor instead.
+func (*SessionInfo) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SessionInfo) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SessionInfo) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *SessionInfo) GetExists() bool {
+	if x != nil {
+		return x.Exists
+	}
+	return false
+}
+
+type Error struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Error) Reset() {
+	*x = Error{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_auth_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Error) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Error) ProtoMessage() {}
+
+func (x *Error) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Error.ProtoReflect.Descriptor instead.
+func (*Error) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{10}
+}
+
 var File_auth_proto protoreflect.FileDescriptor
 
 var file_auth_proto_rawDesc = []byte{
@@ -388,24 +749,78 @@ var file_auth_proto_rawDesc = []byte{
 	0x74, 0x61, 0x72, 0x12, 0x10, 0x0a, 0x03, 0x55, 0x49, 0x44, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05,
 	0x52, 0x03, 0x55, 0x49, 0x44, 0x12, 0x20, 0x0a, 0x0b, 0x4d, 0x61, 0x69, 0x6e, 0x41, 0x64, 0x64,
 	0x72, 0x65, 0x73, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x4d, 0x61, 0x69, 0x6e,
-	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x32, 0xcb, 0x01, 0x0a, 0x04, 0x41, 0x75, 0x74, 0x68,
-	0x12, 0x3b, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x1a, 0x1e, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x55,
-	0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x48, 0x0a,
-	0x0f, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x55, 0x73, 0x65, 0x72, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73,
-	0x12, 0x13, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x73, 0x65,
-	0x72, 0x41, 0x75, 0x74, 0x68, 0x1a, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74,
-	0x68, 0x2e, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3c, 0x0a, 0x08, 0x47, 0x65, 0x74, 0x42, 0x79,
-	0x55, 0x69, 0x64, 0x12, 0x0e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e,
-	0x55, 0x49, 0x44, 0x1a, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e,
-	0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x34, 0x5a, 0x32, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x6f, 0x72, 0x73, 0x63, 0x68, 0x74, 0x2f, 0x62, 0x61, 0x63, 0x6b,
-	0x65, 0x6e, 0x64, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x73, 0x65, 0x72,
-	0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x6a, 0x0a, 0x0a, 0x52, 0x65, 0x73, 0x74, 0x61,
+	0x75, 0x72, 0x61, 0x6e, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x45,
+	0x6d, 0x61, 0x69, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x45, 0x6d, 0x61, 0x69,
+	0x6c, 0x12, 0x1a, 0x0a, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x14, 0x0a,
+	0x05, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x50, 0x68,
+	0x6f, 0x6e, 0x65, 0x22, 0x17, 0x0a, 0x03, 0x52, 0x49, 0x44, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x75, 0x69, 0x64, 0x22, 0xb7, 0x01, 0x0a,
+	0x19, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61,
+	0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x54, 0x69,
+	0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x54, 0x69, 0x74, 0x6c, 0x65,
+	0x12, 0x14, 0x0a, 0x05, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x05, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x12, 0x1a, 0x0a, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f,
+	0x72, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f,
+	0x72, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x05, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x52, 0x6f, 0x6c, 0x65,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x52, 0x6f, 0x6c, 0x65, 0x12, 0x16, 0x0a, 0x06,
+	0x41, 0x76, 0x61, 0x74, 0x61, 0x72, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x41, 0x76,
+	0x61, 0x74, 0x61, 0x72, 0x12, 0x10, 0x0a, 0x03, 0x55, 0x49, 0x44, 0x18, 0x07, 0x20, 0x01, 0x28,
+	0x05, 0x52, 0x03, 0x55, 0x49, 0x44, 0x22, 0x28, 0x0a, 0x0c, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f,
+	0x6e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f,
+	0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x22, 0x49, 0x0a, 0x0b, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x12,
+	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69, 0x64, 0x12,
+	0x12, 0x0a, 0x04, 0x72, 0x6f, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x72,
+	0x6f, 0x6c, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x78, 0x69, 0x73, 0x74, 0x73, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x06, 0x65, 0x78, 0x69, 0x73, 0x74, 0x73, 0x22, 0x07, 0x0a, 0x05, 0x45,
+	0x72, 0x72, 0x6f, 0x72, 0x32, 0xf7, 0x04, 0x0a, 0x04, 0x41, 0x75, 0x74, 0x68, 0x12, 0x3b, 0x0a,
+	0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41,
+	0x75, 0x74, 0x68, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x1a, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x55, 0x73, 0x65, 0x72,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x48, 0x0a, 0x0f, 0x43, 0x68,
+	0x65, 0x63, 0x6b, 0x55, 0x73, 0x65, 0x72, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x12, 0x13, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x41, 0x75,
+	0x74, 0x68, 0x1a, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53,
+	0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x3c, 0x0a, 0x08, 0x47, 0x65, 0x74, 0x42, 0x79, 0x55, 0x69, 0x64,
+	0x12, 0x0e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x49, 0x44,
+	0x1a, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x75, 0x63,
+	0x63, 0x65, 0x73, 0x73, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x4b, 0x0a, 0x10, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x74,
+	0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x12, 0x0f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75,
+	0x74, 0x68, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x1a, 0x24, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41,
+	0x75, 0x74, 0x68, 0x2e, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x74, 0x61,
+	0x75, 0x72, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x54, 0x0a, 0x15, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61,
+	0x6e, 0x74, 0x45, 0x78, 0x69, 0x73, 0x74, 0x73, 0x12, 0x13, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x41, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x41, 0x75, 0x74, 0x68, 0x1a, 0x24, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73,
+	0x73, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x42, 0x0a, 0x08, 0x47, 0x65, 0x74, 0x42, 0x79, 0x52, 0x69,
+	0x64, 0x12, 0x0e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x52, 0x49,
+	0x44, 0x1a, 0x24, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x75,
+	0x63, 0x63, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x0c, 0x43, 0x68, 0x65,
+	0x63, 0x6b, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x1a, 0x16, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53,
+	0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x00, 0x12, 0x42, 0x0a, 0x0d,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x16, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f,
+	0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x1a, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74,
+	0x68, 0x2e, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x00,
+	0x12, 0x3c, 0x0a, 0x0d, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f,
+	0x6e, 0x12, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x53, 0x65,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x10, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x41, 0x75, 0x74, 0x68, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x00, 0x42, 0x34,
+	0x5a, 0x32, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x6f, 0x72,
+	0x73, 0x63, 0x68, 0x74, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x69, 0x6e, 0x74,
+	0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -420,26 +835,44 @@ func file_auth_proto_rawDescGZIP() []byte {
 	return file_auth_proto_rawDescData
 }
 
-var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_auth_proto_goTypes = []interface{}{
-	(*Session)(nil),             // 0: protoAuth.Session
-	(*User)(nil),                // 1: protoAuth.User
-	(*UID)(nil),                 // 2: protoAuth.UID
-	(*UserAuth)(nil),            // 3: protoAuth.UserAuth
-	(*SuccessUserResponse)(nil), // 4: protoAuth.SuccessUserResponse
+	(*Session)(nil),                   // 0: protoAuth.Session
+	(*User)(nil),                      // 1: protoAuth.User
+	(*UID)(nil),                       // 2: protoAuth.UID
+	(*UserAuth)(nil),                  // 3: protoAuth.UserAuth
+	(*SuccessUserResponse)(nil),       // 4: protoAuth.SuccessUserResponse
+	(*Restaurant)(nil),                // 5: protoAuth.Restaurant
+	(*RID)(nil),                       // 6: protoAuth.RID
+	(*SuccessRestaurantResponse)(nil), // 7: protoAuth.SuccessRestaurantResponse
+	(*SessionValue)(nil),              // 8: protoAuth.SessionValue
+	(*SessionInfo)(nil),               // 9: protoAuth.SessionInfo
+	(*Error)(nil),                     // 10: protoAuth.Error
 }
 var file_auth_proto_depIdxs = []int32{
-	1, // 0: protoAuth.Auth.Create:input_type -> protoAuth.User
-	3, // 1: protoAuth.Auth.CheckUserExists:input_type -> protoAuth.UserAuth
-	2, // 2: protoAuth.Auth.GetByUid:input_type -> protoAuth.UID
-	4, // 3: protoAuth.Auth.Create:output_type -> protoAuth.SuccessUserResponse
-	4, // 4: protoAuth.Auth.CheckUserExists:output_type -> protoAuth.SuccessUserResponse
-	4, // 5: protoAuth.Auth.GetByUid:output_type -> protoAuth.SuccessUserResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1,  // 0: protoAuth.Auth.Create:input_type -> protoAuth.User
+	3,  // 1: protoAuth.Auth.CheckUserExists:input_type -> protoAuth.UserAuth
+	2,  // 2: protoAuth.Auth.GetByUid:input_type -> protoAuth.UID
+	1,  // 3: protoAuth.Auth.CreateRestaurant:input_type -> protoAuth.User
+	3,  // 4: protoAuth.Auth.CheckRestaurantExists:input_type -> protoAuth.UserAuth
+	6,  // 5: protoAuth.Auth.GetByRid:input_type -> protoAuth.RID
+	8,  // 6: protoAuth.Auth.CheckSession:input_type -> protoAuth.SessionValue
+	9,  // 7: protoAuth.Auth.CreateSession:input_type -> protoAuth.SessionInfo
+	8,  // 8: protoAuth.Auth.DeleteSession:input_type -> protoAuth.SessionValue
+	4,  // 9: protoAuth.Auth.Create:output_type -> protoAuth.SuccessUserResponse
+	4,  // 10: protoAuth.Auth.CheckUserExists:output_type -> protoAuth.SuccessUserResponse
+	4,  // 11: protoAuth.Auth.GetByUid:output_type -> protoAuth.SuccessUserResponse
+	7,  // 12: protoAuth.Auth.CreateRestaurant:output_type -> protoAuth.SuccessRestaurantResponse
+	7,  // 13: protoAuth.Auth.CheckRestaurantExists:output_type -> protoAuth.SuccessRestaurantResponse
+	7,  // 14: protoAuth.Auth.GetByRid:output_type -> protoAuth.SuccessRestaurantResponse
+	9,  // 15: protoAuth.Auth.CheckSession:output_type -> protoAuth.SessionInfo
+	8,  // 16: protoAuth.Auth.CreateSession:output_type -> protoAuth.SessionValue
+	10, // 17: protoAuth.Auth.DeleteSession:output_type -> protoAuth.Error
+	9,  // [9:18] is the sub-list for method output_type
+	0,  // [0:9] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_auth_proto_init() }
@@ -508,6 +941,78 @@ func file_auth_proto_init() {
 				return nil
 			}
 		}
+		file_auth_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Restaurant); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_auth_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RID); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_auth_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SuccessRestaurantResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_auth_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SessionValue); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_auth_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SessionInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_auth_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Error); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -515,7 +1020,7 @@ func file_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_auth_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -544,6 +1049,12 @@ type AuthClient interface {
 	Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*SuccessUserResponse, error)
 	CheckUserExists(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*SuccessUserResponse, error)
 	GetByUid(ctx context.Context, in *UID, opts ...grpc.CallOption) (*SuccessUserResponse, error)
+	CreateRestaurant(ctx context.Context, in *User, opts ...grpc.CallOption) (*SuccessRestaurantResponse, error)
+	CheckRestaurantExists(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*SuccessRestaurantResponse, error)
+	GetByRid(ctx context.Context, in *RID, opts ...grpc.CallOption) (*SuccessRestaurantResponse, error)
+	CheckSession(ctx context.Context, in *SessionValue, opts ...grpc.CallOption) (*SessionInfo, error)
+	CreateSession(ctx context.Context, in *SessionInfo, opts ...grpc.CallOption) (*SessionValue, error)
+	DeleteSession(ctx context.Context, in *SessionValue, opts ...grpc.CallOption) (*Error, error)
 }
 
 type authClient struct {
@@ -581,11 +1092,71 @@ func (c *authClient) GetByUid(ctx context.Context, in *UID, opts ...grpc.CallOpt
 	return out, nil
 }
 
+func (c *authClient) CreateRestaurant(ctx context.Context, in *User, opts ...grpc.CallOption) (*SuccessRestaurantResponse, error) {
+	out := new(SuccessRestaurantResponse)
+	err := c.cc.Invoke(ctx, "/protoAuth.Auth/CreateRestaurant", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) CheckRestaurantExists(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*SuccessRestaurantResponse, error) {
+	out := new(SuccessRestaurantResponse)
+	err := c.cc.Invoke(ctx, "/protoAuth.Auth/CheckRestaurantExists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) GetByRid(ctx context.Context, in *RID, opts ...grpc.CallOption) (*SuccessRestaurantResponse, error) {
+	out := new(SuccessRestaurantResponse)
+	err := c.cc.Invoke(ctx, "/protoAuth.Auth/GetByRid", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) CheckSession(ctx context.Context, in *SessionValue, opts ...grpc.CallOption) (*SessionInfo, error) {
+	out := new(SessionInfo)
+	err := c.cc.Invoke(ctx, "/protoAuth.Auth/CheckSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) CreateSession(ctx context.Context, in *SessionInfo, opts ...grpc.CallOption) (*SessionValue, error) {
+	out := new(SessionValue)
+	err := c.cc.Invoke(ctx, "/protoAuth.Auth/CreateSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) DeleteSession(ctx context.Context, in *SessionValue, opts ...grpc.CallOption) (*Error, error) {
+	out := new(Error)
+	err := c.cc.Invoke(ctx, "/protoAuth.Auth/DeleteSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 type AuthServer interface {
 	Create(context.Context, *User) (*SuccessUserResponse, error)
 	CheckUserExists(context.Context, *UserAuth) (*SuccessUserResponse, error)
 	GetByUid(context.Context, *UID) (*SuccessUserResponse, error)
+	CreateRestaurant(context.Context, *User) (*SuccessRestaurantResponse, error)
+	CheckRestaurantExists(context.Context, *UserAuth) (*SuccessRestaurantResponse, error)
+	GetByRid(context.Context, *RID) (*SuccessRestaurantResponse, error)
+	CheckSession(context.Context, *SessionValue) (*SessionInfo, error)
+	CreateSession(context.Context, *SessionInfo) (*SessionValue, error)
+	DeleteSession(context.Context, *SessionValue) (*Error, error)
 }
 
 // UnimplementedAuthServer can be embedded to have forward compatible implementations.
@@ -600,6 +1171,24 @@ func (*UnimplementedAuthServer) CheckUserExists(context.Context, *UserAuth) (*Su
 }
 func (*UnimplementedAuthServer) GetByUid(context.Context, *UID) (*SuccessUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByUid not implemented")
+}
+func (*UnimplementedAuthServer) CreateRestaurant(context.Context, *User) (*SuccessRestaurantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRestaurant not implemented")
+}
+func (*UnimplementedAuthServer) CheckRestaurantExists(context.Context, *UserAuth) (*SuccessRestaurantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckRestaurantExists not implemented")
+}
+func (*UnimplementedAuthServer) GetByRid(context.Context, *RID) (*SuccessRestaurantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByRid not implemented")
+}
+func (*UnimplementedAuthServer) CheckSession(context.Context, *SessionValue) (*SessionInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckSession not implemented")
+}
+func (*UnimplementedAuthServer) CreateSession(context.Context, *SessionInfo) (*SessionValue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSession not implemented")
+}
+func (*UnimplementedAuthServer) DeleteSession(context.Context, *SessionValue) (*Error, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSession not implemented")
 }
 
 func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
@@ -660,6 +1249,114 @@ func _Auth_GetByUid_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_CreateRestaurant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(User)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).CreateRestaurant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoAuth.Auth/CreateRestaurant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).CreateRestaurant(ctx, req.(*User))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_CheckRestaurantExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserAuth)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).CheckRestaurantExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoAuth.Auth/CheckRestaurantExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).CheckRestaurantExists(ctx, req.(*UserAuth))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_GetByRid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).GetByRid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoAuth.Auth/GetByRid",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).GetByRid(ctx, req.(*RID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_CheckSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).CheckSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoAuth.Auth/CheckSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).CheckSession(ctx, req.(*SessionValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_CreateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).CreateSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoAuth.Auth/CreateSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).CreateSession(ctx, req.(*SessionInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_DeleteSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).DeleteSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoAuth.Auth/DeleteSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).DeleteSession(ctx, req.(*SessionValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Auth_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "protoAuth.Auth",
 	HandlerType: (*AuthServer)(nil),
@@ -675,6 +1372,30 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetByUid",
 			Handler:    _Auth_GetByUid_Handler,
+		},
+		{
+			MethodName: "CreateRestaurant",
+			Handler:    _Auth_CreateRestaurant_Handler,
+		},
+		{
+			MethodName: "CheckRestaurantExists",
+			Handler:    _Auth_CheckRestaurantExists_Handler,
+		},
+		{
+			MethodName: "GetByRid",
+			Handler:    _Auth_GetByRid_Handler,
+		},
+		{
+			MethodName: "CheckSession",
+			Handler:    _Auth_CheckSession_Handler,
+		},
+		{
+			MethodName: "CreateSession",
+			Handler:    _Auth_CreateSession_Handler,
+		},
+		{
+			MethodName: "DeleteSession",
+			Handler:    _Auth_DeleteSession_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
