@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+
+option go_package = "github.com/borscht/backend/internal/services/proto";
+
+package protoAuth;
+
+message Session {
+  string SessionID = 1;
+  string Number = 2;
+}
+
+message User {
+  string Name = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+}
+
+message UID {
+  int32 uid = 1;
+}
+
+message UserAuth {
+  string Login = 1;
+  string Password = 2;
+}
+
+message SuccessUserResponse {
+  string Name = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+  string Role = 5;
+  string Avatar = 6;
+  int32 UID = 7;
+  string MainAddress = 8;
+}
+
+message Restaurant {
+  string Title = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+}
+
+message RID {
+  int32 uid = 1;
+}
+
+message SuccessRestaurantResponse {
+  string Title = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+  string Role = 5;
+  string Avatar = 6;
+  int32 UID = 7;
+}
+
+message SessionValue {
+  string session = 1;
+}
+
+message SessionInfo {
+  int32 id = 1;
+  string role = 2;
+  bool exists = 3;
+}
+
+message Error {
+}
+
+service Auth {
+    rpc Create(User) returns (SuccessUserResponse) {}
+    rpc CheckUserExists(UserAuth) returns (SuccessUserResponse) {}
+    rpc	GetByUid(UID) returns (SuccessUserResponse) {}
+    rpc CreateRestaurant(User) returns (SuccessRestaurantResponse) {}
+    rpc CheckRestaurantExists(UserAuth) returns (SuccessRestaurantResponse) {}
+    rpc	GetByRid(RID) returns (SuccessRestaurantResponse) {}
+    rpc CheckSession(SessionValue) returns (SessionInfo) {}
+    rpc CreateSession(SessionInfo) returns (SessionValue) {}
+    rpc DeleteSession(SessionValue) returns (Error) {}
+}
