@@ -374,18 +374,6 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 }
 
 func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
-	var status string
-	switch newStatus.Status {
-	case "cooking":
-		status = models.StatusOrderCooking
-	case "delivering":
-		status = models.StatusOrderDelivering
-	case "done":
-		status = models.StatusOrderDone
-	default:
-		status = models.StatusOrderAdded
-	}
-
 	timeToDB, err := time.Parse(config.TimeFormat, newStatus.DeliveryTime)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error while converting time")
@@ -393,7 +381,7 @@ func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStat
 	}
 
 	_, err = o.DB.Exec("UPDATE orders SET status=$1, deliverytime=$2 where restaurant=$3 and oid=$4",
-		status, timeToDB, newStatus.Restaurant, newStatus.OID)
+		newStatus.Status, timeToDB, newStatus.Restaurant, newStatus.OID)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with updating order status in DB")
 		return errors.BadRequestError("Error with updating order status in DB")

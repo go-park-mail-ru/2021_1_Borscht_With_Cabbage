@@ -1,9 +1,9 @@
 package models
 
-var StatusOrderAdded = "оформлено"
-var StatusOrderCooking = "готовится"
-var StatusOrderDelivering = "едет к вам"
-var StatusOrderDone = "доставлен"
+var StatusOrderAdded = "created"
+var StatusOrderCooking = "cooking"
+var StatusOrderDelivering = "delivering"
+var StatusOrderDone = "done"
 
 type Order struct {
 	OID             int           `json:"orderID"`
