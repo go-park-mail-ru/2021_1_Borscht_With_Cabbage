@@ -31,6 +31,7 @@ type AdminSectionHandler interface {
 }
 
 type AdminRestaurantUsecase interface {
+	AddAddress(ctx context.Context, rid int, address models.Address) error
 	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (*models.SuccessRestaurantResponse, error)
 	UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error)
 }
@@ -52,6 +53,9 @@ type AdminSectionUsecase interface {
 type AdminRestaurantRepo interface {
 	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) error
 	UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error
+	AddAddress(ctx context.Context, rid int, address models.Address) error
+	UpdateAddress(ctx context.Context, rid int, address models.Address) error
+	GetAddress(ctx context.Context, rid int) (*models.Address, error)
 }
 
 type AdminDishRepo interface {

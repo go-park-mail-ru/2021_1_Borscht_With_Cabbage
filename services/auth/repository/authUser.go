@@ -96,3 +96,23 @@ func (a authRepo) GetByLogin(ctx context.Context, login string) (*models.User, e
 
 	return user, nil
 }
+
+func (a authRepo) GetAddress(ctx context.Context, uid int) (*models.Address, error) {
+	queri := `SELECT name, latitude, longitude FROM addresses WHERE uid = $1`
+
+	logger.RepoLevel().InlineDebugLog(ctx, uid)
+	var address models.Address
+	err := a.DB.QueryRow(queri, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
+	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineDebugLog(ctx, "end get address not address")
+		return &models.Address{}, nil
+	}
+	if err != nil {
+		err := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, err)
+		return nil, err
+	}
+
+	logger.RepoLevel().InlineDebugLog(ctx, "end get address")
+	return &address, nil
+}

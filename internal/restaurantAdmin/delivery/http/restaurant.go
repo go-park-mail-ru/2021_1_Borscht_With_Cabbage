@@ -74,6 +74,11 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
+	err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, responseRestaurant.Address)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
 	sessionInfo := models.SessionInfo{
 		Id:   responseRestaurant.ID,
 		Role: config.RoleAdmin,
@@ -99,6 +104,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newRest.Login, newRest.Password); err != nil {
+		logger.DeliveryLevel().ErrorLog(ctx, err)
 		return models.SendResponseWithError(c, err)
 	}
 

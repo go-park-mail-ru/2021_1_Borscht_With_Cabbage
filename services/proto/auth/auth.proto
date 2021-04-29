@@ -36,7 +36,10 @@ message SuccessUserResponse {
   string Role = 5;
   string Avatar = 6;
   int32 UID = 7;
-  string MainAddress = 8;
+  string AddressName = 8;
+  string Longitude = 9;
+  string Latitude = 10;
+  int32 Radius = 11;
 }
 
 message RID {
@@ -55,6 +58,10 @@ message SuccessRestaurantResponse {
   int32 DeliveryCost = 9;
   int32 AvgCheck = 10;
   string Description = 11;
+  string AddressName = 12;
+  string Longitude = 13;
+  string Latitude = 14;
+  int32 Radius = 15;
 }
 
 message SessionValue {

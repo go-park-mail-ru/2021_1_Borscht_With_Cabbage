@@ -33,6 +33,38 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 	}
 }
 
+func (a userUsecase) AddAddress(ctx context.Context, uid int, address models.Address) error {
+	return a.userRepository.AddAddress(ctx, uid, address)
+}
+
+func (a userUsecase) UpdateMainAddress(ctx context.Context, address models.Address) error {
+	logger.UsecaseLevel().InlineDebugLog(ctx, "update address")
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.User")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	err := a.userRepository.DeleteAddress(ctx, user.Uid)
+	if err != nil {
+		return err
+	}
+
+	return a.userRepository.AddAddress(ctx, user.Uid, address)
+}
+
+func (a userUsecase) GetMainAddress(ctx context.Context) (*models.Address, error) {
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.User")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	return a.userRepository.GetAddress(ctx, user.Uid)
+}
+
 func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserResponse, error) {
 	user := ctx.Value("User")
 
@@ -49,27 +81,56 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 	}, nil
 }
 
+func correctUserData(newUser *models.UserData, oldUser *models.User) {
+
+	newUser.ID = oldUser.Uid
+	if newUser.Name == "" {
+		newUser.Name = oldUser.Name
+	}
+	if newUser.Email == "" {
+		newUser.Email = oldUser.Email
+	}
+	if newUser.Phone == "" {
+		newUser.Phone = oldUser.Phone
+	}
+	if newUser.Address.Name == "" {
+		newUser.Address.Name = oldUser.Address.Name
+		newUser.Address.Latitude = oldUser.Address.Latitude
+		newUser.Address.Longitude = oldUser.Address.Longitude
+	}
+}
+
 func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error) {
 	user, ok := ctx.Value("User").(models.User)
 	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		failError := errors.FailServerError("failed to convert to models.User")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
 
-	newUser.ID = user.Uid
+	correctUserData(&newUser, &user)
 	err := u.userRepository.UpdateData(ctx, newUser)
 	if err != nil {
 		return nil, err
 	}
 
+	err = u.userRepository.DeleteAddress(ctx, newUser.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = u.userRepository.AddAddress(ctx, newUser.ID, newUser.Address)
+	if err != nil {
+		return nil, err
+	}
+
 	responseUser := models.User{
-		Uid:         newUser.ID,
-		Name:        newUser.Name,
-		Email:       newUser.Email,
-		Phone:       newUser.Phone,
-		Avatar:      user.Avatar,
-		MainAddress: user.MainAddress,
+		Uid:     newUser.ID,
+		Name:    newUser.Name,
+		Email:   newUser.Email,
+		Phone:   newUser.Phone,
+		Avatar:  user.Avatar,
+		Address: user.Address,
 	}
 
 	response := &models.SuccessUserResponse{

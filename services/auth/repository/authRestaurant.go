@@ -112,3 +112,24 @@ func (a authRestaurantRepo) GetByRid(ctx context.Context, rid int) (*models.Rest
 	}
 	return restaurant, nil
 }
+
+func (a authRestaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
+	queri := `SELECT name, latitude, longitude, radius FROM addresses WHERE rid = $1`
+
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"rid": rid})
+	var address models.Address
+	err := a.DB.QueryRow(queri, rid).Scan(&address.Name, &address.Latitude,
+		&address.Longitude, &address.Radius)
+
+	if err == sql.ErrNoRows {
+		return &models.Address{}, nil
+	}
+	if err != nil {
+		err := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, err)
+		return nil, err
+	}
+
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"address": address})
+	return &address, nil
+}

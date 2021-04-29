@@ -8,7 +8,7 @@ func (u *SuccessUserResponse) Sanitize() {
 	u.Email = sanitizer.Sanitize(u.Email)
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Phone = sanitizer.Sanitize(u.Phone)
-	u.MainAddress = sanitizer.Sanitize(u.MainAddress)
+	u.Address.Sanitize()
 }
 
 func (u *User) Sanitize() {
@@ -17,7 +17,7 @@ func (u *User) Sanitize() {
 	u.Email = sanitizer.Sanitize(u.Email)
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Phone = sanitizer.Sanitize(u.Phone)
-	u.MainAddress = sanitizer.Sanitize(u.MainAddress)
+	u.Address.Sanitize()
 }
 
 func (u *UserData) Sanitize() {
@@ -40,6 +40,7 @@ func (u *SuccessRestaurantResponse) Sanitize() {
 	u.AdminPhone = sanitizer.Sanitize(u.AdminPhone)
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Description = sanitizer.Sanitize(u.Description)
+	u.Address.Sanitize()
 }
 
 func (u *Dish) Sanitize() {
@@ -85,6 +86,7 @@ func (u *RestaurantWithDishes) Sanitize() {
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Description = sanitizer.Sanitize(u.Description)
 	u.Title = sanitizer.Sanitize(u.Title)
+	u.Address.Sanitize()
 }
 
 func (u *RestaurantInfo) Sanitize() {
@@ -94,6 +96,7 @@ func (u *RestaurantInfo) Sanitize() {
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Description = sanitizer.Sanitize(u.Description)
 	u.Title = sanitizer.Sanitize(u.Title)
+	u.Address.Sanitize()
 }
 
 func (u *DishInOrder) Sanitize() {
@@ -129,4 +132,11 @@ func (u *BasketForUser) Sanitize() {
 	for i := range u.Foods {
 		u.Foods[i].Sanitize()
 	}
+}
+
+func (u *Address) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Latitude = sanitizer.Sanitize(u.Latitude)
+	u.Longitude = sanitizer.Sanitize(u.Longitude)
 }

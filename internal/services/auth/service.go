@@ -67,12 +67,19 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 	}
 	logger.UsecaseLevel().InlineDebugLog(ctx, &userResult)
 
+	Address := models.Address{
+		Name:      userResult.AddressName,
+		Longitude: userResult.Longitude,
+		Latitude:  userResult.Latitude,
+		Radius:    int(userResult.Radius),
+	}
 	userResponse := models.User{
-		Uid:    int(userResult.UID),
-		Name:   userResult.Name,
-		Phone:  userResult.Phone,
-		Email:  userResult.Email,
-		Avatar: userResult.Avatar,
+		Uid:     int(userResult.UID),
+		Name:    userResult.Name,
+		Phone:   userResult.Phone,
+		Email:   userResult.Email,
+		Avatar:  userResult.Avatar,
+		Address: Address,
 	}
 	response := models.SuccessUserResponse{
 		User: userResponse,
@@ -91,12 +98,19 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 		return nil, err
 	}
 
+	Address := models.Address{
+		Name:      user.AddressName,
+		Longitude: user.Longitude,
+		Latitude:  user.Latitude,
+		Radius:    int(user.Radius),
+	}
 	UserResponse := models.User{
-		Uid:    uid,
-		Email:  user.Email,
-		Phone:  user.Phone,
-		Avatar: user.Avatar,
-		Name:   user.Name,
+		Uid:     uid,
+		Email:   user.Email,
+		Phone:   user.Phone,
+		Avatar:  user.Avatar,
+		Name:    user.Name,
+		Address: Address,
 	}
 
 	return &models.SuccessUserResponse{
@@ -119,6 +133,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{
+		ID:     int(restaurantResult.RID),
 		Title:  restaurantResult.Title,
 		Avatar: restaurant.Avatar,
 	}
@@ -166,11 +181,19 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 	if err != nil {
 		return nil, err
 	}
+
+	Address := models.Address{
+		Name:      restaurantResult.AddressName,
+		Longitude: restaurantResult.Longitude,
+		Latitude:  restaurantResult.Latitude,
+		Radius:    int(restaurantResult.Radius),
+	}
 	restaurantResponse := models.RestaurantInfo{
 		Title:      restaurantResult.Title,
 		AdminPhone: restaurantResult.Phone,
 		AdminEmail: restaurantResult.Email,
 		Avatar:     restaurantResult.Avatar,
+		Address:    Address,
 	}
 
 	return &models.SuccessRestaurantResponse{

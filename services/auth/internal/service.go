@@ -6,6 +6,7 @@ import (
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/google/uuid"
 )
 
@@ -53,11 +54,23 @@ func (s *service) GetByUid(ctx context.Context, uid *protoAuth.UID) (*protoAuth.
 		return nil, err
 	}
 
+	address, err := s.userAuthRepo.GetAddress(ctx, int(uid.Uid))
+	if err != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
+		return nil, err
+	}
+	if address != nil {
+		userResult.Address = *address
+	}
+
 	response := protoAuth.SuccessUserResponse{
 		Email:       userResult.Email,
 		Phone:       userResult.Phone,
 		Name:        userResult.Name,
-		MainAddress: userResult.MainAddress,
+		AddressName: address.Name,
+		Latitude:    address.Latitude,
+		Longitude:   address.Longitude,
+		Radius:      int32(address.Radius),
 		UID:         int32(uid.Uid),
 		Avatar:      "",
 	}
@@ -71,11 +84,20 @@ func (s *service) CheckUserExists(ctx context.Context, user *protoAuth.UserAuth)
 		return nil, err
 	}
 
+	address, err := s.userAuthRepo.GetAddress(ctx, userResult.Uid)
+	if err != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
+		return nil, err
+	}
+
 	response := protoAuth.SuccessUserResponse{
 		Email:       userResult.Email,
 		Phone:       userResult.Phone,
 		Name:        userResult.Name,
-		MainAddress: userResult.MainAddress,
+		AddressName: address.Name,
+		Latitude:    address.Latitude,
+		Longitude:   address.Longitude,
+		Radius:      int32(address.Radius),
 		UID:         int32(userResult.Uid),
 		Avatar:      "",
 	}
@@ -135,12 +157,22 @@ func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.
 		return nil, err
 	}
 
+	address, err := s.restaurantAuthRepo.GetAddress(ctx, int(rid.Rid))
+	if err != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
+		return nil, err
+	}
+
 	response := protoAuth.SuccessRestaurantResponse{
-		RID:    int32(restaurant.ID),
-		Title:  restaurant.Title,
-		Email:  restaurant.AdminEmail,
-		Phone:  restaurant.AdminPhone,
-		Avatar: restaurant.Avatar,
+		RID:         int32(restaurant.ID),
+		Title:       restaurant.Title,
+		Email:       restaurant.AdminEmail,
+		Phone:       restaurant.AdminPhone,
+		Avatar:      restaurant.Avatar,
+		AddressName: address.Name,
+		Latitude:    address.Latitude,
+		Longitude:   address.Longitude,
+		Radius:      int32(address.Radius),
 	}
 
 	return &response, nil
