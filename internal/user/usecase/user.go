@@ -34,6 +34,34 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 	}
 }
 
+func (a userUsecase) UpdateMainAddress(ctx context.Context, address models.Address) error {
+	logger.UsecaseLevel().InlineDebugLog(ctx, "update address")
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.User")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	err := a.userRepository.DeleteAddress(ctx, user.Uid)
+	if err != nil {
+		return err
+	}
+
+	return a.userRepository.AddAddress(ctx, user.Uid, address)
+}
+
+func (a userUsecase) GetMainAddress(ctx context.Context) (*models.Address, error) {
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.User")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	return a.userRepository.GetAddress(ctx, user.Uid)
+}
+
 func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
 	newUser.Avatar = config.DefaultUserImage
 
@@ -46,6 +74,12 @@ func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.
 	newUser.Uid = uid
 	newUser.Password = "" // TODO: подумать как это более аккуратно сделать
 	newUser.HashPassword = nil
+
+	err = u.userRepository.AddAddress(ctx, uid, newUser.Address)
+	if err != nil {
+		// TODO: подумать над тем чтобы удалять пользователя
+		return nil, err
+	}
 
 	response := &models.SuccessUserResponse{
 		User: newUser,
@@ -68,6 +102,16 @@ func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserA
 		return nil, err
 	}
 	user.HashPassword = nil
+
+	address, err := u.userRepository.GetAddress(ctx, user.Uid)
+	if err != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
+		return nil, err
+	}
+	if address != nil {
+		user.Address = *address
+	}
+
 	return &models.SuccessUserResponse{
 		User: *user,
 		Role: config.RoleUser,
@@ -78,6 +122,15 @@ func (u *userUsecase) GetByUid(ctx context.Context, uid int) (*models.SuccessUse
 	user, err := u.userRepository.GetByUid(ctx, uid)
 	if err != nil {
 		return nil, err
+	}
+
+	address, err := u.userRepository.GetAddress(ctx, uid)
+	if err != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
+		return nil, err
+	}
+	if address != nil {
+		user.Address = *address
 	}
 
 	return &models.SuccessUserResponse{
@@ -102,6 +155,25 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 	}, nil
 }
 
+func correctUserData(newUser *models.UserData, oldUser *models.User) {
+
+	newUser.ID = oldUser.Uid
+	if newUser.Name == "" {
+		newUser.Name = oldUser.Name
+	}
+	if newUser.Email == "" {
+		newUser.Email = oldUser.Email
+	}
+	if newUser.Phone == "" {
+		newUser.Phone = oldUser.Phone
+	}
+	if newUser.Address.Name == "" {
+		newUser.Address.Name = oldUser.Address.Name
+		newUser.Address.Latitude = oldUser.Address.Latitude
+		newUser.Address.Longitude = oldUser.Address.Longitude
+	}
+}
+
 func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (*models.SuccessUserResponse, error) {
 	user, ok := ctx.Value("User").(models.User)
 	if !ok {
@@ -110,19 +182,29 @@ func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (
 		return nil, failError
 	}
 
-	newUser.ID = user.Uid
+	correctUserData(&newUser, &user)
 	err := u.userRepository.UpdateData(ctx, newUser)
 	if err != nil {
 		return nil, err
 	}
 
+	err = u.userRepository.DeleteAddress(ctx, newUser.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = u.userRepository.AddAddress(ctx, newUser.ID, newUser.Address)
+	if err != nil {
+		return nil, err
+	}
+
 	responseUser := models.User{
-		Uid:         newUser.ID,
-		Name:        newUser.Name,
-		Email:       newUser.Email,
-		Phone:       newUser.Phone,
-		Avatar:      user.Avatar,
-		MainAddress: user.MainAddress,
+		Uid:     newUser.ID,
+		Name:    newUser.Name,
+		Email:   newUser.Email,
+		Phone:   newUser.Phone,
+		Avatar:  user.Avatar,
+		Address: user.Address,
 	}
 
 	response := &models.SuccessUserResponse{

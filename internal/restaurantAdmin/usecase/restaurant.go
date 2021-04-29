@@ -34,6 +34,36 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	}
 }
 
+func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.RestaurantUpdateData,
+	oldRestaurant *models.RestaurantInfo) {
+
+	newRestaurant.ID = oldRestaurant.ID
+	if newRestaurant.Title == "" {
+		newRestaurant.Title = oldRestaurant.Title
+	}
+	if newRestaurant.AdminEmail == "" {
+		newRestaurant.AdminEmail = oldRestaurant.AdminEmail
+	}
+	if newRestaurant.AdminPhone == "" {
+		newRestaurant.AdminPhone = oldRestaurant.AdminPhone
+	}
+	if newRestaurant.Address.Name == "" {
+		newRestaurant.Address.Name = oldRestaurant.Address.Name
+		newRestaurant.Address.Latitude = oldRestaurant.Address.Latitude
+		newRestaurant.Address.Longitude = oldRestaurant.Address.Longitude
+		newRestaurant.Address.Radius = oldRestaurant.Address.Radius
+	}
+	if newRestaurant.DeliveryCost == 0 {
+		newRestaurant.DeliveryCost = oldRestaurant.DeliveryCost
+	}
+	if newRestaurant.Description == "" {
+		newRestaurant.Description = oldRestaurant.Description
+	}
+	if newRestaurant.Address.Radius == 0 {
+		newRestaurant.Address.Radius = oldRestaurant.Address.Radius
+	}
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 
@@ -44,8 +74,12 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, failError
 	}
 
-	restaurant.ID = restaurantAdmin.ID
+	a.correcRestaurantData(&restaurant, &restaurantAdmin)
 	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
+	if err != nil {
+		return nil, err
+	}
+	err = a.restaurantRepository.UpdateAddress(ctx, restaurant.ID, restaurant.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +95,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		AvgCheck:     restaurantAdmin.AvgCheck,
 		DeliveryCost: restaurant.DeliveryCost,
 		Avatar:       restaurantAdmin.Avatar,
+		Address:      restaurant.Address,
 	}
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 
@@ -71,15 +106,22 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 }
 
 func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	restaurant.Avatar = config.DefaultRestaurantImage
+	if restaurant.Address.Name == "" {
+		return nil, errors.NewErrorWithMessage("please enter the address")
+	}
 
+	restaurant.Avatar = config.DefaultRestaurantImage
 	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
 
-	id, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
+	rid, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
 	if err != nil {
 		return nil, err
 	}
-	restaurant.ID = id
+	err = a.restaurantRepository.AddAddress(ctx, rid, restaurant.Address)
+	if err != nil {
+		return nil, err
+	}
+	restaurant.ID = rid
 	restaurant.AdminPassword = ""
 	restaurant.AdminHashPassword = nil
 
@@ -113,6 +155,12 @@ func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.Succe
 	if err != nil {
 		return nil, err
 	}
+
+	address, err := a.restaurantRepository.GetAddress(ctx, rid)
+	if err != nil {
+		return nil, err
+	}
+	response.Address = *address
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: *response,

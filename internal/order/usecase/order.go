@@ -5,17 +5,22 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 )
 
 type orderUsecase struct {
-	orderRepository order.OrderRepo
+	orderRepository      order.OrderRepo
+	restaurantRepository restaurantAdmin.AdminRestaurantRepo
 }
 
-func NewOrderUsecase(repo order.OrderRepo) order.OrderUsecase {
+func NewOrderUsecase(repoOredr order.OrderRepo,
+	repoRestaurant restaurantAdmin.AdminRestaurantRepo) order.OrderUsecase {
+
 	return &orderUsecase{
-		orderRepository: repo,
+		orderRepository:      repoOredr,
+		restaurantRepository: repoRestaurant,
 	}
 }
 
@@ -40,7 +45,23 @@ func (o orderUsecase) GetRestaurantOrders(ctx context.Context, restaurantName st
 }
 
 func (o orderUsecase) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {
-	return o.orderRepository.GetBasket(ctx, uid)
+	restaurant, err := o.orderRepository.GetBasket(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	if restaurant == nil {
+		return restaurant, nil
+	}
+
+	address, err := o.restaurantRepository.GetAddress(ctx, restaurant.RID)
+	if err != nil {
+		return nil, err
+	}
+	if address != nil {
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address": *address})
+		restaurant.Address = *address
+	}
+	return restaurant, nil
 }
 
 func (o orderUsecase) AddBasket(ctx context.Context, basket models.BasketForUser) (*models.BasketForUser, error) {

@@ -101,6 +101,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newRest.Login, newRest.Password); err != nil {
+		logger.DeliveryLevel().ErrorLog(ctx, err)
 		return models.SendResponseWithError(c, err)
 	}
 

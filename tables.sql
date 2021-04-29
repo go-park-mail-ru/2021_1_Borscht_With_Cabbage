@@ -17,13 +17,18 @@ CREATE TABLE users (
                        phone TEXT,
                        email TEXT,
                        photo TEXT,
-    -- mainAddress text references addresses(address) on delete cascade ,
+                       mainAddress TEXT DEFAULT '' NOT NULL,
                        password BYTEA
 );
 
 CREATE TABLE addresses (
-                           address TEXT,
-                           "user" INTEGER REFERENCES users(uid) ON DELETE CASCADE
+                           aid SERIAL PRIMARY KEY,
+                           name TEXT DEFAULT '' NOT NULL,
+                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                           latitude TEXT DEFAULT '' NOT NULL,
+                           longitude TEXT DEFAULT '' NOT NULL,
+                           radius INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE restaurants (
