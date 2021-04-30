@@ -39,7 +39,7 @@ func main() {
 	basketService := internal.NewService(basketRepository)
 	protoBasket.RegisterBasketServer(server, basketService)
 
-	fmt.Println("starting server at :8082")
+	log.Print("starting server at :8082")
 	err = server.Serve(lis)
 	if err != nil {
 		log.Fatalln("Serve auth error: ", err)
