@@ -8,6 +8,7 @@ require (
 	github.com/golang/mock v1.5.0
 	github.com/gomodule/redigo v1.8.4
 	github.com/google/uuid v1.2.0
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/echo/v4 v4.2.0
 	github.com/lib/pq v1.10.0
 	github.com/microcosm-cc/bluemonday v1.0.7

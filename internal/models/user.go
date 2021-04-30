@@ -6,9 +6,9 @@ type User struct {
 	Email        string `json:"email"`
 	Password     string `json:"password"`
 	HashPassword []byte
-	Phone        string `json:"number"`
-	Avatar       string `json:"avatar"`
-	MainAddress  string `json:"activeAddress"`
+	Phone        string  `json:"number"`
+	Avatar       string  `json:"avatar"`
+	Address      Address `json:"address"`
 }
 
 type UserAuth struct {
@@ -21,13 +21,14 @@ type UserImageResponse struct {
 }
 
 type UserData struct {
-	ID          int    `json"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Phone       string `json:"number"`
-	Password    string `json:"password"`
-	PasswordOld string `json:"password_current"`
-	Avatar      string `json:"avatar"`
+	ID          int     `json"id"`
+	Name        string  `json:"name"`
+	Email       string  `json:"email"`
+	Phone       string  `json:"number"`
+	Password    string  `json:"password"`
+	PasswordOld string  `json:"password_current"`
+	Avatar      string  `json:"avatar"`
+	Address     Address `json:"address"`
 }
 
 type SuccessUserResponse struct {

@@ -22,18 +22,26 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 }
 
 func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
-	restaurantsDB, err := r.DB.Query("select rid, name, deliveryCost, avgCheck, description, rating, avatar, ratingsSum, reviewsCount from restaurants "+
-		"where rid >= $1 and rid <= $2", offset, limit+offset)
+	query :=
+		`
+	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar
+	FROM restaurants
+	WHERE rid >= $1 and rid <= $2
+	`
+
+	restaurantsDB, err := r.DB.Query(query, offset, limit+offset)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return []models.RestaurantInfo{}, failError
 	}
 
-	var restaurants []models.RestaurantInfo
+	restaurants := make([]models.RestaurantInfo, 0)
 	for restaurantsDB.Next() {
 		var ratingsSum, reviewsCount int
 		restaurant := new(models.RestaurantInfo)
+		logger.RepoLevel().InlineInfoLog(ctx, "start scan")
+
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
 			&restaurant.Title,
@@ -47,8 +55,9 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 		)
 		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 
-		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
+		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 		restaurants = append(restaurants, *restaurant)
+		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
 	return restaurants, nil
@@ -57,8 +66,16 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
 	restaurant := new(models.RestaurantWithDishes)
 	var ratingsSum, reviewsCount int
-	err := r.DB.QueryRow("select rid, name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount from restaurants where rid=$1",
-		id).Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount)
+	query :=
+		`
+	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar, ratingsSum, reviewsCount
+	FROM restaurants 
+	WHERE rid=$1
+	`
+
+	err := r.DB.QueryRow(query, id).
+		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
+			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar, &ratingsSum, &reviewsCount)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

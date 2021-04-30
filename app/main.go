@@ -53,6 +53,8 @@ func route(data initRoute) {
 	userGroup.GET("", data.user.GetUserData)
 	userGroup.PUT("", data.user.UpdateData)
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
+	userGroup.POST("/address", data.user.UpdateMainAddress)
+	userGroup.GET("/address", data.user.GetMainAddress)
 	auth.GET("/auth", data.user.CheckAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
@@ -142,8 +144,8 @@ func main() {
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
-	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
-	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
