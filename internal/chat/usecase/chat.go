@@ -105,7 +105,7 @@ func (ch chatUsecase) getAllMsgRest(ctx context.Context, restaurant models.Resta
 		fromMe[i].FromMe = true
 	}
 
-	toMe, err := ch.ChatRepo.GetAllMessagesFromRestaurant(ctx, id, restaurant.ID)
+	toMe, err := ch.ChatRepo.GetAllMessagesFromUser(ctx, id, restaurant.ID)
 	if err != nil {
 		return nil, err
 	}
