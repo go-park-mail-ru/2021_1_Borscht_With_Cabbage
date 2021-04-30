@@ -1,19 +1,16 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/restaurantAdmin"
-	sessionModel "github.com/borscht/backend/internal/session"
-	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthMiddleware struct {
-	SessionUcase         sessionModel.SessionUsecase
-	UserUcase            userModel.UserUsecase
-	RestaurantAdminUcase restaurantAdmin.AdminRestaurantUsecase
+	AuthService auth.ServiceAuth
 }
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -29,7 +26,8 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
-		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
+		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
+		fmt.Println("session data: ", sessionData)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -38,7 +36,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		if sessionData.Role == config.RoleUser {
-			user, err := m.UserUcase.GetByUid(ctx, sessionData.Id)
+			user, err := m.AuthService.GetByUid(ctx, sessionData.Id)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
@@ -47,7 +45,8 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		if sessionData.Role == config.RoleAdmin {
-			restaurant, err := m.RestaurantAdminUcase.GetByRid(ctx, sessionData.Id)
+			restaurant, err := m.AuthService.GetByRid(ctx, sessionData.Id)
+			fmt.Println("rest ", restaurant)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
@@ -59,10 +58,8 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitAuthMiddleware(userUcase userModel.UserUsecase, restaurantAdminUcase restaurantAdmin.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) *AuthMiddleware {
+func InitAuthMiddleware(authService auth.ServiceAuth) *AuthMiddleware {
 	return &AuthMiddleware{
-		SessionUcase:         sessionUcase,
-		UserUcase:            userUcase,
-		RestaurantAdminUcase: restaurantAdminUcase,
+		AuthService: authService,
 	}
 }

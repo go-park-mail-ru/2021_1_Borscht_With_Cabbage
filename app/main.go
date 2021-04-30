@@ -3,6 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/borscht/backend/internal/services/auth"
+	protoAuth "github.com/borscht/backend/services/proto/auth"
+	"google.golang.org/grpc"
 	"log"
 
 	"github.com/borscht/backend/config"
@@ -19,8 +22,6 @@ import (
 	restaurantAdminDelivery "github.com/borscht/backend/internal/restaurantAdmin/delivery/http"
 	restaurantAdminRepo "github.com/borscht/backend/internal/restaurantAdmin/repository"
 	restaurantAdminUsecase "github.com/borscht/backend/internal/restaurantAdmin/usecase"
-	sessionRepo "github.com/borscht/backend/internal/session/repository"
-	sessionUcase "github.com/borscht/backend/internal/session/usecase"
 	"github.com/borscht/backend/internal/user"
 	userDelivery "github.com/borscht/backend/internal/user/delivery/http"
 	userRepo "github.com/borscht/backend/internal/user/repository"
@@ -30,8 +31,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 type initRoute struct {
@@ -108,6 +107,18 @@ func main() {
 	e := echo.New()
 	initServer(e)
 
+	grpcConnAuth, errr := grpc.Dial(
+		config.AuthServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnAuth.Close()
+
+	authClient := protoAuth.NewAuthClient(grpcConnAuth)
+	authService := auth.NewService(authClient)
+
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open(config.PostgresDB, dsn)
@@ -123,15 +134,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// подключение redis
-	redisConn, err := redis.Dial("tcp", config.RedisHost)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer redisConn.Close()
-
 	userRepo := userRepo.NewUserRepo(db)
-	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
 	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
@@ -140,23 +143,22 @@ func main() {
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	orderRepo := repository.NewOrderRepo(db)
-	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
-	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
+	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, authService)
+	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 	orderHandler := http.NewOrderHandler(orderUsecase)
 
-	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
+	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService)
 
 	route(initRoute{
 		e:               e,

@@ -12,7 +12,6 @@ import (
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
-	"github.com/borscht/backend/utils/secure"
 	"github.com/borscht/backend/utils/uniq"
 )
 
@@ -64,6 +63,10 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 	}
 }
 
+func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address models.Address) error {
+	return a.restaurantRepository.UpdateAddress(ctx, rid, address)
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 
@@ -101,69 +104,6 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: *restaurantResponse,
-		Role:           config.RoleAdmin,
-	}, nil
-}
-
-func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	if restaurant.Address.Name == "" {
-		return nil, errors.NewErrorWithMessage("please enter the address")
-	}
-
-	restaurant.Avatar = config.DefaultRestaurantImage
-	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
-
-	rid, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
-	if err != nil {
-		return nil, err
-	}
-	err = a.restaurantRepository.AddAddress(ctx, rid, restaurant.Address)
-	if err != nil {
-		return nil, err
-	}
-	restaurant.ID = rid
-	restaurant.AdminPassword = ""
-	restaurant.AdminHashPassword = nil
-
-	return &models.SuccessRestaurantResponse{
-		RestaurantInfo: restaurant,
-		Role:           config.RoleAdmin,
-	}, nil
-}
-
-func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
-	restaurant, err := a.restaurantRepository.GetByLogin(ctx, restaurantAuth.Login)
-	if err != nil {
-		return nil, err
-	}
-
-	if !secure.CheckPassword(ctx, restaurant.AdminHashPassword, restaurantAuth.Password) {
-		err = errors.AuthorizationError("bad password")
-		logger.UsecaseLevel().ErrorLog(ctx, err)
-		return nil, err
-	}
-
-	restaurant.AdminHashPassword = nil
-	return &models.SuccessRestaurantResponse{
-		RestaurantInfo: *restaurant,
-		Role:           config.RoleAdmin,
-	}, nil
-}
-
-func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
-	response, err := a.restaurantRepository.GetByRid(ctx, rid)
-	if err != nil {
-		return nil, err
-	}
-
-	address, err := a.restaurantRepository.GetAddress(ctx, rid)
-	if err != nil {
-		return nil, err
-	}
-	response.Address = *address
-
-	return &models.SuccessRestaurantResponse{
-		RestaurantInfo: *response,
 		Role:           config.RoleAdmin,
 	}, nil
 }

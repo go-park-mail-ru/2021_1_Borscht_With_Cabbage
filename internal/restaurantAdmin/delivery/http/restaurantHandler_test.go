@@ -5,7 +5,7 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-	"github.com/borscht/backend/internal/session/mocks"
+	mocks "github.com/borscht/backend/services/auth/repository/mocks"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"

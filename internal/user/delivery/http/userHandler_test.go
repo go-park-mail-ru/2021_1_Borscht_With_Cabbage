@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/borscht/backend/services/auth/repository/mocks"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-	sessionMock "github.com/borscht/backend/internal/session/mocks"
 	userMock "github.com/borscht/backend/internal/user/mocks"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
@@ -23,7 +23,7 @@ func TestHandler_CreateUser(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	input := models.User{
@@ -73,7 +73,7 @@ func TestHandler_CreateUser_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	inputJSON := `{"emailaria@mail.ru","number":"89161166000","name":"Daria","password":"111111"}`
@@ -96,7 +96,7 @@ func TestSignup_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 
 	inputJSON := `{email:daria@mail.ru}`
 
@@ -131,7 +131,7 @@ func TestHandler_Login(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	input := models.UserAuth{
@@ -179,7 +179,7 @@ func TestHandler_Login_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	inputJSON := `{"logindaria@mail.ru","password":"111111"}`
@@ -203,7 +203,7 @@ func TestHandler_LoginValidationFail(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	inputJSON := `{"login":"dariamail.ru","password":"111111"}`
@@ -238,7 +238,7 @@ func TestHandler_GetUserData(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	e := echo.New()
@@ -270,7 +270,7 @@ func TestHandler_UpdateData(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	input := models.UserData{
@@ -322,7 +322,7 @@ func TestHandler_UpdateData_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	inputJSON := `{"emaildaria@mail.ru","number":"89161166000","name":"Daria","password":"111111","password_current":"111111"}`
@@ -361,7 +361,7 @@ func TestHandler_UploadAvatar_Error(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	e := echo.New()
@@ -390,7 +390,7 @@ func TestHandler_CheckAuth(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	output := models.User{
@@ -438,7 +438,7 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	output := models.User{
@@ -494,7 +494,7 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	responseRest := models.SuccessRestaurantResponse{
@@ -542,7 +542,7 @@ func TestHandler_CheckAuth_WrongRole(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	sessionInfo := models.SessionInfo{
@@ -585,7 +585,7 @@ func TestHandler_CheckAuth_CookieNotFound(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	e := echo.New()
@@ -614,7 +614,7 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	output := models.User{
@@ -666,7 +666,7 @@ func TestHandler_Logout(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	e := echo.New()
@@ -696,7 +696,7 @@ func TestHandler_Logout_CookieNotFound(t *testing.T) {
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
 	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	SessionUseCaseMock := mocks.NewMockSessionUsecase(ctrl)
 	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	e := echo.New()

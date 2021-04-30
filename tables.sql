@@ -20,16 +20,6 @@ CREATE TABLE users (
                        password BYTEA
 );
 
-CREATE TABLE addresses (
-                           aid SERIAL PRIMARY KEY,
-                           name TEXT DEFAULT '' NOT NULL,
-                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
-                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                           latitude TEXT DEFAULT '' NOT NULL,
-                           longitude TEXT DEFAULT '' NOT NULL,
-                           radius INTEGER DEFAULT 0 NOT NULL
-);
-
 CREATE TABLE restaurants (
                              rid SERIAL PRIMARY KEY,
                              name TEXT UNIQUE,
@@ -43,6 +33,16 @@ CREATE TABLE restaurants (
                              avatar TEXT,
                              ratingsSum INTEGER DEFAULT 0,
                              reviewsCount INTEGER DEFAULT 0
+);
+
+CREATE TABLE addresses (
+                           aid SERIAL PRIMARY KEY,
+                           name TEXT DEFAULT '' NOT NULL,
+                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                           latitude TEXT DEFAULT '' NOT NULL,
+                           longitude TEXT DEFAULT '' NOT NULL,
+                           radius INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE sections (
@@ -98,7 +98,6 @@ CREATE TABLE basket_orders(
                               basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
                               orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE
 );
-
 
 -- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
