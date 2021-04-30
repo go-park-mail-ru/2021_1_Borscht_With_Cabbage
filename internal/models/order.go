@@ -1,15 +1,19 @@
 package models
 
-var StatusOrderAdded = "оформлено"
-var StatusOrderCooking = "готовится"
-var StatusOrderDelivering = "едет к вам"
-var StatusOrderDone = "доставлен"
+var StatusOrderAdded = "created"
+var StatusOrderCooking = "cooking"
+var StatusOrderDelivering = "delivering"
+var StatusOrderDone = "done"
 
 type Order struct {
 	OID             int           `json:"orderID"`
 	UID             int           `json:"user"`
+	UserName        string        `json:"userName"`
+	UserPhone       string        `json:"userPhone"`
 	Restaurant      string        `json:"store"`
 	RestaurantImage string        `json:"restaurantImage"`
+	Review          string        `json:"review"`
+	Stars           int           `json:"stars"`
 	Address         string        `json:"address"`
 	OrderTime       string        `json:"orderTime"`
 	DeliveryCost    int           `json:"ship"`
@@ -35,4 +39,18 @@ type DishToBasket struct {
 	DishID     int  `json:"dishID"`
 	IsPlus     bool `json:"isPlus"`
 	SameBasket bool `json:"same"`
+}
+
+type SetNewStatus struct {
+	OID          int    `json:"order"`
+	Status       string `json:"status"`
+	DeliveryTime string `json:"deliveryTime"`
+	Restaurant   string
+}
+
+type SetNewReview struct {
+	OID    int    `json:"oid"`
+	Review string `json:"review"`
+	Stars  int    `json:"stars"`
+	User   int
 }

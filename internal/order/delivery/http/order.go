@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
 	errors "github.com/borscht/backend/utils/errors"
@@ -138,6 +139,7 @@ func (h Handler) GetUserOrders(c echo.Context) error {
 	for i := range orders {
 		response = append(response, &orders[i])
 	}
+
 	return models.SendMoreResponse(c, response...)
 }
 
@@ -161,7 +163,45 @@ func (h Handler) GetRestaurantOrders(c echo.Context) error {
 	for i := range orders {
 		response = append(response, &orders[i])
 	}
+
 	return models.SendMoreResponse(c, response...)
+}
+
+func (h Handler) SetNewStatus(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	newStatus := models.SetNewStatus{}
+	if err := c.Bind(&newStatus); err != nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := h.OrderUcase.SetNewStatus(ctx, newStatus)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}
+
+func (h Handler) CreateReview(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	newReview := models.SetNewReview{}
+	if err := c.Bind(&newReview); err != nil {
+		fmt.Println(err)
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := h.OrderUcase.CreateReview(ctx, newReview)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
 }
 
 func (h Handler) GetBasket(c echo.Context) error {

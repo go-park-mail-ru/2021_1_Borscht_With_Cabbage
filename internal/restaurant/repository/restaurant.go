@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"math"
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
@@ -21,14 +22,14 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 }
 
 func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
-	queri :=
+	query :=
 		`
 	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar
 	FROM restaurants
 	WHERE rid >= $1 and rid <= $2
 	`
 
-	restaurantsDB, err := r.DB.Query(queri, offset, limit+offset)
+	restaurantsDB, err := r.DB.Query(query, offset, limit+offset)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -37,9 +38,11 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 
 	restaurants := make([]models.RestaurantInfo, 0)
 	for restaurantsDB.Next() {
+		var ratingsSum, reviewsCount int
+		restaurant := new(models.RestaurantInfo)
 		logger.RepoLevel().InlineInfoLog(ctx, "start scan")
-		var restaurant models.RestaurantInfo
-		restaurantsDB.Scan(
+
+		err = restaurantsDB.Scan(
 			&restaurant.ID,
 			&restaurant.Title,
 			&restaurant.DeliveryCost,
@@ -47,10 +50,13 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 			&restaurant.Description,
 			&restaurant.Rating,
 			&restaurant.Avatar,
+			&ratingsSum,
+			&reviewsCount,
 		)
+		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
-		restaurants = append(restaurants, restaurant)
+		restaurants = append(restaurants, *restaurant)
 		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
@@ -59,22 +65,23 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 
 func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
 	restaurant := new(models.RestaurantWithDishes)
-
-	queri :=
+	var ratingsSum, reviewsCount int
+	query :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar
+	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar, ratingsSum, reviewsCount
 	FROM restaurants 
 	WHERE rid=$1
 	`
 
-	err := r.DB.QueryRow(queri, id).
+	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar)
+			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar, &ratingsSum, &reviewsCount)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
+	restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 
@@ -147,4 +154,41 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 
 	restaurant.Dishes = dishes
 	return restaurant, nil
+}
+
+func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
+	reviewsDB, err := r.DB.Query("select review, stars, deliveryTime, (select name from users where uid=userid) from orders"+
+		" where restaurant=(select name from restaurants where rid=$1) and status=$2", id, models.StatusOrderDone)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	reviews := make([]models.RestaurantReview, 0)
+	for reviewsDB.Next() {
+		review := models.RestaurantReview{}
+		err = reviewsDB.Scan(
+			&review.Review,
+			&review.Stars,
+			&review.Time,
+			&review.UserName,
+		)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+		logger.RepoLevel().InlineDebugLog(ctx, review)
+
+		reviews = append(reviews, review)
+	}
+	err = reviewsDB.Close()
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	return reviews, nil
 }
