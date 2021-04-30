@@ -51,7 +51,7 @@ func main() {
 	authService := internal.NewService(userAuthRepository, restaurantAuthRepo, sessionRepository)
 	protoAuth.RegisterAuthServer(server, authService)
 
-	fmt.Println("starting server at :8081")
+	log.Print("starting server at :8081")
 	err = server.Serve(lis)
 	if err != nil {
 		log.Fatalln("Serve auth error: ", err)

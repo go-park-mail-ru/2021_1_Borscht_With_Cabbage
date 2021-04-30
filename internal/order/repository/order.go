@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/borscht/backend/config"
 	"time"
 
 	"github.com/borscht/backend/internal/models"
@@ -27,7 +28,6 @@ func (o orderRepo) AddBasket(ctx context.Context, userID, restaurantID int) (bas
 	// TODO: убрать когда будут внешние ключи id
 	var restaurantName string
 	err = o.DB.QueryRow("select name from restaurants where rid = $1", restaurantID).Scan(&restaurantName)
-	//////
 
 	err = o.DB.QueryRow("insert into baskets (restaurant) values ($1) returning bid", restaurantName).Scan(&basketID)
 	if err != nil {
@@ -251,8 +251,8 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 }
 
 func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, error) {
-	ordersDB, err := o.DB.Query("select oid, restaurant, orderTime, address, deliverycost, sum, status, deliverytime "+
-		"from orders where userID=$1", uid)
+	ordersDB, err := o.DB.Query("select oid, restaurant, orderTime, address, deliverycost, sum, status, deliverytime, review, stars "+
+		"from orders where userID=$1 order by orderTime desc", uid)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant orders")
 		return nil, errors.BadRequestError("Error with getting restaurant orders")
@@ -260,7 +260,6 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 	orders := make([]models.Order, 0)
 	for ordersDB.Next() {
 		order := new(models.Order)
-
 		err = ordersDB.Scan(
 			&order.OID,
 			&order.Restaurant,
@@ -270,6 +269,8 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.Summary,
 			&order.Status,
 			&order.DeliveryTime,
+			&order.Review,
+			&order.Stars,
 		)
 
 		var basketID string
@@ -311,7 +312,8 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 }
 
 func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error) {
-	ordersDB, err := o.DB.Query("select oid, userID, orderTime, address, deliverycost, sum, status, deliverytime from orders where restaurant=$1", restaurantName)
+	ordersDB, err := o.DB.Query("select oid, userID, orderTime, address, deliverycost, sum, status, deliverytime from orders where restaurant=$1 "+
+		"order by orderTime desc", restaurantName)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant orders")
 		return nil, errors.BadRequestError("Error with getting restaurant orders")
@@ -330,6 +332,12 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 			&order.Status,
 			&order.DeliveryTime,
 		)
+
+		err = o.DB.QueryRow("select name, phone from users where uid=$1", order.UID).Scan(&order.UserName, &order.UserPhone)
+		if err != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting user's info")
+			return nil, errors.BadRequestError("Error with getting user's info")
+		}
 
 		var basketID string
 		err = o.DB.QueryRow("select basketid from basket_orders where orderid=$1", order.OID).Scan(&basketID)
@@ -363,6 +371,38 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 	}
 
 	return orders, nil
+}
+
+func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
+	timeToDB, err := time.Parse(config.TimeFormat, newStatus.DeliveryTime)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error while converting time")
+		return errors.BadRequestError("Error while converting time")
+	}
+
+	_, err = o.DB.Exec("UPDATE orders SET status=$1, deliverytime=$2 where restaurant=$3 and oid=$4",
+		newStatus.Status, timeToDB, newStatus.Restaurant, newStatus.OID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with updating order status in DB")
+		return errors.BadRequestError("Error with updating order status in DB")
+	}
+
+	return nil
+}
+
+func (o orderRepo) CreateReview(ctx context.Context, newReview models.SetNewReview) error {
+	var restaurant string
+	err := o.DB.QueryRow("UPDATE orders SET review=$1, stars=$2 WHERE oid=$3 returning restaurant",
+		newReview.Review, newReview.Stars, newReview.OID).Scan(&restaurant)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with setting order review in DB")
+		return errors.BadRequestError("Error with setting order review in DB")
+	}
+
+	_, err = o.DB.Exec("UPDATE restaurants SET ratingsSum=ratingsSum+$1, reviewsCount=reviewsCount+1 where name=$2",
+		newReview.Stars, restaurant)
+
+	return nil
 }
 
 func (o orderRepo) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {

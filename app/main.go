@@ -57,6 +57,8 @@ func route(data initRoute) {
 	auth.GET("/auth", data.user.CheckAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.GET("/orders", data.order.GetRestaurantOrders)
+	restaurantGroup.PUT("/order/status", data.order.SetNewStatus)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
 	restaurantGroup.DELETE("/dish", data.dishAdmin.DeleteDish)
 	restaurantGroup.PUT("/dish", data.dishAdmin.UpdateDishData)
@@ -74,6 +76,7 @@ func route(data initRoute) {
 	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
 	userGroup.GET("/orders", data.order.GetUserOrders)
 	userGroup.POST("/order", data.order.Create)
+	userGroup.POST("/order/review", data.order.CreateReview)
 	userGroup.PUT("/basket", data.order.AddToBasket)
 	userGroup.GET("/basket", data.order.GetBasket)
 	userGroup.POST("/basket", data.order.AddBasket)
@@ -81,6 +84,7 @@ func route(data initRoute) {
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
 	data.e.GET("/restaurants", data.restaurant.GetVendor)
+	data.e.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
 }
 
 func initServer(e *echo.Echo) {
