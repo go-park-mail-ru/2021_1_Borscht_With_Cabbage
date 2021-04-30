@@ -24,6 +24,36 @@ func NewService(userAuthRepo auth.UserAuthRepo, restaurantAuthRepo auth.Restaura
 	}
 }
 
+func convertToSuccessUserResponse(user models.User, address models.Address, id int) protoAuth.SuccessUserResponse {
+	return protoAuth.SuccessUserResponse{
+		Email:       user.Email,
+		Phone:       user.Phone,
+		Name:        user.Name,
+		Password:    user.Password,
+		UID:         int32(id),
+		Avatar:      user.Avatar,
+		AddressName: address.Name,
+		Latitude:    address.Latitude,
+		Longitude:   address.Longitude,
+		Radius:      int32(address.Radius),
+	}
+}
+
+func convertToSuccessRestaurantResponse(restaurant models.RestaurantInfo, address models.Address) protoAuth.SuccessRestaurantResponse {
+	return protoAuth.SuccessRestaurantResponse{
+		RID:          int32(restaurant.ID),
+		Title:        restaurant.Title,
+		Email:        restaurant.AdminEmail,
+		Phone:        restaurant.AdminPhone,
+		DeliveryCost: int32(restaurant.DeliveryCost),
+		AvgCheck:     int32(restaurant.AvgCheck),
+		Description:  restaurant.Description,
+		Rating:       float32(restaurant.Rating),
+		Avatar:       restaurant.Avatar,
+		Role:         config.RoleAdmin,
+	}
+}
+
 func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoAuth.SuccessUserResponse, error) {
 	newUser := models.User{
 		Email:    user.Email,
@@ -37,13 +67,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 		return nil, err
 	}
 
-	response := protoAuth.SuccessUserResponse{
-		Email:  newUser.Email,
-		Phone:  newUser.Phone,
-		Name:   newUser.Name,
-		UID:    int32(uid),
-		Avatar: "",
-	}
+	response := convertToSuccessUserResponse(newUser, models.Address{}, uid)
 
 	return &response, nil
 }
@@ -63,17 +87,7 @@ func (s *service) GetByUid(ctx context.Context, uid *protoAuth.UID) (*protoAuth.
 		userResult.Address = *address
 	}
 
-	response := protoAuth.SuccessUserResponse{
-		Email:       userResult.Email,
-		Phone:       userResult.Phone,
-		Name:        userResult.Name,
-		AddressName: address.Name,
-		Latitude:    address.Latitude,
-		Longitude:   address.Longitude,
-		Radius:      int32(address.Radius),
-		UID:         int32(uid.Uid),
-		Avatar:      "",
-	}
+	response := convertToSuccessUserResponse(userResult, *address, int(uid.Uid))
 
 	return &response, nil
 }
@@ -90,17 +104,7 @@ func (s *service) CheckUserExists(ctx context.Context, user *protoAuth.UserAuth)
 		return nil, err
 	}
 
-	response := protoAuth.SuccessUserResponse{
-		Email:       userResult.Email,
-		Phone:       userResult.Phone,
-		Name:        userResult.Name,
-		AddressName: address.Name,
-		Latitude:    address.Latitude,
-		Longitude:   address.Longitude,
-		Radius:      int32(address.Radius),
-		UID:         int32(userResult.Uid),
-		Avatar:      "",
-	}
+	response := convertToSuccessUserResponse(*userResult, *address, userResult.Uid)
 
 	return &response, nil
 }
@@ -135,18 +139,7 @@ func (s *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *pro
 		return nil, err
 	}
 
-	response := protoAuth.SuccessRestaurantResponse{
-		RID:          int32(restaurant.ID),
-		Title:        restaurant.Title,
-		Email:        restaurant.AdminEmail,
-		Phone:        restaurant.AdminPhone,
-		DeliveryCost: int32(restaurant.DeliveryCost),
-		AvgCheck:     int32(restaurant.AvgCheck),
-		Description:  restaurant.Description,
-		Rating:       float32(restaurant.Rating),
-		Avatar:       restaurant.Avatar,
-		Role:         config.RoleAdmin,
-	}
+	response := convertToSuccessRestaurantResponse(*restaurant, models.Address{})
 
 	return &response, nil
 }
@@ -163,17 +156,7 @@ func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.
 		return nil, err
 	}
 
-	response := protoAuth.SuccessRestaurantResponse{
-		RID:         int32(restaurant.ID),
-		Title:       restaurant.Title,
-		Email:       restaurant.AdminEmail,
-		Phone:       restaurant.AdminPhone,
-		Avatar:      restaurant.Avatar,
-		AddressName: address.Name,
-		Latitude:    address.Latitude,
-		Longitude:   address.Longitude,
-		Radius:      int32(address.Radius),
-	}
+	response := convertToSuccessRestaurantResponse(*restaurant, *address)
 
 	return &response, nil
 }
