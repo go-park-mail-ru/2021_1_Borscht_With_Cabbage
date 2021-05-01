@@ -24,7 +24,7 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar
+	SELECT rid, name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount 
 	FROM restaurants
 	WHERE rid >= $1 and rid <= $2
 	`
@@ -48,12 +48,14 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]mo
 			&restaurant.DeliveryCost,
 			&restaurant.AvgCheck,
 			&restaurant.Description,
-			&restaurant.Rating,
 			&restaurant.Avatar,
 			&ratingsSum,
 			&reviewsCount,
 		)
-		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+
+		if reviewsCount != 0 {
+			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+		}
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 		restaurants = append(restaurants, *restaurant)
@@ -81,7 +83,9 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return nil, failError
 	}
-	restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+	if reviewsCount != 0 {
+		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+	}
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 

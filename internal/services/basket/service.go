@@ -6,7 +6,7 @@ import (
 	protoBasket "github.com/borscht/backend/services/proto/basket"
 )
 
-type BasketAuth interface {
+type ServiceBasket interface {
 	AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error
 	DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error
 	GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error)
@@ -17,7 +17,7 @@ type service struct {
 	basketService protoBasket.BasketClient
 }
 
-func NewService(basketService protoBasket.BasketClient) BasketAuth {
+func NewService(basketService protoBasket.BasketClient) ServiceBasket {
 	return &service{
 		basketService: basketService,
 	}
@@ -106,6 +106,7 @@ func (s service) DeleteFromBasket(ctx context.Context, dish models.DishToBasket,
 		SameBasket: dish.SameBasket,
 		Did:        int32(dish.DishID),
 		IsPlus:     dish.IsPlus,
+		Uid:        int32(uid),
 	}
 
 	_, err := s.basketService.DeleteFromBasket(ctx, &dishToDelete)

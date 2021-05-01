@@ -7,6 +7,7 @@ import (
 	"github.com/borscht/backend/services/basket/internal"
 	basketServiceRepo "github.com/borscht/backend/services/basket/repository"
 	protoBasket "github.com/borscht/backend/services/proto/basket"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"log"
 	"net"

@@ -29,7 +29,6 @@ CREATE TABLE restaurants (
                              deliveryCost INTEGER DEFAULT 0,
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,
-                             rating FLOAT DEFAULT 0,
                              avatar TEXT,
                              ratingsSum INTEGER DEFAULT 0,
                              reviewsCount INTEGER DEFAULT 0

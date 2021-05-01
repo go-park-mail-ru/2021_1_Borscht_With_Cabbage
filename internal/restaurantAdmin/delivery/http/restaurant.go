@@ -74,10 +74,10 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, responseRestaurant.Address)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
+	//err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, responseRestaurant.Address)
+	//if err != nil {
+	//	return models.SendResponseWithError(c, err)
+	//}
 
 	sessionInfo := models.SessionInfo{
 		Id:   responseRestaurant.ID,

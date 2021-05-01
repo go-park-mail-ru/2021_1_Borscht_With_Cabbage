@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/borscht/backend/internal/services/auth"
+	"github.com/borscht/backend/internal/services/basket"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
+	protoBasket "github.com/borscht/backend/services/proto/basket"
 	"google.golang.org/grpc"
 	"log"
 
@@ -119,6 +121,18 @@ func main() {
 	authClient := protoAuth.NewAuthClient(grpcConnAuth)
 	authService := auth.NewService(authClient)
 
+	grpcConnBasket, errr := grpc.Dial(
+		config.BasketServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnBasket.Close()
+
+	basketClient := protoBasket.NewBasketClient(grpcConnBasket)
+	basketService := basket.NewService(basketClient)
+
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open(config.PostgresDB, dsn)
@@ -154,7 +168,7 @@ func main() {
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
-	orderHandler := http.NewOrderHandler(orderUsecase)
+	orderHandler := http.NewOrderHandler(orderUsecase, basketService)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)

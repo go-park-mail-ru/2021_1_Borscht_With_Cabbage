@@ -35,6 +35,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	}
 
 	result, err := h.restaurantUsecase.GetVendor(ctx, limit, offset)
+
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

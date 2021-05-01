@@ -1,21 +1,23 @@
 package http
 
 import (
-	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
+	"github.com/borscht/backend/internal/services/basket"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
-	OrderUcase order.OrderUsecase
+	OrderUcase    order.OrderUsecase
+	BasketService basket.ServiceBasket
 }
 
-func NewOrderHandler(orderUcase order.OrderUsecase) order.OrderHandler {
+func NewOrderHandler(orderUcase order.OrderUsecase, basketService basket.ServiceBasket) order.OrderHandler {
 	handler := &Handler{
-		OrderUcase: orderUcase,
+		OrderUcase:    orderUcase,
+		BasketService: basketService,
 	}
 
 	return handler
@@ -32,7 +34,7 @@ func (h Handler) AddBasket(c echo.Context) error {
 	}
 	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"basket": basket})
 
-	result, err := h.OrderUcase.AddBasket(ctx, basket)
+	result, err := h.BasketService.AddBasket(ctx, basket)
 	if err != nil {
 		models.SendResponseWithError(c, err)
 	}
@@ -63,12 +65,12 @@ func (h Handler) AddToBasket(c echo.Context) error {
 	}
 
 	if dish.IsPlus {
-		err := h.OrderUcase.AddToBasket(ctx, dish, userStruct.Uid)
+		err := h.BasketService.AddToBasket(ctx, dish, userStruct.Uid)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
 
-		basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+		basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -77,12 +79,12 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponse(c, basket)
 	}
 
-	err := h.OrderUcase.DeleteFromBasket(ctx, dish, userStruct.Uid)
+	err := h.BasketService.DeleteFromBasket(ctx, dish, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -190,7 +192,6 @@ func (h Handler) CreateReview(c echo.Context) error {
 
 	newReview := models.SetNewReview{}
 	if err := c.Bind(&newReview); err != nil {
-		fmt.Println(err)
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
@@ -215,7 +216,7 @@ func (h Handler) GetBasket(c echo.Context) error {
 	}
 
 	userStruct := user.(models.User)
-	basket, err := h.OrderUcase.GetBasket(ctx, userStruct.Uid)
+	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

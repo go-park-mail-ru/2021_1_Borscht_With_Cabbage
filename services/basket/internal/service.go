@@ -59,10 +59,10 @@ func (s service) AddToBasket(ctx context.Context, dish *protoBasket.DishToBasket
 
 	err := s.basketRepo.AddToBasket(ctx, dishToBasket, int(dish.Uid))
 	if err != nil {
-		return nil, err
+		return &protoBasket.Nothing{}, err
 	}
 
-	return nil, nil
+	return &protoBasket.Nothing{}, nil
 }
 
 func (s service) DeleteFromBasket(ctx context.Context, dish *protoBasket.DishToBasket) (*protoBasket.Nothing, error) {
@@ -74,24 +74,24 @@ func (s service) DeleteFromBasket(ctx context.Context, dish *protoBasket.DishToB
 
 	err := s.basketRepo.DeleteFromBasket(ctx, dishFromBasket, int(dish.Uid))
 	if err != nil {
-		return nil, err
+		return &protoBasket.Nothing{}, err
 	}
 
-	return nil, nil
+	return &protoBasket.Nothing{}, nil
 }
 
 func (s service) GetBasket(ctx context.Context, uid *protoBasket.UID) (*protoBasket.BasketInfo, error) {
 	basket, err := s.basketRepo.GetBasket(ctx, int(uid.Uid))
 	if err != nil {
-		return nil, err
+		return &protoBasket.BasketInfo{}, err
 	}
 	if basket == nil {
-		return nil, nil
+		return &protoBasket.BasketInfo{}, nil
 	}
 
-	address, err := s.basketRepo.GetAddress(ctx, basket.RID)
-	if err != nil {
-		return nil, err
+	address, errr := s.basketRepo.GetAddress(ctx, basket.RID)
+	if errr != nil {
+		return &protoBasket.BasketInfo{}, err
 	}
 	if address != nil {
 		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address": *address})
@@ -108,26 +108,26 @@ func (s service) AddBasket(ctx context.Context, info *protoBasket.BasketInfo) (*
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
-		return nil, failError
+		return &protoBasket.BasketInfo{}, failError
 	}
 
 	// пока что удаляем предыдущую корзину, в будущем надо будет изменить логику
 	basketOld, err := s.basketRepo.GetBasket(ctx, user.Uid)
 	if err != nil {
-		return nil, err
+		return &protoBasket.BasketInfo{}, err
 	}
 
 	// у пользователя уже есть корзина, удаляем ее
 	if basketOld != nil {
 		err = s.basketRepo.DeleteBasket(ctx, user.Uid, basketOld.BID)
 		if err != nil {
-			return nil, err
+			return &protoBasket.BasketInfo{}, err
 		}
 	}
 
 	newBasketId, err := s.basketRepo.AddBasket(ctx, user.Uid, int(info.Rid))
 	if err != nil {
-		return nil, err
+		return &protoBasket.BasketInfo{}, err
 	}
 
 	// TODO: попробовать сделать одной транзакцией это
@@ -141,13 +141,13 @@ func (s service) AddBasket(ctx context.Context, info *protoBasket.BasketInfo) (*
 			Price:  int(value.Price),
 		})
 		if err != nil {
-			return nil, err
+			return &protoBasket.BasketInfo{}, err
 		}
 	}
 
 	basketResult, err := s.basketRepo.GetBasket(ctx, user.Uid)
 	if err != nil {
-		return nil, err
+		return &protoBasket.BasketInfo{}, err
 	}
 
 	basketResponse := createBasketResponse(*basketResult, models.Address{})
