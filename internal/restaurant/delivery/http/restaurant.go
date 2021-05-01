@@ -14,7 +14,6 @@ type RestaurantHandler struct {
 	restaurantUsecase restModel.RestaurantUsecase
 }
 
-// NewArticleHandler will initialize the articles/ resources endpoint
 func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.RestaurantHandler {
 	return &RestaurantHandler{
 		restaurantUsecase: restUCase,
@@ -35,7 +34,6 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	}
 
 	result, err := h.restaurantUsecase.GetVendor(ctx, limit, offset)
-
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

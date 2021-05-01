@@ -82,6 +82,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 	if err != nil {
 		return nil, err
 	}
+
 	err = a.restaurantRepository.UpdateAddress(ctx, restaurant.ID, restaurant.Address)
 	if err != nil {
 		return nil, err
