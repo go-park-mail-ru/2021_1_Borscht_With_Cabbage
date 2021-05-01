@@ -24,10 +24,6 @@ type OrderUsecase interface {
 	GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error)
 	SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error
 	CreateReview(ctx context.Context, newReview models.SetNewReview) error
-	AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error
-	DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error
-	GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error)
-	AddBasket(ctx context.Context, basket models.BasketForUser) (*models.BasketForUser, error)
 }
 
 type OrderRepo interface {
@@ -36,10 +32,4 @@ type OrderRepo interface {
 	GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error)
 	SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error
 	CreateReview(ctx context.Context, newReview models.SetNewReview) error
-	AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error
-	DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error
-	GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error)
-	AddBasket(ctx context.Context, userID, restaurantID int) (basketID int, err error)
-	DeleteBasket(ctx context.Context, userID, basketID int) error
-	AddDishToBasket(ctx context.Context, basketID int, dish models.DishInBasket) error
 }

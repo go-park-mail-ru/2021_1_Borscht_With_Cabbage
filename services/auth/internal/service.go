@@ -64,7 +64,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 
 	uid, err := s.userAuthRepo.Create(ctx, newUser)
 	if err != nil {
-		return nil, err
+		return &protoAuth.SuccessUserResponse{}, err
 	}
 
 	response := convertToSuccessUserResponse(newUser, models.Address{}, uid)
@@ -75,13 +75,13 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 func (s *service) GetByUid(ctx context.Context, uid *protoAuth.UID) (*protoAuth.SuccessUserResponse, error) {
 	userResult, err := s.userAuthRepo.GetByUid(ctx, int(uid.Uid))
 	if err != nil {
-		return nil, err
+		return &protoAuth.SuccessUserResponse{}, err
 	}
 
 	address, err := s.userAuthRepo.GetAddress(ctx, int(uid.Uid))
 	if err != nil {
 		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
-		return nil, err
+		return &protoAuth.SuccessUserResponse{}, err
 	}
 	if address != nil {
 		userResult.Address = *address
@@ -95,13 +95,13 @@ func (s *service) GetByUid(ctx context.Context, uid *protoAuth.UID) (*protoAuth.
 func (s *service) CheckUserExists(ctx context.Context, user *protoAuth.UserAuth) (*protoAuth.SuccessUserResponse, error) {
 	userResult, err := s.userAuthRepo.GetByLogin(ctx, user.Login)
 	if err != nil {
-		return nil, err
+		return &protoAuth.SuccessUserResponse{}, err
 	}
 
 	address, err := s.userAuthRepo.GetAddress(ctx, userResult.Uid)
 	if err != nil {
 		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
-		return nil, err
+		return &protoAuth.SuccessUserResponse{}, err
 	}
 
 	response := convertToSuccessUserResponse(*userResult, *address, userResult.Uid)
@@ -119,7 +119,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 
 	rid, err := s.restaurantAuthRepo.CreateRestaurant(ctx, newRestaurant)
 	if err != nil {
-		return nil, err
+		return &protoAuth.SuccessRestaurantResponse{}, err
 	}
 
 	response := protoAuth.SuccessRestaurantResponse{
@@ -136,7 +136,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 func (s *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *protoAuth.UserAuth) (*protoAuth.SuccessRestaurantResponse, error) {
 	restaurant, err := s.restaurantAuthRepo.GetByLogin(ctx, restaurantAuth.Login)
 	if err != nil {
-		return nil, err
+		return &protoAuth.SuccessRestaurantResponse{}, err
 	}
 
 	response := convertToSuccessRestaurantResponse(*restaurant, models.Address{})
@@ -147,13 +147,13 @@ func (s *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *pro
 func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.SuccessRestaurantResponse, error) {
 	restaurant, err := s.restaurantAuthRepo.GetByRid(ctx, int(rid.Rid))
 	if err != nil {
-		return nil, err
+		return &protoAuth.SuccessRestaurantResponse{}, err
 	}
 
 	address, err := s.restaurantAuthRepo.GetAddress(ctx, int(rid.Rid))
 	if err != nil {
 		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
-		return nil, err
+		return &protoAuth.SuccessRestaurantResponse{}, err
 	}
 
 	response := convertToSuccessRestaurantResponse(*restaurant, *address)
@@ -165,7 +165,7 @@ func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.
 func (s *service) CheckSession(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.SessionInfo, error) {
 	sessionInfo, exists, err := s.sessionRepo.Check(ctx, session.Session)
 	if err != nil {
-		return nil, err
+		return &protoAuth.SessionInfo{}, err
 	}
 
 	sessionOutput := protoAuth.SessionInfo{
@@ -195,7 +195,7 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.Sess
 	}
 	err := s.sessionRepo.Create(ctx, sessionData)
 	if err != nil {
-		return nil, err
+		return &protoAuth.SessionValue{}, err
 	}
 
 	sessionOutput := protoAuth.SessionValue{
@@ -207,5 +207,5 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.Sess
 
 func (s *service) DeleteSession(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.Error, error) {
 	err := s.sessionRepo.Delete(ctx, session.Session)
-	return nil, err
+	return &protoAuth.Error{}, err
 }
