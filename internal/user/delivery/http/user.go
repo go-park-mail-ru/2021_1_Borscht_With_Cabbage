@@ -48,35 +48,6 @@ func deleteResponseCookie(c echo.Context) {
 	c.SetCookie(&sessionCookie)
 }
 
-func (h Handler) UpdateMainAddress(c echo.Context) error {
-	ctx := models.GetContext(c)
-	logger.DeliveryLevel().InlineDebugLog(ctx, "address delivery")
-
-	address := new(models.Address)
-	if err := c.Bind(address); err != nil {
-		sendErr := errors.BadRequestError(err.Error())
-		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-		return models.SendResponseWithError(c, sendErr)
-	}
-
-	err := h.UserUcase.UpdateMainAddress(ctx, *address)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
-
-	return models.SendResponse(c, nil)
-}
-
-func (h Handler) GetMainAddress(c echo.Context) error {
-	ctx := models.GetContext(c)
-	result, err := h.UserUcase.GetMainAddress(ctx)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
-
-	return models.SendResponse(c, result)
-}
-
 func (h Handler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 
@@ -262,4 +233,33 @@ func (h Handler) Logout(c echo.Context) error {
 	deleteResponseCookie(c)
 
 	return models.SendResponse(c, nil)
+}
+
+func (h Handler) UpdateMainAddress(c echo.Context) error {
+	ctx := models.GetContext(c)
+	logger.DeliveryLevel().InlineDebugLog(ctx, "address delivery")
+
+	address := new(models.Address)
+	if err := c.Bind(address); err != nil {
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := h.UserUcase.UpdateMainAddress(ctx, *address)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}
+
+func (h Handler) GetMainAddress(c echo.Context) error {
+	ctx := models.GetContext(c)
+	result, err := h.UserUcase.GetMainAddress(ctx)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, result)
 }

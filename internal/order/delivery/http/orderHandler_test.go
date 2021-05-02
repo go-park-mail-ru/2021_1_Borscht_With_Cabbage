@@ -1,9 +1,11 @@
 package http
 
 import (
+	"encoding/json"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order/mocks"
 	basketServiceMock "github.com/borscht/backend/internal/services/mocks"
+	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -19,6 +21,80 @@ func TestNewOrderHandler(t *testing.T) {
 	BasketService := basketServiceMock.NewMockServiceBasket(ctrl)
 	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketService)
 	if orderHandler == nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_AddBasket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	basket := models.BasketForUser{
+		Restaurant: "rest1",
+		RID:        1,
+	}
+	inputJSON := `{"restaurantName":"rest1","restaurantID":1}`
+
+	basketResult := models.BasketForUser{
+		BID:        1,
+		Restaurant: "first",
+		RID:        1,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/basket", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	user := models.User{
+		Uid:  1,
+		Name: "Daria",
+	}
+	c.Set("User", user)
+	ctx := models.GetContext(c)
+
+	BasketServiceMock.EXPECT().AddBasket(ctx, basket).Return(&basketResult, nil)
+
+	err := orderHandler.AddBasket(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_AddBasket_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"restaurantNamerest1","restaurantID":1}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/basket", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	user := models.User{
+		Uid:  1,
+		Name: "Daria",
+	}
+	c.Set("User", user)
+
+	err := orderHandler.AddBasket(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
 		t.Errorf("incorrect result")
 		return
 	}
@@ -120,6 +196,69 @@ func TestHandler_AddToBasket_NewRestaurant(t *testing.T) {
 	}
 }
 
+func TestHandler_AddToBasket_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"dishid:1,"isPlus":true,"same":true}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/user/basket", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	user := models.User{
+		Uid:  1,
+		Name: "Daria",
+	}
+	c.Set("User", user)
+
+	err := orderHandler.AddToBasket(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_AddToBasket_UserNilError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"dishid":1,"isPlus":true,"same":true}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/user/basket", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := orderHandler.AddToBasket(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
 func TestHandler_DeleteFromBasket_SameRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -201,6 +340,69 @@ func TestHandler_Create(t *testing.T) {
 	}
 }
 
+func TestHandler_Create_UserNilError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"address":"prospekt mira 134"}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/order", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := orderHandler.Create(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_Create_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"address"prospekt mira 134"}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/order", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	user := models.User{
+		Uid:  1,
+		Name: "Daria",
+	}
+	c.Set("User", user)
+
+	err := orderHandler.Create(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
 func TestHandler_GetUserOrders(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -233,6 +435,33 @@ func TestHandler_GetUserOrders(t *testing.T) {
 	}
 }
 
+func TestHandler_GetUserOrders_UserNilError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/user/orders", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := orderHandler.GetUserOrders(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
 func TestHandler_GetRestaurantOrders(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -259,6 +488,33 @@ func TestHandler_GetRestaurantOrders(t *testing.T) {
 
 	err := orderHandler.GetRestaurantOrders(c)
 	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_GetRestaurantOrders_RestaurantNilError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/restaurant/orders", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := orderHandler.GetRestaurantOrders(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
 		t.Errorf("incorrect result")
 		return
 	}

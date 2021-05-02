@@ -1446,3 +1446,477 @@ func TestOrderRepo_GetBasket_GetDishesErr(t *testing.T) {
 		return
 	}
 }
+
+func TestBasketRepository_AddBasket(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	restaurantName := sqlmock.NewRows([]string{"restaurant"})
+	restaurantName.AddRow("rest1")
+
+	basketID := sqlmock.NewRows([]string{"bid"})
+	basketID.AddRow(1)
+
+	mock.
+		ExpectQuery("select name from restaurants").
+		WithArgs(1).
+		WillReturnRows(restaurantName)
+	mock.
+		ExpectQuery("insert into baskets").
+		WithArgs("rest1").
+		WillReturnRows(basketID)
+	mock.
+		ExpectExec("insert into basket_users").
+		WithArgs(1, 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	bid, errr := basketRepo.AddBasket(ctx, 1, 1)
+	if errr != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	require.EqualValues(t, 1, bid)
+}
+
+func TestBasketRepository_AddBasket_ErrorInsertBasket(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	restaurantName := sqlmock.NewRows([]string{"restaurant"})
+	restaurantName.AddRow("rest1")
+
+	basketID := sqlmock.NewRows([]string{"bid"})
+	basketID.AddRow(1)
+
+	mock.
+		ExpectQuery("select name from restaurants").
+		WithArgs(1).
+		WillReturnRows(restaurantName)
+	mock.
+		ExpectQuery("insert into baskets").
+		WithArgs("rest1").
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	_, errr := basketRepo.AddBasket(ctx, 1, 1)
+	if errr == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_AddBasket_InsertBasketError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	restaurantName := sqlmock.NewRows([]string{"restaurant"})
+	restaurantName.AddRow("rest1")
+
+	basketID := sqlmock.NewRows([]string{"bid"})
+	basketID.AddRow(1)
+
+	mock.
+		ExpectQuery("select name from restaurants").
+		WithArgs(1).
+		WillReturnRows(restaurantName)
+	mock.
+		ExpectQuery("insert into baskets").
+		WithArgs("rest1").
+		WillReturnRows(basketID)
+	mock.
+		ExpectExec("insert into basket_users").
+		WithArgs(1, 1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	_, errr := basketRepo.AddBasket(ctx, 1, 1)
+	if errr == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_AddDishToBasket(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	dish := models.DishInBasket{
+		ID:     1,
+		Name:   "dish1",
+		Number: 1,
+	}
+
+	dishID := sqlmock.NewRows([]string{"bid"})
+	dishID.AddRow(1)
+
+	mock.
+		ExpectQuery("select dish from baskets_food").
+		WithArgs(1, 1).
+		WillReturnRows(dishID)
+
+	mock.
+		ExpectExec("update baskets_food set").
+		WithArgs(1, 1, 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.AddDishToBasket(ctx, 1, dish)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_AddDishToBasket_updBasketError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	dish := models.DishInBasket{
+		ID:     1,
+		Name:   "dish1",
+		Number: 1,
+	}
+
+	dishID := sqlmock.NewRows([]string{"bid"})
+	dishID.AddRow(1)
+
+	mock.
+		ExpectQuery("select dish from baskets_food").
+		WithArgs(1, 1).
+		WillReturnRows(dishID)
+
+	mock.
+		ExpectExec("update baskets_food set").
+		WithArgs(1, 1, 1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.AddDishToBasket(ctx, 1, dish)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_AddDishToBasket_NewDish(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	dish := models.DishInBasket{
+		ID:     1,
+		Name:   "dish1",
+		Number: 1,
+	}
+
+	dishID := sqlmock.NewRows([]string{"bid"})
+	dishID.AddRow(1)
+
+	mock.
+		ExpectQuery("select dish from baskets_food").
+		WithArgs(1, 1).
+		WillReturnError(sql.ErrNoRows)
+
+	mock.
+		ExpectExec("insert into baskets_food").
+		WithArgs(1, 1, 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.AddDishToBasket(ctx, 1, dish)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_AddDishToBasket_NewDish_Error(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	dish := models.DishInBasket{
+		ID:     1,
+		Name:   "dish1",
+		Number: 1,
+	}
+
+	dishID := sqlmock.NewRows([]string{"bid"})
+	dishID.AddRow(1)
+
+	mock.
+		ExpectQuery("select dish from baskets_food").
+		WithArgs(1, 1).
+		WillReturnError(sql.ErrNoRows)
+
+	mock.
+		ExpectExec("insert into baskets_food").
+		WithArgs(1, 1, 1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.AddDishToBasket(ctx, 1, dish)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_DeleteBasket(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	mock.
+		ExpectExec("delete from basket_users").
+		WithArgs(1, 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.
+		ExpectExec("delete from baskets").
+		WithArgs(1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.DeleteBasket(ctx, 1, 1)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_DeleteBasket_ErrorDeleteLink(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	mock.
+		ExpectExec("delete from basket_users").
+		WithArgs(1, 1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.DeleteBasket(ctx, 1, 1)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_DeleteBasket_ErrorDelete(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	mock.
+		ExpectExec("delete from basket_users").
+		WithArgs(1, 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	mock.
+		ExpectExec("delete from baskets").
+		WithArgs(1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = basketRepo.DeleteBasket(ctx, 1, 1)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBasketRepository_GetAddress(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	addressDB := sqlmock.NewRows([]string{"name", "latitude", "longitude", "radius"})
+	addressDB.AddRow("address1", "1234", "4321", 1500)
+
+	mock.
+		ExpectQuery("SELECT name, latitude,").
+		WithArgs(1).
+		WillReturnRows(addressDB)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	address, errr := basketRepo.GetAddress(ctx, 1)
+	if errr != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	require.EqualValues(t, address.Name, "address1")
+}
+
+func TestBasketRepository_GetAddress_Error(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	basketRepo := &basketRepository{
+		DB: db,
+	}
+
+	addressDB := sqlmock.NewRows([]string{"name", "latitude", "longitude", "radius"})
+	addressDB.AddRow("address1", "1234", "4321", 1500)
+
+	mock.
+		ExpectQuery("SELECT name, latitude,").
+		WithArgs(1).
+		WillReturnError(sql.ErrConnDone)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	_, err = basketRepo.GetAddress(ctx, 1)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}

@@ -628,3 +628,74 @@ func TestOrderRepo_GetRestaurantOrders(t *testing.T) {
 	}
 	require.EqualValues(t, ordersResult[0].OID, 1)
 }
+
+func TestOrderRepo_SetNewStatus(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	orderRepo := &orderRepo{
+		DB: db,
+	}
+
+	newStatus := models.SetNewStatus{
+		Status:       models.StatusOrderDone,
+		DeliveryTime: "2012-11-01T22:08:41",
+		Restaurant:   "rest1",
+		OID:          1,
+	}
+
+	mock.
+		ExpectExec("UPDATE orders SET").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = orderRepo.SetNewStatus(ctx, newStatus)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestOrderRepo_SetNewStatus_ErrorConvertingTime(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	orderRepo := &orderRepo{
+		DB: db,
+	}
+
+	newStatus := models.SetNewStatus{
+		Status:       models.StatusOrderDone,
+		DeliveryTime: "2021-05-01 18:00:00",
+		Restaurant:   "rest1",
+		OID:          1,
+	}
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	err = orderRepo.SetNewStatus(ctx, newStatus)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestOrderRepo_CreateReview(t *testing.T) {
+}

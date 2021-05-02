@@ -108,7 +108,6 @@ func initServer(e *echo.Echo) {
 func main() {
 	e := echo.New()
 	initServer(e)
-
 	grpcConnAuth, errr := grpc.Dial(
 		config.AuthServiceAddress,
 		grpc.WithInsecure(),

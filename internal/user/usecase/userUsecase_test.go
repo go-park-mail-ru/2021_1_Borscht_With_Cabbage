@@ -24,6 +24,34 @@ func TestNewUserUsecase(t *testing.T) {
 	}
 }
 
+func TestUserUsecase_GetUserData(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userRepoMock := mocks.NewMockUserRepo(ctrl)
+	imageRepoMock := imageMock.NewMockImageRepo(ctrl)
+
+	userUsecase := NewUserUsecase(userRepoMock, imageRepoMock)
+	c := context.Background()
+
+	user := models.User{
+		Email:    "dasha@mail.ru",
+		Phone:    "89111111111",
+		Name:     "111111",
+		Password: "1111111",
+	}
+	ctx := context.WithValue(c, "User", user)
+
+	response := new(models.SuccessUserResponse)
+	var err error
+	response, err = userUsecase.GetUserData(ctx)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	require.EqualValues(t, response.Role, config.RoleUser)
+}
+
 func TestUserUsecase_UpdateData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

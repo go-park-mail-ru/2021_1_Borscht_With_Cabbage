@@ -707,3 +707,111 @@ func TestHandler_Logout_CookieNotFound(t *testing.T) {
 		return
 	}
 }
+
+func TestHandler_UpdateMainAddress(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+
+	inputJSON := `{"name":"address1","longitude":"1234","latitude":"4321","radius":1000}`
+	address := models.Address{
+		Name:      "address1",
+		Longitude: "1234",
+		Latitude:  "4321",
+		Radius:    1000,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/address", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	sessionCookie := http.Cookie{
+		Expires: time.Now().Add(24 * time.Hour),
+		Name:    config.SessionCookie,
+		Value:   "session1",
+	}
+	req.AddCookie(&sessionCookie)
+	c := e.NewContext(req, rec)
+
+	ctx := models.GetContext(c)
+	UserUsecaseMock.EXPECT().UpdateMainAddress(ctx, address).Return(nil)
+
+	err := userHandler.UpdateMainAddress(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_UpdateMainAddress_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+
+	inputJSON := `{"nameaddress1","longitude":"1234","latitude":"4321","radius":1000}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/address", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	sessionCookie := http.Cookie{
+		Expires: time.Now().Add(24 * time.Hour),
+		Name:    config.SessionCookie,
+		Value:   "session1",
+	}
+	req.AddCookie(&sessionCookie)
+	c := e.NewContext(req, rec)
+
+	err := userHandler.UpdateMainAddress(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_GetMainAddress(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+
+	address := models.Address{
+		Name:      "address1",
+		Longitude: "1234",
+		Latitude:  "4321",
+		Radius:    1000,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/address", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	sessionCookie := http.Cookie{
+		Expires: time.Now().Add(24 * time.Hour),
+		Name:    config.SessionCookie,
+		Value:   "session1",
+	}
+	req.AddCookie(&sessionCookie)
+	c := e.NewContext(req, rec)
+
+	ctx := models.GetContext(c)
+	UserUsecaseMock.EXPECT().GetMainAddress(ctx).Return(&address, nil)
+
+	err := userHandler.GetMainAddress(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}

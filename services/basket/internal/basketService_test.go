@@ -1,100 +1,148 @@
 package internal
 
-//import (
-//	"github.com/borscht/backend/internal/image/mocks"
-//	"github.com/borscht/backend/internal/models"
-//	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-//	"github.com/borscht/backend/utils/logger"
-//	"github.com/borscht/backend/utils/secure"
-//	"github.com/golang/mock/gomock"
-//	"testing"
-//)
+import (
+	"context"
+	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/services/basket/mocks"
+	protoBasket "github.com/borscht/backend/services/proto/basket"
+	"github.com/borscht/backend/utils/logger"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
 
-//func TestRestaurantUsecase_CreateRestaurant(t *testing.T) {
-//	ctrl := gomock.NewController(t)
-//	defer ctrl.Finish()
-//	restaurantRepoMock := adminMock.NewMockAdminRestaurantRepo(ctrl)
-//	imageRepoMock := mocks.NewMockImageRepo(ctrl)
-//
-//	restaurantUsecase := NewRestaurantUsecase(restaurantRepoMock, imageRepoMock)
-//	c := context.Background()
-//	ctx := context.WithValue(c, "request_id", 1)
-//
-//	logger.InitLogger()
-//
-//	restaurant := models.RestaurantInfo{
-//		AdminEmail:   "dasha@mail.ru",
-//		AdminPhone:   "89111111111",
-//		Title:        "rest1",
-//		Description:  "hey",
-//		DeliveryCost: 200,
-//	}
-//	restaurantWithAvatar := models.RestaurantInfo{
-//		AdminEmail:        "dasha@mail.ru",
-//		AdminPhone:        "89111111111",
-//		Title:             "rest1",
-//		Description:       "hey",
-//		DeliveryCost:      200,
-//		Avatar:            config.DefaultRestaurantImage,
-//		AdminHashPassword: secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword),
-//	// ПРОБЛЕМА: соль рандомная
-//	}
-//
-//	restaurantRepoMock.EXPECT().CreateRestaurant(ctx, restaurantWithAvatar).Return(1, nil)
-//
-//	restaurantResponse, err := restaurantUsecase.CreateRestaurant(ctx, restaurant)
-//	if err != nil {
-//		t.Errorf("unexpected err: %s", err)
-//		return
-//	}
-//
-//	require.EqualValues(t, restaurantResponse.ID, 1)
-//}
-//
-//func TestRestaurantUsecase_CheckRestaurantExists(t *testing.T) {
-//	ctrl := gomock.NewController(t)
-//	defer ctrl.Finish()
-//	restaurantRepoMock := adminMock.NewMockAdminRestaurantRepo(ctrl)
-//	imageRepoMock := mocks.NewMockImageRepo(ctrl)
-//
-//	restaurantUsecase := NewRestaurantUsecase(restaurantRepoMock, imageRepoMock)
-//	c := context.Background()
-//	ctx := context.WithValue(c, "request_id", 1)
-//
-//	logger.InitLogger()
-//
-//	user := models.RestaurantAuth{
-//		Login:    "dasha@mail.ru",
-//		Password: "1111111",
-//	}
-//	restaurant := models.RestaurantInfo{
-//		AdminHashPassword: secure.HashPassword(ctx, secure.GetSalt(), user.Password),
-//	}
-//
-//	restaurantRepoMock.EXPECT().GetByLogin(ctx, user.Login).Return(&restaurant, nil)
-//
-//	_, err := restaurantUsecase.CheckRestaurantExists(ctx, user)
-//	if err != nil {
-//		t.Errorf("unexpected err: %s", err)
-//		return
-//	}
-//}
-//
-//func TestRestaurantUsecase_GetByRid(t *testing.T) {
-//	ctrl := gomock.NewController(t)
-//	defer ctrl.Finish()
-//	restaurantRepoMock := adminMock.NewMockAdminRestaurantRepo(ctrl)
-//	imageRepoMock := mocks.NewMockImageRepo(ctrl)
-//
-//	restaurantUsecase := NewRestaurantUsecase(restaurantRepoMock, imageRepoMock)
-//	ctx := new(context.Context)
-//
-//	restaurant := models.RestaurantInfo{}
-//	restaurantRepoMock.EXPECT().GetByRid(*ctx, 1).Return(&restaurant, nil)
-//
-//	_, err := restaurantUsecase.GetByRid(*ctx, 1)
-//	if err != nil {
-//		t.Errorf("unexpected err: %s", err)
-//		return
-//	}
-//}
+func TestService_AddToBasket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	basketRepoMock := mocks.NewMockBasketRepo(ctrl)
+
+	basketService := NewService(basketRepoMock)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	dishProto := protoBasket.DishToBasket{
+		SameBasket: true,
+		IsPlus:     true,
+		Did:        1,
+		Uid:        1,
+	}
+	dishToBasket := models.DishToBasket{
+		SameBasket: dishProto.SameBasket,
+		IsPlus:     dishProto.IsPlus,
+		DishID:     int(dishProto.Did),
+	}
+
+	basketRepoMock.EXPECT().AddToBasket(ctx, dishToBasket, int(dishProto.Uid)).Return(nil)
+
+	_, err := basketService.AddToBasket(ctx, &dishProto)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
+
+func TestService_DeleteFromBasket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	basketRepoMock := mocks.NewMockBasketRepo(ctrl)
+
+	basketService := NewService(basketRepoMock)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	dishProto := protoBasket.DishToBasket{
+		SameBasket: true,
+		IsPlus:     true,
+		Did:        1,
+		Uid:        1,
+	}
+	dishToBasket := models.DishToBasket{
+		SameBasket: dishProto.SameBasket,
+		IsPlus:     dishProto.IsPlus,
+		DishID:     int(dishProto.Did),
+	}
+
+	basketRepoMock.EXPECT().DeleteFromBasket(ctx, dishToBasket, int(dishProto.Uid)).Return(nil)
+
+	_, err := basketService.DeleteFromBasket(ctx, &dishProto)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
+
+func TestService_GetBasket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	basketRepoMock := mocks.NewMockBasketRepo(ctrl)
+
+	basketService := NewService(basketRepoMock)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	basket := models.BasketForUser{
+		RID: 1,
+		BID: 1,
+	}
+	address := models.Address{
+		Name:      "address1",
+		Latitude:  "12343",
+		Longitude: "123442",
+		Radius:    1000,
+	}
+
+	basketRepoMock.EXPECT().GetBasket(ctx, 1).Return(&basket, nil)
+	basketRepoMock.EXPECT().GetAddress(ctx, basket.RID).Return(&address, nil)
+
+	basketResponse, err := basketService.GetBasket(ctx, &protoBasket.UID{Uid: 1})
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	require.EqualValues(t, basketResponse.Address.AddressName, address.Name)
+}
+
+func TestService_AddBasket(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	basketRepoMock := mocks.NewMockBasketRepo(ctrl)
+
+	basketService := NewService(basketRepoMock)
+
+	c := context.Background()
+	user := models.User{
+		Email:    "dasha@mail.ru",
+		Phone:    "89111111111",
+		Name:     "111111",
+		Password: "1111111",
+		Uid:      1,
+	}
+	ctx := context.WithValue(c, "User", user)
+
+	basketProto := protoBasket.BasketInfo{
+		Rid: 1,
+	}
+	basketOld := models.BasketForUser{
+		BID: 1,
+	}
+
+	basketRepoMock.EXPECT().GetBasket(ctx, user.Uid).Return(&basketOld, nil)
+	basketRepoMock.EXPECT().DeleteBasket(ctx, user.Uid, basketOld.BID).Return(nil)
+	basketRepoMock.EXPECT().AddBasket(ctx, user.Uid, 1)
+	basketRepoMock.EXPECT().GetBasket(ctx, user.Uid).Return(&models.BasketForUser{BID: 2}, nil)
+
+	basketResponse, err := basketService.AddBasket(ctx, &basketProto)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	require.EqualValues(t, basketResponse.Bid, 2)
+}
