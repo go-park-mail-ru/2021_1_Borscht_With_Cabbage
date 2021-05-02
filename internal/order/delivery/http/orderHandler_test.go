@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order/mocks"
+	basketServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -15,7 +16,8 @@ func TestNewOrderHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketService := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketService)
 	if orderHandler == nil {
 		t.Errorf("incorrect result")
 		return
@@ -26,7 +28,8 @@ func TestHandler_AddToBasket_SameRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	dish := models.DishToBasket{
 		DishID:     1,
@@ -59,8 +62,8 @@ func TestHandler_AddToBasket_SameRestaurant(t *testing.T) {
 	c.Set("User", user)
 	ctx := models.GetContext(c)
 
-	OrderUsecaseMock.EXPECT().AddToBasket(ctx, dish, user.Uid).Return(nil)
-	OrderUsecaseMock.EXPECT().GetBasket(ctx, user.Uid).Return(basket, nil)
+	BasketServiceMock.EXPECT().AddToBasket(ctx, dish, user.Uid).Return(nil)
+	BasketServiceMock.EXPECT().GetBasket(ctx, user.Uid).Return(&basket, nil)
 
 	err := orderHandler.AddToBasket(c)
 	if err != nil {
@@ -73,7 +76,8 @@ func TestHandler_AddToBasket_NewRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	dish := models.DishToBasket{
 		DishID:     1,
@@ -106,8 +110,8 @@ func TestHandler_AddToBasket_NewRestaurant(t *testing.T) {
 	c.Set("User", user)
 	ctx := models.GetContext(c)
 
-	OrderUsecaseMock.EXPECT().AddToBasket(ctx, dish, user.Uid).Return(nil)
-	OrderUsecaseMock.EXPECT().GetBasket(ctx, user.Uid).Return(basket, nil)
+	BasketServiceMock.EXPECT().AddToBasket(ctx, dish, user.Uid).Return(nil)
+	BasketServiceMock.EXPECT().GetBasket(ctx, user.Uid).Return(&basket, nil)
 
 	err := orderHandler.AddToBasket(c)
 	if err != nil {
@@ -120,7 +124,8 @@ func TestHandler_DeleteFromBasket_SameRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	dish := models.DishToBasket{
 		DishID:     1,
@@ -153,8 +158,8 @@ func TestHandler_DeleteFromBasket_SameRestaurant(t *testing.T) {
 	c.Set("User", user)
 	ctx := models.GetContext(c)
 
-	OrderUsecaseMock.EXPECT().DeleteFromBasket(ctx, dish, user.Uid).Return(nil)
-	OrderUsecaseMock.EXPECT().GetBasket(ctx, user.Uid).Return(basket, nil)
+	BasketServiceMock.EXPECT().DeleteFromBasket(ctx, dish, user.Uid).Return(nil)
+	BasketServiceMock.EXPECT().GetBasket(ctx, user.Uid).Return(&basket, nil)
 
 	err := orderHandler.AddToBasket(c)
 	if err != nil {
@@ -167,7 +172,8 @@ func TestHandler_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	order := models.CreateOrder{
 		Address: "prospekt mira 134",
@@ -199,7 +205,8 @@ func TestHandler_GetUserOrders(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	orders := []models.Order{
 		{OID: 1, UID: 1, Restaurant: "rest1", Address: "prospekt 1"},
@@ -230,7 +237,8 @@ func TestHandler_GetRestaurantOrders(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	orders := []models.Order{
 		{OID: 1, UID: 1, Restaurant: "rest1", Address: "prospekt 1"},
@@ -260,7 +268,8 @@ func TestHandler_GetBasket(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
 
 	basket := models.BasketForUser{
 		BID:          1,
@@ -281,7 +290,7 @@ func TestHandler_GetBasket(t *testing.T) {
 	c.Set("User", user)
 	ctx := models.GetContext(c)
 
-	OrderUsecaseMock.EXPECT().GetBasket(ctx, user.Uid).Return(basket, nil)
+	BasketServiceMock.EXPECT().GetBasket(ctx, user.Uid).Return(&basket, nil)
 
 	err := orderHandler.GetBasket(c)
 	if err != nil {

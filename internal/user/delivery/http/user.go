@@ -9,7 +9,6 @@ import (
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
-	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -18,14 +17,12 @@ import (
 
 type Handler struct {
 	UserUcase   userModel.UserUsecase
-	AdminUcase  adminModel.AdminRestaurantUsecase
 	AuthService auth.ServiceAuth
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminRestaurantUsecase, serviceAuth auth.ServiceAuth) userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, serviceAuth auth.ServiceAuth) userModel.UserHandler {
 	handler := &Handler{
 		UserUcase:   userUcase,
-		AdminUcase:  adminUcase,
 		AuthService: serviceAuth,
 	}
 

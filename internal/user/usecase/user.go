@@ -82,7 +82,6 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 }
 
 func correctUserData(newUser *models.UserData, oldUser *models.User) {
-
 	newUser.ID = oldUser.Uid
 	if newUser.Name == "" {
 		newUser.Name = oldUser.Name

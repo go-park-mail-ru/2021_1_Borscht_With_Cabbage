@@ -70,14 +70,14 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 	var ratingsSum, reviewsCount int
 	query :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, rating, avatar, ratingsSum, reviewsCount
+	SELECT rid, name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount
 	FROM restaurants 
 	WHERE rid=$1
 	`
 
 	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Rating, &restaurant.Avatar, &ratingsSum, &reviewsCount)
+			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
