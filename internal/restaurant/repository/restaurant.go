@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/errors"
@@ -37,8 +36,11 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 	// если запрос с фильтрацией по адресу
 	if params.Address {
 		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		query += ` and ST_DWithin(Geography(ST_SetSRID(ST_POINT(a.longitude, a.latitude), 4326), ST_SetSRID(ST_Point($3, $4), 4326), a.radius * 1000))`
-		queryParametres = append(queryParametres, params.Latitude, params.Longitude)
+		query += ` and ST_DWithin(
+					   Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
+					   ST_GeogFromText($3), a.radius)`
+		userAddress := "SRID=4326; POINT(" + params.Latitude + " " + params.Longitude + ")"
+		queryParametres = append(queryParametres, userAddress)
 	}
 
 	restaurantsDB, err := r.DB.Query(query, queryParametres...)
@@ -64,7 +66,6 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 			&ratingsSum,
 			&reviewsCount,
 		)
-		fmt.Println(restaurant)
 
 		if reviewsCount != 0 {
 			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))

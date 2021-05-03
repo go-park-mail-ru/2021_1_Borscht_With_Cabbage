@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.14.3
+	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v1.8.4

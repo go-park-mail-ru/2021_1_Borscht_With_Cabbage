@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/borscht/backend/internal/models"
@@ -24,22 +23,24 @@ func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.Resta
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
-	longitude := c.QueryParam("longitude")
 	latitude := c.QueryParam("latitude")
+	longitude := c.QueryParam("longitude")
 	name := c.QueryParam("name")
 
+	ctx := models.GetContext(c)
+
 	params := restModel.GetVendorParams{
-		Limit:   limit,
-		Offset:  offset,
-		Address: true,
-		Name:    name,
+		Limit:     limit,
+		Offset:    offset,
+		Address:   true,
+		Name:      name,
+		Latitude:  latitude,
+		Longitude: longitude,
 	}
 	if longitude == "" || latitude == "" { // адрес не передан
 		params.Address = false
 	}
-	fmt.Println(params)
-
-	ctx := models.GetContext(c)
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"getVendor params": params})
 
 	if errLimit != nil {
 		return models.SendResponseWithError(c, errors.BadRequestError(errLimit.Error()))
@@ -48,7 +49,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return models.SendResponseWithError(c, errors.BadRequestError(errOffset.Error()))
 	}
 
-	result, err := h.restaurantUsecase.GetVendor(ctx, params, longitude, latitude)
+	result, err := h.restaurantUsecase.GetVendor(ctx, params)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

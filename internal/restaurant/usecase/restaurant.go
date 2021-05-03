@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"context"
-	"github.com/borscht/backend/utils/errors"
-	"strconv"
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
@@ -25,18 +23,17 @@ func NewRestaurantUsecase(repo restModel.RestaurantRepo,
 	}
 }
 
-func (r *restaurantUsecase) GetVendor(ctx context.Context, params restModel.GetVendorParams, longitude, latitude string) (
+func (r *restaurantUsecase) GetVendor(ctx context.Context, params restModel.GetVendorParams) (
 	restaurants []models.RestaurantInfo, err error) {
-
-	longitudeNum, longitudeErr := strconv.ParseFloat(longitude, 64)
-	latitudeNum, latitudeErr := strconv.ParseFloat(latitude, 64)
-	if longitudeErr != nil || latitudeErr != nil {
-		failError := errors.FailServerError("err while parsing longitude and latitude")
-		logger.RepoLevel().ErrorLog(ctx, failError)
-		return []models.RestaurantInfo{}, failError
-	}
-	params.Longitude = longitudeNum
-	params.Latitude = latitudeNum
+	//
+	//userAddress := new(models.Address)
+	//var errr error
+	//if userID != 0 {
+	//	userAddress, errr = r.restaurantRepo.GetUserAddress(ctx, userID)
+	//	if errr != nil {
+	//		return nil, err
+	//	}
+	//}
 
 	restaurants, err = r.restaurantRepo.GetVendor(ctx, params)
 	if err != nil {
