@@ -29,17 +29,15 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	name := c.QueryParam("name")
 
 	params := restModel.GetVendorParams{
-		Limit:     limit,
-		Offset:    offset,
-		Address:   true,
-		Latitude:  latitude,
-		Longitude: longitude,
-		Name:      name,
+		Limit:   limit,
+		Offset:  offset,
+		Address: true,
+		Name:    name,
 	}
-	fmt.Println(params)
 	if longitude == "" || latitude == "" { // адрес не передан
 		params.Address = false
 	}
+	fmt.Println(params)
 
 	ctx := models.GetContext(c)
 
@@ -50,7 +48,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return models.SendResponseWithError(c, errors.BadRequestError(errOffset.Error()))
 	}
 
-	result, err := h.restaurantUsecase.GetVendor(ctx, params)
+	result, err := h.restaurantUsecase.GetVendor(ctx, params, longitude, latitude)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

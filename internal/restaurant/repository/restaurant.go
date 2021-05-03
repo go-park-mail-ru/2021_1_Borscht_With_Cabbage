@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"math"
-
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
+	"math"
 )
 
 type restaurantRepo struct {
@@ -31,12 +31,17 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 	`
 	// TODO как сделать ровное количество записей, которые подходят по адресу?
 
+	var queryParametres []interface{}
+	queryParametres = append(queryParametres, params.Offset, params.Limit+params.Offset)
+
 	// если запрос с фильтрацией по адресу
 	if params.Address {
-		query += ` and ST_DWithin(r.coordinates, ST_SetSRID(ST_Point(a.longitude, a.latitude), 432), a.radius * 1000)`
+		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		query += ` and ST_DWithin(Geography(ST_SetSRID(ST_POINT(a.longitude, a.latitude), 4326), ST_SetSRID(ST_Point($3, $4), 4326), a.radius * 1000))`
+		queryParametres = append(queryParametres, params.Latitude, params.Longitude)
 	}
 
-	restaurantsDB, err := r.DB.Query(query, params.Offset, params.Limit+params.Offset, params.Longitude, params.Latitude)
+	restaurantsDB, err := r.DB.Query(query, queryParametres...)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -59,6 +64,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 			&ratingsSum,
 			&reviewsCount,
 		)
+		fmt.Println(restaurant)
 
 		if reviewsCount != 0 {
 			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))

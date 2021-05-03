@@ -12,8 +12,8 @@ type GetVendorParams struct {
 	Offset    int
 	Address   bool
 	Name      string
-	Longitude string
-	Latitude  string
+	Longitude float64
+	Latitude  float64
 }
 
 type RestaurantHandler interface {
@@ -23,7 +23,7 @@ type RestaurantHandler interface {
 }
 
 type RestaurantUsecase interface {
-	GetVendor(ctx context.Context, params GetVendorParams) ([]models.RestaurantInfo, error)
+	GetVendor(ctx context.Context, params GetVendorParams, longitude, latitude string) ([]models.RestaurantInfo, error)
 	GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error)
 	GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error)
 }
