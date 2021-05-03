@@ -39,13 +39,16 @@ type DishInfo struct {
 }
 
 func TestNewRestaurantRepo(t *testing.T) {
-	//dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
-	//db, err := sql.Open(config.PostgresDB, dsn)
-	//if err != nil {
-	//	t.Errorf("there were unfulfilled expectations: %s", err)
-	//	return
-	//}
-	//NewRestaurantRepo(db)
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	restRepo := NewRestaurantRepo(db)
+	if restRepo != nil {
+		return
+	}
 }
 
 func TestRestaurantRepo_GetVendor(t *testing.T) {

@@ -13,7 +13,15 @@ import (
 )
 
 func TestNewSessionRepo(t *testing.T) {
-
+	redisConn, err := redis.Dial("tcp", config.RedisHost)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	sessionRepo := NewSessionRepo(redisConn)
+	if sessionRepo != nil {
+		return
+	}
 }
 
 func TestSessionRepo_Create(t *testing.T) {

@@ -21,6 +21,19 @@ type uidStruct struct {
 	Uid int `json:"uid"`
 }
 
+func TestNewUserAuthRepo(t *testing.T) {
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	userRepo := NewUserAuthRepo(db)
+	if userRepo != nil {
+		return
+	}
+}
+
 func TestUserRepo_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {

@@ -554,3 +554,123 @@ func TestHandler_GetBasket(t *testing.T) {
 		return
 	}
 }
+
+func TestHandler_SetNewStatus(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"order":1,"status":"delivering","deliveryTime":"12.01.2001"}`
+	newStatus := models.SetNewStatus{
+		OID:          1,
+		Status:       models.StatusOrderDelivering,
+		DeliveryTime: "12.01.2001",
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/user/order/status", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	ctx := models.GetContext(c)
+
+	OrderUsecaseMock.EXPECT().SetNewStatus(ctx, newStatus).Return(nil)
+
+	err := orderHandler.SetNewStatus(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_SetNewStatus_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"order:1,"status":"delivering","deliveryTime":"12.01.2001"}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/user/order/status", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := orderHandler.SetNewStatus(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_CreateReview(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"oid":1,"review":"cool","stars":5}`
+	newReview := models.SetNewReview{
+		OID:    1,
+		Review: "cool",
+		Stars:  5,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/order/review", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	ctx := models.GetContext(c)
+
+	OrderUsecaseMock.EXPECT().CreateReview(ctx, newReview).Return(nil)
+
+	err := orderHandler.CreateReview(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_CreateReview_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
+	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+
+	inputJSON := `{"oid1,"review":"cool","stars":5}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/user/order/review", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := orderHandler.CreateReview(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}

@@ -10,6 +10,19 @@ import (
 	"github.com/borscht/backend/utils/logger"
 )
 
+func TestNewRestaurantRepo(t *testing.T) {
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	restRepo := NewRestaurantRepo(db)
+	if restRepo != nil {
+		return
+	}
+}
+
 func TestRestaurantRepo_UpdateRestaurantData(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {

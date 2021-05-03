@@ -9,6 +9,19 @@ import (
 	"testing"
 )
 
+func TestNewBasketRepository(t *testing.T) {
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	basketRepo := NewBasketRepository(db)
+	if basketRepo != nil {
+		return
+	}
+}
+
 func TestOrderRepo_AddToNewBasket(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {

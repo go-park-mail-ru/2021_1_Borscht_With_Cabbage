@@ -24,6 +24,107 @@ func TestNewUserUsecase(t *testing.T) {
 	}
 }
 
+func TestUserUsecase_UpdateMainAddress(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userRepoMock := mocks.NewMockUserRepo(ctrl)
+	imageRepoMock := imageMock.NewMockImageRepo(ctrl)
+
+	userUsecase := NewUserUsecase(userRepoMock, imageRepoMock)
+	c := context.Background()
+
+	user := models.User{
+		Uid:      1,
+		Email:    "dasha@mail.ru",
+		Phone:    "89111111111",
+		Name:     "111111",
+		Password: "1111111",
+	}
+	ctx := context.WithValue(c, "User", user)
+
+	address := models.Address{
+		Name: "address1",
+	}
+
+	userRepoMock.EXPECT().DeleteAddress(ctx, user.Uid)
+	userRepoMock.EXPECT().AddAddress(ctx, user.Uid, address)
+
+	err := userUsecase.UpdateMainAddress(ctx, address)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
+
+func TestUserUsecase_UpdateMainAddress_GetUserError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userRepoMock := mocks.NewMockUserRepo(ctrl)
+	imageRepoMock := imageMock.NewMockImageRepo(ctrl)
+
+	userUsecase := NewUserUsecase(userRepoMock, imageRepoMock)
+	c := context.Background()
+
+	address := models.Address{
+		Name: "address1",
+	}
+
+	err := userUsecase.UpdateMainAddress(c, address)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
+
+func TestUserUsecase_GetMainAddress(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userRepoMock := mocks.NewMockUserRepo(ctrl)
+	imageRepoMock := imageMock.NewMockImageRepo(ctrl)
+
+	userUsecase := NewUserUsecase(userRepoMock, imageRepoMock)
+	c := context.Background()
+
+	address := models.Address{
+		Name: "address1",
+	}
+
+	user := models.User{
+		Uid:      1,
+		Email:    "dasha@mail.ru",
+		Phone:    "89111111111",
+		Name:     "111111",
+		Password: "1111111",
+	}
+	ctx := context.WithValue(c, "User", user)
+
+	userRepoMock.EXPECT().GetAddress(ctx, user.Uid).Return(&address, nil)
+
+	addressResult, err := userUsecase.GetMainAddress(ctx)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	require.EqualValues(t, addressResult.Name, "address1")
+}
+
+func TestUserUsecase_GetMainAddress_GetUserError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userRepoMock := mocks.NewMockUserRepo(ctrl)
+	imageRepoMock := imageMock.NewMockImageRepo(ctrl)
+
+	userUsecase := NewUserUsecase(userRepoMock, imageRepoMock)
+	c := context.Background()
+
+	_, err := userUsecase.GetMainAddress(c)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
+
 func TestUserUsecase_GetUserData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

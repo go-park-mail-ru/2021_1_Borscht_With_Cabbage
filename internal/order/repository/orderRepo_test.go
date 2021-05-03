@@ -10,7 +10,16 @@ import (
 )
 
 func TestNewOrderRepo(t *testing.T) {
-
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	orderRepo := NewOrderRepo(db)
+	if orderRepo != nil {
+		return
+	}
 }
 
 func TestOrderRepo_Create(t *testing.T) {

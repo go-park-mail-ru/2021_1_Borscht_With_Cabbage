@@ -11,6 +11,19 @@ import (
 	"testing"
 )
 
+func TestNewRestaurantAuthRepo(t *testing.T) {
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	restRepo := NewRestaurantAuthRepo(db)
+	if restRepo != nil {
+		return
+	}
+}
+
 func TestExistingRestaurant_Email(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
