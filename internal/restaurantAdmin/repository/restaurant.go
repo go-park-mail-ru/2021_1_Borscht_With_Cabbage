@@ -53,6 +53,12 @@ func (r restaurantRepo) AddAddress(ctx context.Context, rid int, address models.
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return failError
 	}
+	//
+	//query = `
+	//UPDATE restaurants SET coordinates = (georgaphy::point($1, $2, 4326))
+	//WHERE rid = $3
+	//`
+	//_, err = r.DB.Exec(query, address.Longitude, address.Latitude, rid)
 
 	return nil
 }

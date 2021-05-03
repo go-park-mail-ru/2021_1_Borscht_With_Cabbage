@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/borscht/backend/internal/models"
@@ -23,6 +24,22 @@ func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.Resta
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
 	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
+	longitude := c.QueryParam("longitude")
+	latitude := c.QueryParam("latitude")
+	name := c.QueryParam("name")
+
+	params := restModel.GetVendorParams{
+		Limit:     limit,
+		Offset:    offset,
+		Address:   true,
+		Latitude:  latitude,
+		Longitude: longitude,
+		Name:      name,
+	}
+	fmt.Println(params)
+	if longitude == "" || latitude == "" { // адрес не передан
+		params.Address = false
+	}
 
 	ctx := models.GetContext(c)
 
@@ -33,7 +50,7 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		return models.SendResponseWithError(c, errors.BadRequestError(errOffset.Error()))
 	}
 
-	result, err := h.restaurantUsecase.GetVendor(ctx, limit, offset)
+	result, err := h.restaurantUsecase.GetVendor(ctx, params)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

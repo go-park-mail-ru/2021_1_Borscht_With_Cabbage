@@ -23,10 +23,19 @@ func NewRestaurantUsecase(repo restModel.RestaurantRepo,
 	}
 }
 
-func (r *restaurantUsecase) GetVendor(ctx context.Context, limit, offset int) (
+func (r *restaurantUsecase) GetVendor(ctx context.Context, params restModel.GetVendorParams) (
 	restaurants []models.RestaurantInfo, err error) {
+	//
+	//userAddress := new(models.Address)
+	//var errr error
+	//if userID != 0 {
+	//	userAddress, errr = r.restaurantRepo.GetUserAddress(ctx, userID)
+	//	if errr != nil {
+	//		return nil, err
+	//	}
+	//}
 
-	restaurants, err = r.restaurantRepo.GetVendor(ctx, limit, offset)
+	restaurants, err = r.restaurantRepo.GetVendor(ctx, params)
 	if err != nil {
 		return nil, err
 	}

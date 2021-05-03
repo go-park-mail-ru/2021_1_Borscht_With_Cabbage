@@ -21,15 +21,22 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
-func (r *restaurantRepo) GetVendor(ctx context.Context, limit, offset int) ([]models.RestaurantInfo, error) {
+func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVendorParams) ([]models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount 
-	FROM restaurants
-	WHERE rid >= $1 and rid <= $2
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount 
+	FROM restaurants as r
+	JOIN addresses a on r.rid = a.rid
+	WHERE r.rid >= $1 and r.rid <= $2 
 	`
+	// TODO как сделать ровное количество записей, которые подходят по адресу?
 
-	restaurantsDB, err := r.DB.Query(query, offset, limit+offset)
+	// если запрос с фильтрацией по адресу
+	if params.Address {
+		query += ` and ST_DWithin(r.coordinates, ST_SetSRID(ST_Point(a.longitude, a.latitude), 432), a.radius * 1000)`
+	}
+
+	restaurantsDB, err := r.DB.Query(query, params.Offset, params.Limit+params.Offset, params.Longitude, params.Latitude)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -195,4 +202,24 @@ func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.Resta
 	}
 
 	return reviews, nil
+}
+
+func (r *restaurantRepo) GetUserAddress(ctx context.Context, uid int) (*models.Address, error) {
+	queri := `SELECT name, latitude, longitude FROM addresses WHERE uid = $1`
+
+	logger.RepoLevel().InlineDebugLog(ctx, uid)
+	var address models.Address
+	err := r.DB.QueryRow(queri, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
+	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineDebugLog(ctx, "end get address not address")
+		return &models.Address{}, nil
+	}
+	if err != nil {
+		err := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, err)
+		return nil, err
+	}
+
+	logger.RepoLevel().InlineDebugLog(ctx, "end get address")
+	return &address, nil
 }
