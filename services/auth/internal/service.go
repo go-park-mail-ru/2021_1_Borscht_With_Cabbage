@@ -36,6 +36,7 @@ func convertToSuccessUserResponse(user models.User, address models.Address, id i
 		Latitude:    address.Latitude,
 		Longitude:   address.Longitude,
 		Radius:      int32(address.Radius),
+		Role:        config.RoleUser,
 	}
 }
 

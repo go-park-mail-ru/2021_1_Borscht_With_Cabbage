@@ -108,7 +108,6 @@ func initServer(e *echo.Echo) {
 func main() {
 	e := echo.New()
 	initServer(e)
-
 	grpcConnAuth, errr := grpc.Dial(
 		config.AuthServiceAddress,
 		grpc.WithInsecure(),
@@ -163,7 +162,7 @@ func main() {
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, authService)
+	userHandler := userDelivery.NewUserHandler(userUcase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)

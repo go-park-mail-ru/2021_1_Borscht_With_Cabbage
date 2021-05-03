@@ -29,7 +29,7 @@ func (a authRepo) checkUserWithThisData(ctx context.Context, number, email strin
 		return errors.NewErrorWithMessage("User with this email already exists")
 	}
 
-	err = a.DB.QueryRow("SELECT uid FROM users WHERE phone = $1", number).Scan(&userInDB)
+	err = a.DB.QueryRow("select uid from users where phone = $1", number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != currentUserId {
 		logger.RepoLevel().InlineInfoLog(ctx, "User with this number already exists")
 		return errors.NewErrorWithMessage("User with this number already exists")

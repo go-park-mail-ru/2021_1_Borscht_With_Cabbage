@@ -49,6 +49,21 @@ func (mr *MockRestaurantUsecaseMockRecorder) GetById(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetById), arg0, arg1)
 }
 
+// GetReviews mocks base method
+func (m *MockRestaurantUsecase) GetReviews(arg0 context.Context, arg1 int) ([]models.RestaurantReview, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReviews", arg0, arg1)
+	ret0, _ := ret[0].([]models.RestaurantReview)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReviews indicates an expected call of GetReviews
+func (mr *MockRestaurantUsecaseMockRecorder) GetReviews(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReviews", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetReviews), arg0, arg1)
+}
+
 // GetVendor mocks base method
 func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1, arg2 int) ([]models.RestaurantInfo, error) {
 	m.ctrl.T.Helper()

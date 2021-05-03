@@ -35,49 +35,18 @@ func (m *MockAdminRestaurantUsecase) EXPECT() *MockAdminRestaurantUsecaseMockRec
 	return m.recorder
 }
 
-// CheckRestaurantExists mocks base method
-func (m *MockAdminRestaurantUsecase) CheckRestaurantExists(arg0 context.Context, arg1 models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
+// AddAddress mocks base method
+func (m *MockAdminRestaurantUsecase) AddAddress(arg0 context.Context, arg1 int, arg2 models.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckRestaurantExists", arg0, arg1)
-	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "AddAddress", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// CheckRestaurantExists indicates an expected call of CheckRestaurantExists
-func (mr *MockAdminRestaurantUsecaseMockRecorder) CheckRestaurantExists(arg0, arg1 interface{}) *gomock.Call {
+// AddAddress indicates an expected call of AddAddress
+func (mr *MockAdminRestaurantUsecaseMockRecorder) AddAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRestaurantExists", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).CheckRestaurantExists), arg0, arg1)
-}
-
-// CreateRestaurant mocks base method
-func (m *MockAdminRestaurantUsecase) CreateRestaurant(arg0 context.Context, arg1 models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRestaurant", arg0, arg1)
-	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateRestaurant indicates an expected call of CreateRestaurant
-func (mr *MockAdminRestaurantUsecaseMockRecorder) CreateRestaurant(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRestaurant", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).CreateRestaurant), arg0, arg1)
-}
-
-// GetByRid mocks base method
-func (m *MockAdminRestaurantUsecase) GetByRid(arg0 context.Context, arg1 int) (*models.SuccessRestaurantResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByRid", arg0, arg1)
-	ret0, _ := ret[0].(*models.SuccessRestaurantResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByRid indicates an expected call of GetByRid
-func (mr *MockAdminRestaurantUsecaseMockRecorder) GetByRid(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByRid", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).GetByRid), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).AddAddress), arg0, arg1, arg2)
 }
 
 // UpdateRestaurantData mocks base method

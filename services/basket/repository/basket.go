@@ -268,11 +268,11 @@ func (b basketRepository) AddDishToBasket(ctx context.Context, basketID int, dis
 }
 
 func (b basketRepository) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
-	queri := `SELECT name, latitude, longitude, radius FROM addresses WHERE rid = $1`
+	query := `SELECT name, latitude, longitude, radius FROM addresses WHERE rid = $1`
 
 	logger.RepoLevel().DebugLog(ctx, logger.Fields{"rid": rid})
 	var address models.Address
-	err := b.DB.QueryRow(queri, rid).Scan(&address.Name, &address.Latitude,
+	err := b.DB.QueryRow(query, rid).Scan(&address.Name, &address.Latitude,
 		&address.Longitude, &address.Radius)
 
 	if err == sql.ErrNoRows {

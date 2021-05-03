@@ -9,13 +9,14 @@ import (
 )
 
 type RestaurantInfo struct {
-	ID           int     `json:"id"`
-	Title        string  `json:"title"`
-	DeliveryCost int     `json:"deliveryCost"`
-	AvgCheck     int     `json:"cost"`
-	Description  string  `json:"description"`
-	Rating       float64 `json:"rating"`
-	Avatar       string  `json:"avatar"`
+	ID           int    `json:"id"`
+	Title        string `json:"title"`
+	DeliveryCost int    `json:"deliveryCost"`
+	AvgCheck     int    `json:"cost"`
+	Description  string `json:"description"`
+	Avatar       string `json:"avatar"`
+	RatingsSum   float64
+	ReviewsCount float64
 }
 
 type Restaurant struct {
@@ -38,13 +39,16 @@ type DishInfo struct {
 }
 
 func TestNewRestaurantRepo(t *testing.T) {
-	//dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
-	//db, err := sql.Open(config.PostgresDB, dsn)
-	//if err != nil {
-	//	t.Errorf("there were unfulfilled expectations: %s", err)
-	//	return
-	//}
-	//NewRestaurantRepo(db)
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	restRepo := NewRestaurantRepo(db)
+	if restRepo != nil {
+		return
+	}
 }
 
 func TestRestaurantRepo_GetVendor(t *testing.T) {
@@ -57,17 +61,17 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		DB: db,
 	}
 
-	rows := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "rating", "avatar"})
+	rows := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount"})
 	expect := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", 5, "img.jpg"},
-		{2, "Rest2", 100, 1300, "new2", 5, "img2.jpg"},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2},
+		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2},
 	}
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Rating, item.Avatar)
+		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount)
 	}
 
 	mock.
-		ExpectQuery("select rid").
+		ExpectQuery("SELECT rid").
 		WithArgs(1, 3).
 		WillReturnRows(rows)
 
@@ -99,12 +103,12 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 		DB: db,
 	}
 
-	restaurant := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "rating", "avatar"})
+	restaurant := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount"})
 	expectRestaurant := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", 5, "img.jpg"},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5},
 	}
 	for _, item := range expectRestaurant {
-		restaurant = restaurant.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Rating, item.Avatar)
+		restaurant = restaurant.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount)
 	}
 
 	dishes := sqlmock.NewRows([]string{"did", "name", "price", "weight", "description", "section", "image"})
@@ -126,7 +130,7 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("select rid, name, deliveryCost, ").
+		ExpectQuery("SELECT rid, name, deliveryCost, ").
 		WithArgs(1).
 		WillReturnRows(restaurant)
 
