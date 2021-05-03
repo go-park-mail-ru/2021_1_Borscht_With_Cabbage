@@ -40,14 +40,6 @@ func (r restaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Addres
 }
 
 func (r restaurantRepo) AddAddress(ctx context.Context, rid int, address models.Address) error {
-	//longitudeNum, longitudeErr := strconv.ParseFloat(address.Longitude, 64)
-	//latitudeNum, latitudeErr := strconv.ParseFloat(address.Latitude, 64)
-	//if longitudeErr != nil || latitudeErr != nil {
-	//	failError := errors.FailServerError("err while parsing longitude and latitude")
-	//	logger.RepoLevel().ErrorLog(ctx, failError)
-	//	return failError
-	//}
-
 	query :=
 		`
 	INSERT INTO addresses (rid, name, latitude, longitude, radius)
@@ -59,12 +51,6 @@ func (r restaurantRepo) AddAddress(ctx context.Context, rid int, address models.
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return failError
 	}
-	//
-	//query = `
-	//UPDATE restaurants SET coordinates = (georgaphy::point($1, $2, 4326))
-	//WHERE rid = $3
-	//`
-	//_, err = r.DB.Exec(query, address.Longitude, address.Latitude, rid)
 
 	return nil
 }

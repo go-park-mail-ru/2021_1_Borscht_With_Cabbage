@@ -25,7 +25,6 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
 	latitude := c.QueryParam("latitude")
 	longitude := c.QueryParam("longitude")
-	name := c.QueryParam("name")
 
 	ctx := models.GetContext(c)
 
@@ -33,7 +32,6 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 		Limit:     limit,
 		Offset:    offset,
 		Address:   true,
-		Name:      name,
 		Latitude:  latitude,
 		Longitude: longitude,
 	}

@@ -16,6 +16,12 @@ type GetVendorParams struct {
 	Latitude  string
 }
 
+const (
+	MinutesInHour = 60
+	CourierSpeed  = 5
+	CookingTime   = 30
+)
+
 type RestaurantHandler interface {
 	GetRestaurantPage(c echo.Context) error
 	GetVendor(c echo.Context) error

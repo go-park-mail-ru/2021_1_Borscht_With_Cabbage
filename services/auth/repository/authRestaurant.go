@@ -77,7 +77,6 @@ func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*mode
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
 			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
 			&restaurant.Avatar, &restaurant.AdminHashPassword)
-
 	if err == sql.ErrNoRows {
 		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
 	}

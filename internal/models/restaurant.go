@@ -34,6 +34,7 @@ type RestaurantInfo struct {
 	Title             string  `json:"title"`
 	Description       string  `json:"description"`
 	DeliveryCost      int     `json:"deliveryCost"`
+	DeliveryTime      int     `json:"deliveryTime"`
 	Rating            float64 `json:"rating"`
 	Avatar            string  `json:"avatar"`
 }

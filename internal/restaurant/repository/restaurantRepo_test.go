@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
+	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -70,16 +71,23 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount)
 	}
 
+	params := restModel.GetVendorParams{
+		Limit:     1,
+		Offset:    2,
+		Address:   true,
+		Latitude:  "55.768096",
+		Longitude: "37.646839",
+	}
+
 	mock.
-		ExpectQuery("SELECT rid").
-		WithArgs(1, 3).
+		ExpectQuery("SELECT r.rid,").
 		WillReturnRows(rows)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
 	restaurants := make([]models.RestaurantInfo, 0)
-	restaurants, err = restaurantRepo.GetVendor(ctx, 2, 1)
+	restaurants, err = restaurantRepo.GetVendor(ctx, params)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return

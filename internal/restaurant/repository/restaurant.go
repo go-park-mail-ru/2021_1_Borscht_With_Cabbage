@@ -8,6 +8,7 @@ import (
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"math"
+	"strconv"
 )
 
 type restaurantRepo struct {
@@ -20,10 +21,39 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
+func deg2rad(deg float64) float64 {
+	return deg * (math.Pi / 180)
+}
+
+func getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2 float64) float64 {
+	var R = 6371.0 // Radius of the Earth in km
+	var dLat = deg2rad(lat2 - lat1)
+	var dLon = deg2rad(lon2 - lon1)
+	var a = math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(deg2rad(lat1))*math.Cos(deg2rad(lat2))*
+			math.Sin(dLon/2)*math.Sin(dLon/2)
+
+	var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	var d = R * c // Distance in km
+	return d
+}
+
+func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string) int {
+	latitudeU, latitudeErrU := strconv.ParseFloat(latitudeUser, 64)
+	longitudeU, longitudeErrU := strconv.ParseFloat(longitudeUser, 64)
+	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
+	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
+	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
+		distanse := getDistanceFromLatLonInKm(latitudeU, longitudeU, latitudeR, longitudeR)
+		return int(restModel.MinutesInHour*distanse/restModel.CourierSpeed + restModel.CookingTime)
+	}
+	return 0
+}
+
 func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVendorParams) ([]models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount 
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount, a.latitude, a.longitude
 	FROM restaurants as r
 	JOIN addresses a on r.rid = a.rid
 	WHERE r.rid >= $1 and r.rid <= $2 
@@ -56,6 +86,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 		restaurant := new(models.RestaurantInfo)
 		logger.RepoLevel().InlineInfoLog(ctx, "start scan")
 
+		var restaurantLongitude, restaurantLatitude string
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
 			&restaurant.Title,
@@ -65,7 +96,10 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 			&restaurant.Avatar,
 			&ratingsSum,
 			&reviewsCount,
+			&restaurantLatitude,
+			&restaurantLongitude,
 		)
+		restaurant.DeliveryTime = getDeliveryTime(params.Latitude, params.Longitude, restaurantLatitude, restaurantLongitude)
 
 		if reviewsCount != 0 {
 			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))

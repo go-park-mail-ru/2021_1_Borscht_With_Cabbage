@@ -222,8 +222,8 @@ func TestRestaurantRepo_CheckRestaurantExists(t *testing.T) {
 		Password: "111111",
 	}
 	restaurantFromBD := sqlmock.NewRows([]string{"rid", "name", "adminemail", "adminphone", "deliveryCost", "avgCheck",
-		"description", "rating", "avatar", "adminpassword"})
-	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", 5, config.DefaultRestaurantImage, "111111")
+		"description", "avatar", "adminpassword"})
+	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", config.DefaultRestaurantImage, "111111")
 
 	mock.
 		ExpectQuery("select rid, name, adminemail,").
