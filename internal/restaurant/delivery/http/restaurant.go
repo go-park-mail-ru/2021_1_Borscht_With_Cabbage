@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -25,26 +26,33 @@ func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.Resta
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
-	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
+	params := make([]string, 0)
+	params = append(params, c.QueryParam("limit"))
+	params = append(params, c.QueryParam("offset"))
+	params = append(params, c.QueryParam("time"))
+	params = append(params, c.QueryParam("receipt"))
+	paramsNumber, err := AtoiParams(ctx, params...)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	rating, parseErr := strconv.ParseFloat(c.QueryParam("rating"), 64)
+	if parseErr != nil {
+		requestError := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
 	categories := strings.Split(c.QueryParam("category"), ",")
 	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"categories": categories, "size": len(categories)})
 
-	if errLimit != nil {
-		requestError := errors.BadRequestError(errLimit.Error())
-		logger.DeliveryLevel().ErrorLog(ctx, requestError)
-		return models.SendResponseWithError(c, requestError)
-	}
-	if errOffset != nil {
-		requestError := errors.BadRequestError(errOffset.Error())
-		logger.DeliveryLevel().ErrorLog(ctx, requestError)
-		return models.SendResponseWithError(c, requestError)
-	}
-
 	result, err := h.restaurantUsecase.GetVendor(ctx, models.RestaurantRequest{
-		Limit:      limit,
-		Offset:     offset,
+		Limit:      paramsNumber[0],
+		Offset:     paramsNumber[1],
 		Categories: categories,
+		Time:       paramsNumber[2],
+		Receipt:    paramsNumber[3],
+		Rating:     rating,
 	})
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -56,6 +64,21 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	}
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"restaurant": &response})
 	return models.SendMoreResponse(c, response...)
+}
+
+func AtoiParams(ctx context.Context, params ...string) ([]int, error) {
+	result := make([]int, 0)
+	for _, value := range params {
+		valueNumber, err := strconv.Atoi(value)
+		if err != nil {
+			requestError := errors.BadRequestError(err.Error())
+			logger.DeliveryLevel().ErrorLog(ctx, requestError)
+			return nil, requestError
+		}
+
+		result = append(result, valueNumber)
+	}
+	return result, nil
 }
 
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {

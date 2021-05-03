@@ -30,10 +30,13 @@ func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request mode
 	JOIN categories AS c
 	ON cr.categoryID = c.cid
 	WHERE c.cid = ANY ($1)
-	ORDER BY r.rating DESC, r.rid OFFSET $2 LIMIT $3;
+	AND r.rating >= $2 AND r.avgCheck <= $3
+	ORDER BY r.rating DESC, r.rid OFFSET $4 LIMIT $5;
   	`
 
-	restaurantsDB, err := r.DB.Query(query, pq.Array(request.Categories), request.Offset, request.Limit)
+	restaurantsDB, err := r.DB.Query(query, pq.Array(request.Categories),
+		request.Rating, request.Receipt, request.Offset, request.Limit)
+
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -52,6 +55,11 @@ func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request mode
 			&restaurant.Rating,
 			&restaurant.Avatar,
 		)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return []models.RestaurantInfo{}, failError
+		}
 
 		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
 		restaurants = append(restaurants, *restaurant)
@@ -63,10 +71,13 @@ func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request mode
 func (r *restaurantRepo) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
 	query := `
 	SELECT DISTINCT rid, name, deliveryCost, avgCheck, description, rating, avatar FROM restaurants
-	ORDER BY rating DESC, rid OFFSET $1 LIMIT $2;
+	WHERE rating >= $1 AND avgCheck <= $2
+	ORDER BY rating DESC, rid OFFSET $3 LIMIT $4;
   	`
 
-	restaurantsDB, err := r.DB.Query(query, request.Offset, request.Limit)
+	restaurantsDB, err := r.DB.Query(query, request.Rating, request.Receipt,
+		request.Offset, request.Limit)
+
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -85,6 +96,11 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 			&restaurant.Rating,
 			&restaurant.Avatar,
 		)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return []models.RestaurantInfo{}, failError
+		}
 
 		logger.RepoLevel().InlineDebugLog(ctx, *restaurant)
 		restaurants = append(restaurants, *restaurant)

@@ -18,6 +18,12 @@ func NewRestaurantUsecase(repo restModel.RestaurantRepo) restModel.RestaurantUse
 }
 
 func (r *restaurantUsecase) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
+	if request.Receipt == 0 {
+		request.Receipt = 100000
+	}
+	if request.Time == 0 {
+		request.Time = 1000
+	}
 	if len(request.Categories) == 0 || request.Categories[0] == "" {
 		return r.restaurantRepo.GetVendor(ctx, request)
 	}

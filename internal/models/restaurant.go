@@ -31,9 +31,12 @@ type RestaurantInfo struct {
 }
 
 type RestaurantRequest struct {
-	Limit      int `json:"limit"`
-	Offset     int `json:"offset"`
-	Categories []string
+	Limit      int      `json:"limit"`
+	Offset     int      `json:"offset"`
+	Categories []string `json:"categories"`
+	Time       int      `json:"time"`
+	Receipt    int      `json:"receipt"`
+	Rating     float64  `json:"rating"`
 }
 
 type RestaurantImageResponse struct {
