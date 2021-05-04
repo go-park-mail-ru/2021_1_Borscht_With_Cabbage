@@ -21,20 +21,27 @@ func NewRestaurantRepo(db *sql.DB) restModel.RestaurantRepo {
 	}
 }
 
+type twoAddresses struct {
+	latitude1  float64
+	longitude1 float64
+	latitude2  float64
+	longitude2 float64
+}
+
 func deg2rad(deg float64) float64 {
 	return deg * (math.Pi / 180)
 }
 
-func getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2 float64) float64 {
-	var R = 6371.0 // Radius of the Earth in km
-	var dLat = deg2rad(lat2 - lat1)
-	var dLon = deg2rad(lon2 - lon1)
-	var a = math.Sin(dLat/2)*math.Sin(dLat/2) +
-		math.Cos(deg2rad(lat1))*math.Cos(deg2rad(lat2))*
+func getDistanceFromLatLonInKm(coordinates twoAddresses) float64 {
+	R := 6371.0 // Radius of the Earth in km
+	dLat := deg2rad(coordinates.latitude2 - coordinates.latitude1)
+	dLon := deg2rad(coordinates.longitude2 - coordinates.longitude1)
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(deg2rad(coordinates.latitude1))*math.Cos(deg2rad(coordinates.latitude2))*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
 
-	var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	var d = R * c // Distance in km
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	d := R * c // Distance in km
 	return d
 }
 
