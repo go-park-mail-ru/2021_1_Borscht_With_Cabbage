@@ -64,7 +64,7 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 }
 
 func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address models.Address) error {
-	return a.restaurantRepository.UpdateAddress(ctx, rid, address)
+	return a.restaurantRepository.AddAddress(ctx, rid, address)
 }
 
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
