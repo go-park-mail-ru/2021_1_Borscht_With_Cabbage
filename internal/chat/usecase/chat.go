@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
 	serviceChat "github.com/borscht/backend/internal/services/chat"
@@ -145,7 +144,7 @@ func (ch *chatUsecase) MessageFromUser(ctx context.Context,
 	if sendConnect != nil {
 		return sendConnect.WriteJSON(msgSend)
 	}
-	logger.UsecaseLevel().InlineInfoLog(ctx, "not id in connection pool")
+	logger.UsecaseLevel().InlineInfoLog(ctx, "no id in connection pool")
 	return nil
 }
 
@@ -185,7 +184,6 @@ func (ch *chatUsecase) GetAllChats(ctx context.Context) ([]models.BriefInfoChat,
 }
 
 func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.InfoChat, error) {
-
 	result := new(models.InfoChat)
 	if user, ok := checkUser(ctx); ok {
 		messages, err := ch.ChatService.GetAllMessagesUser(ctx, user.Uid, id)

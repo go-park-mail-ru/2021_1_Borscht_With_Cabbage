@@ -126,7 +126,6 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 
 		var restaurantImage string
 		err = o.DB.QueryRow("select avatar from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage)
-		fmt.Println(err)
 		order.RestaurantImage = restaurantImage
 
 		orders = append(orders, *order)
