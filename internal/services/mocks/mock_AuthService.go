@@ -34,6 +34,22 @@ func (m *MockServiceAuth) EXPECT() *MockServiceAuthMockRecorder {
 	return m.recorder
 }
 
+// CheckKey mocks base method
+func (m *MockServiceAuth) CheckKey(arg0 context.Context, arg1 string) (models.SessionInfo, bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckKey", arg0, arg1)
+	ret0, _ := ret[0].(models.SessionInfo)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CheckKey indicates an expected call of CheckKey
+func (mr *MockServiceAuthMockRecorder) CheckKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckKey", reflect.TypeOf((*MockServiceAuth)(nil).CheckKey), arg0, arg1)
+}
+
 // CheckRestaurantExists mocks base method
 func (m *MockServiceAuth) CheckRestaurantExists(arg0 context.Context, arg1 models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()
@@ -93,6 +109,21 @@ func (m *MockServiceAuth) Create(arg0 context.Context, arg1 models.User) (*model
 func (mr *MockServiceAuthMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockServiceAuth)(nil).Create), arg0, arg1)
+}
+
+// CreateKey mocks base method
+func (m *MockServiceAuth) CreateKey(arg0 context.Context, arg1 models.SessionInfo) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKey", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateKey indicates an expected call of CreateKey
+func (mr *MockServiceAuthMockRecorder) CreateKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockServiceAuth)(nil).CreateKey), arg0, arg1)
 }
 
 // CreateRestaurant mocks base method

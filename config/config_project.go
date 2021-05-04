@@ -8,7 +8,7 @@ const (
 	LifetimeSecond         = 86400
 	KeyParams              = "key"
 
-	TimeFormat = "01.01.2021 21:00:04"
+	TimeFormat = "2006-01-02T15:05:05"
 
 	CORStime  = 3600
 	RoleAdmin = "admin"

@@ -40,9 +40,10 @@ func TestSessionRepo_Create(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	sessionData := models.SessionData{
-		Session: "session",
-		Id:      1,
-		Role:    config.RoleUser,
+		Session:         "session",
+		Id:              1,
+		Role:            config.RoleUser,
+		LifeTimeSeconds: config.LifetimeSecond,
 	}
 	expected, err := json.Marshal(models.SessionInfo{
 		Id:   sessionData.Id,

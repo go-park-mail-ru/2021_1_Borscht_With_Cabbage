@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
@@ -73,7 +74,7 @@ func TestUserRepo_Create(t *testing.T) {
 		Name:     "Kate",
 		Phone:    "81111111111",
 		Password: "111111",
-		Avatar:   "",
+		Avatar:   config.DefaultUserImage,
 	}
 	uid, err := userRepo.Create(*ctx, user)
 	if err != nil {

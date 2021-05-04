@@ -25,6 +25,12 @@ func NewOrderHandler(orderUcase order.OrderUsecase, basketService basket.Service
 
 func (h Handler) AddBasket(c echo.Context) error {
 	ctx := models.GetContext(c)
+	user, ok := ctx.Value("User").(models.User)
+	if !ok {
+		failError := errors.FailServerError("failed to get user")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return models.SendResponseWithError(c, failError)
+	}
 
 	basket := models.BasketForUser{}
 	if err := c.Bind(&basket); err != nil {
@@ -32,6 +38,7 @@ func (h Handler) AddBasket(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
+	basket.UID = user.Uid
 	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"basket": basket})
 
 	result, err := h.BasketService.AddBasket(ctx, basket)

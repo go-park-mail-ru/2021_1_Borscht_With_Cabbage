@@ -31,6 +31,7 @@ func TestService_CreateUser(t *testing.T) {
 		Phone:    "89111111111",
 		Name:     "111111",
 		Password: "1111111",
+		Avatar:   config.DefaultUserImage,
 	}
 	userProto := protoAuth.User{
 		Email:    user.Email,
@@ -255,7 +256,7 @@ func TestService_CheckSession(t *testing.T) {
 		Session: "session1",
 	}
 
-	sessionRepoMock.EXPECT().Check(*ctx, session.Session).Return(sessionInfo, true, nil)
+	sessionRepoMock.EXPECT().Check(*ctx, headSession+session.Session).Return(sessionInfo, true, nil)
 
 	sessionResult, err := authService.CheckSession(*ctx, &session)
 	if err != nil {

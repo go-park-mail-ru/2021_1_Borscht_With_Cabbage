@@ -3,7 +3,6 @@ package authRepo
 import (
 	"context"
 	"encoding/json"
-
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	"github.com/borscht/backend/utils/errors"

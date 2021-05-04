@@ -43,6 +43,7 @@ func convertBasketToProto(basket models.BasketForUser) *protoBasket.BasketInfo {
 	}
 	basketInfo := protoBasket.BasketInfo{
 		Bid:             int32(basket.BID),
+		Uid:             int32(basket.UID),
 		RestaurantName:  basket.Restaurant,
 		RestaurantImage: basket.RestaurantImage,
 		Rid:             int32(basket.RID),
