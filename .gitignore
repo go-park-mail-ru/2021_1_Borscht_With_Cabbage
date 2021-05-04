@@ -2,4 +2,4 @@
 .vscode
 send
 static/*
-config/config.go
+config/config_server.go
