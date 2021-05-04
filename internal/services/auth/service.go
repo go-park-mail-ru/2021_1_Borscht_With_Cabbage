@@ -51,6 +51,7 @@ func (s service) Create(ctx context.Context, user models.User) (*models.SuccessU
 		User: user,
 		Role: config.RoleUser,
 	}
+	response.Avatar = config.DefaultUserImage
 
 	return &response, nil
 }
