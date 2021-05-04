@@ -3,6 +3,7 @@ package authRepo
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	"github.com/borscht/backend/utils/errors"
@@ -23,17 +24,23 @@ func (a authRestaurantRepo) checkExistingRestaurant(ctx context.Context, restaur
 	var userInDB int
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", restaurantData.Email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewErrorWithMessage("Restaurant with this email already exists")
+		custErr := errors.NewErrorWithMessage("Restaurant with this email already exists")
+		logger.RepoLevel().ErrorLog(ctx, custErr)
+		return custErr
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", restaurantData.Number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewErrorWithMessage("Restaurant with this number already exists")
+		custErr := errors.NewErrorWithMessage("Restaurant with this number already exists")
+		logger.RepoLevel().ErrorLog(ctx, custErr)
+		return custErr
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where name = $1", restaurantData.Name).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewErrorWithMessage("Restaurant with this name already exists")
+		custErr := errors.NewErrorWithMessage("Restaurant with this name already exists")
+		logger.RepoLevel().ErrorLog(ctx, custErr)
+		return custErr
 	}
 
 	return nil

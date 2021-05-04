@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/utils/logger"
 
 	"github.com/borscht/backend/services/chat/internal"
 	chatServiceRepo "github.com/borscht/backend/services/chat/repository"
@@ -18,6 +19,7 @@ import (
 )
 
 func main() {
+	logger.InitLogger()
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open(config.PostgresDB, dsn)
