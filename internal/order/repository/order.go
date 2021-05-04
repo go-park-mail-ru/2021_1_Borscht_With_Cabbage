@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/borscht/backend/config"
 	"time"
+
+	"github.com/borscht/backend/config"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
@@ -74,8 +75,14 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 }
 
 func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, error) {
-	ordersDB, err := o.DB.Query("select oid, restaurant, orderTime, address, deliverycost, sum, status, deliverytime, review, stars "+
-		"from orders where userID=$1 order by orderTime desc", uid)
+	query :=
+		`
+		SELECT o.oid, o.restaurant, o.orderTime, o.address, o.deliverycost, o.sum, o.status, o.deliverytime, o.review, o.stars, r.rid
+		FROM orders o JOIN restaurants r
+		ON o.restaurant = r.name 
+		WHERE userID=$1 ORDER BY orderTime DESC
+	`
+	ordersDB, err := o.DB.Query(query, uid)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant orders")
 		return nil, errors.BadRequestError("Error with getting restaurant orders")
@@ -94,7 +101,10 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 			&order.DeliveryTime,
 			&order.Review,
 			&order.Stars,
+			&order.RID,
 		)
+
+		logger.RepoLevel().DebugLog(ctx, logger.Fields{"order": order, "rid": order.RID})
 
 		var basketID string
 		err = o.DB.QueryRow("select basketid from basket_orders where orderid=$1", order.OID).Scan(&basketID)
@@ -125,9 +135,11 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 		order.Summary = sum + order.DeliveryCost
 
 		var restaurantImage string
-		err = o.DB.QueryRow("select avatar from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage)
+		var rid int
+		err = o.DB.QueryRow("select avatar, rid from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage, &rid)
 		fmt.Println(err)
 		order.RestaurantImage = restaurantImage
+		order.RID = rid
 
 		orders = append(orders, *order)
 	}
