@@ -2,6 +2,7 @@ package basket
 
 import (
 	"context"
+
 	"github.com/borscht/backend/internal/models"
 	protoBasket "github.com/borscht/backend/services/proto/basket"
 )
@@ -128,6 +129,13 @@ func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser,
 		return nil, err
 	}
 
+	address := models.Address{
+		Name:      basket.Address.AddressName,
+		Longitude: basket.Address.Longitude,
+		Latitude:  basket.Address.Latitude,
+		Radius:    int(basket.Address.Radius),
+	}
+
 	basketForUser := models.BasketForUser{
 		BID:             int(basket.Bid),
 		Restaurant:      basket.RestaurantName,
@@ -149,6 +157,7 @@ func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser,
 		dishes = append(dishes, dishInfo)
 	}
 	basketForUser.Foods = dishes
+	basketForUser.Address = address
 
 	return &basketForUser, nil
 }

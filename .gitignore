@@ -3,3 +3,4 @@
 send
 static/*
 config/config_server.go
+config/config.go
