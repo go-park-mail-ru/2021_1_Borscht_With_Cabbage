@@ -110,7 +110,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	createdRestaurant := newRestaurant
 	createdRestaurant.ID = 1
 	response := models.SuccessRestaurantResponse{
-		createdRestaurant, config.RoleAdmin,
+		RestaurantInfo: createdRestaurant, Role: config.RoleAdmin,
 	}
 	response.ID = 1
 	requestJSON := `{"Title":"newName","password":"111111","number":"89111111111","email":"dasha@mail.ru"}`

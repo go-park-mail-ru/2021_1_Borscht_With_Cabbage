@@ -306,7 +306,7 @@ func TestService_DeleteSession(t *testing.T) {
 		Session: "session1",
 	}
 
-	sessionRepoMock.EXPECT().Delete(*ctx, session.Session).Return(nil)
+	sessionRepoMock.EXPECT().Delete(*ctx, headSession+session.Session).Return(nil)
 
 	_, err := authService.DeleteSession(*ctx, &session)
 	if err != nil {
