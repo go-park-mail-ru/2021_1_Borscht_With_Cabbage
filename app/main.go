@@ -34,6 +34,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
+
+	serviceChat "github.com/borscht/backend/internal/services/chat"
+	protoChat "github.com/borscht/backend/services/proto/chat"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -46,7 +50,6 @@ type initRoute struct {
 	dishAdmin       restaurantAdmin.AdminDishHandler
 	sectionAdmin    restaurantAdmin.AdminSectionHandler
 	order           order.OrderHandler
-	websocket       chat.WebSocketHandler
 	chat            chat.ChatHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
@@ -63,10 +66,10 @@ func route(data initRoute) {
 	userGroup.POST("/address", data.user.UpdateMainAddress)
 	userGroup.GET("/address", data.user.GetMainAddress)
 	auth.GET("/auth", data.user.CheckAuth)
-	auth.GET("/connect/ws", data.websocket.GetKey)
+	auth.GET("/connect/ws", data.chat.GetKey)
 	auth.GET("/chats", data.chat.GetAllChats)
 	auth.GET("/chat/:id", data.chat.GetAllMessages)
-	data.e.GET("/ws/:key", data.websocket.Connect, data.wsMiddleware.WsAuth)
+	data.e.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
@@ -115,6 +118,17 @@ func initServer(e *echo.Echo) {
 func main() {
 	e := echo.New()
 	initServer(e)
+	grpcConnChat, errr := grpc.Dial(
+		config.ChatServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnChat.Close()
+
+	chatClient := protoChat.NewChatClient(grpcConnChat)
+	chatService := serviceChat.NewService(chatClient)
 
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
@@ -145,7 +159,6 @@ func main() {
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	imageRepo := imageRepo.NewImageRepo()
-	wsRepo := chatRepo.NewWebsocketRepo(db)
 	chatRepo := chatRepo.NewChattRepo(db)
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
@@ -154,10 +167,9 @@ func main() {
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
-	wsUsecase := chatUsecase.NewWebSocketUsecase(wsRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
-	chatUsecase := chatUsecase.NewChatUsecase(chatRepo)
+	chatUsecase := chatUsecase.NewChatUsecase(chatRepo, chatService)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
@@ -165,8 +177,7 @@ func main() {
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
 	orderHandler := http.NewOrderHandler(orderUsecase)
-	websocketHandler := chatDelivery.NewWebSocketHandler(wsUsecase, sessionUcase)
-	chatHandler := chatDelivery.NewChatHandler(chatUsecase)
+	chatHandler := chatDelivery.NewChatHandler(chatUsecase, sessionUcase)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
 	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
@@ -181,7 +192,6 @@ func main() {
 		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
 		order:           orderHandler,
-		websocket:       websocketHandler,
 		chat:            chatHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,

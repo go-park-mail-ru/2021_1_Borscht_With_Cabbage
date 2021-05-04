@@ -32,6 +32,12 @@ type ToClient struct {
 	Payload ToClientPayload `json:"payload"`
 }
 
+type InfoMessageSend struct {
+	From    WsOpponent `json:"from"`
+	To      WsOpponent `json:"to"`
+	Message WsMessage  `json:"message"`
+}
+
 type WsMessageForRepo struct {
 	IdMessage  int    `json:"idMessage"`
 	Date       string `json:"date"`
