@@ -112,6 +112,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	response := models.SuccessRestaurantResponse{
 		createdRestaurant, config.RoleAdmin,
 	}
+	response.ID = 1
 	requestJSON := `{"Title":"newName","password":"111111","number":"89111111111","email":"dasha@mail.ru"}`
 
 	e := echo.New()
@@ -127,6 +128,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	}
 
 	AuthServiceMock.EXPECT().CreateRestaurant(ctx, newRestaurant).Return(&response, nil)
+	RestaurantUsecaseMock.EXPECT().AddAddress(ctx, 1, models.Address{}).Return(nil)
 	AuthServiceMock.EXPECT().CreateSession(ctx, sessionInfo)
 
 	err := restaurantHandler.CreateRestaurant(c)
