@@ -1,15 +1,13 @@
-package repository
+package authRepo
 
 import (
 	"context"
-
-	"github.com/borscht/backend/internal/models"
-	sessionModel "github.com/borscht/backend/internal/session"
-	errors "github.com/borscht/backend/utils/errors"
-	"github.com/borscht/backend/utils/logger"
-
 	"encoding/json"
 
+	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/services/auth"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -17,7 +15,7 @@ type sessionRepo struct {
 	redisConn redis.Conn
 }
 
-func NewSessionRepo(conn redis.Conn) sessionModel.SessionRepo {
+func NewSessionRepo(conn redis.Conn) auth.SessionRepo {
 	return &sessionRepo{
 		redisConn: conn,
 	}

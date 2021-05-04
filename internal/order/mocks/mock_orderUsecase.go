@@ -34,29 +34,6 @@ func (m *MockOrderUsecase) EXPECT() *MockOrderUsecaseMockRecorder {
 	return m.recorder
 }
 
-// AddBasket mocks base method
-func (m *MockOrderUsecase) AddBasket(arg0 context.Context, arg1 models.BasketForUser) (*models.BasketForUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddBasket", arg0, arg1)
-	ret0, _ := ret[0].(models.BasketForUser)
-	ret1, _ := ret[1].(error)
-	return &ret0, ret1
-}
-
-// AddToBasket mocks base method
-func (m *MockOrderUsecase) AddToBasket(arg0 context.Context, arg1 models.DishToBasket, arg2 int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddToBasket", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddToBasket indicates an expected call of AddToBasket
-func (mr *MockOrderUsecaseMockRecorder) AddToBasket(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddToBasket", reflect.TypeOf((*MockOrderUsecase)(nil).AddToBasket), arg0, arg1, arg2)
-}
-
 // Create mocks base method
 func (m *MockOrderUsecase) Create(arg0 context.Context, arg1 int, arg2 models.CreateOrder) error {
 	m.ctrl.T.Helper()
@@ -71,33 +48,18 @@ func (mr *MockOrderUsecaseMockRecorder) Create(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrderUsecase)(nil).Create), arg0, arg1, arg2)
 }
 
-// DeleteFromBasket mocks base method
-func (m *MockOrderUsecase) DeleteFromBasket(arg0 context.Context, arg1 models.DishToBasket, arg2 int) error {
+// CreateReview mocks base method
+func (m *MockOrderUsecase) CreateReview(arg0 context.Context, arg1 models.SetNewReview) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFromBasket", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CreateReview", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteFromBasket indicates an expected call of DeleteFromBasket
-func (mr *MockOrderUsecaseMockRecorder) DeleteFromBasket(arg0, arg1, arg2 interface{}) *gomock.Call {
+// CreateReview indicates an expected call of CreateReview
+func (mr *MockOrderUsecaseMockRecorder) CreateReview(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFromBasket", reflect.TypeOf((*MockOrderUsecase)(nil).DeleteFromBasket), arg0, arg1, arg2)
-}
-
-// GetBasket mocks base method
-func (m *MockOrderUsecase) GetBasket(arg0 context.Context, arg1 int) (*models.BasketForUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBasket", arg0, arg1)
-	ret0, _ := ret[0].(models.BasketForUser)
-	ret1, _ := ret[1].(error)
-	return &ret0, ret1
-}
-
-// GetBasket indicates an expected call of GetBasket
-func (mr *MockOrderUsecaseMockRecorder) GetBasket(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBasket", reflect.TypeOf((*MockOrderUsecase)(nil).GetBasket), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReview", reflect.TypeOf((*MockOrderUsecase)(nil).CreateReview), arg0, arg1)
 }
 
 // GetRestaurantOrders mocks base method
@@ -128,4 +90,18 @@ func (m *MockOrderUsecase) GetUserOrders(arg0 context.Context, arg1 int) ([]mode
 func (mr *MockOrderUsecaseMockRecorder) GetUserOrders(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserOrders", reflect.TypeOf((*MockOrderUsecase)(nil).GetUserOrders), arg0, arg1)
+}
+
+// SetNewStatus mocks base method
+func (m *MockOrderUsecase) SetNewStatus(arg0 context.Context, arg1 models.SetNewStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetNewStatus", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetNewStatus indicates an expected call of SetNewStatus
+func (mr *MockOrderUsecaseMockRecorder) SetNewStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetNewStatus", reflect.TypeOf((*MockOrderUsecase)(nil).SetNewStatus), arg0, arg1)
 }

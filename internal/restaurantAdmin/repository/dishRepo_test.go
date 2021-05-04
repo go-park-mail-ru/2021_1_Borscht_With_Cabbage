@@ -11,7 +11,16 @@ import (
 )
 
 func TestNewDishRepo(t *testing.T) {
-
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	dishRepo := NewDishRepo(db)
+	if dishRepo != nil {
+		return
+	}
 }
 
 func TestDishRepo_GetAllDishes(t *testing.T) {

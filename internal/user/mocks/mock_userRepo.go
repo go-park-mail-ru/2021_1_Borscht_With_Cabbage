@@ -34,49 +34,47 @@ func (m *MockUserRepo) EXPECT() *MockUserRepoMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method
-func (m *MockUserRepo) Create(arg0 context.Context, arg1 models.User) (int, error) {
+// AddAddress mocks base method
+func (m *MockUserRepo) AddAddress(arg0 context.Context, arg1 int, arg2 models.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(int)
+	ret := m.ctrl.Call(m, "AddAddress", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddAddress indicates an expected call of AddAddress
+func (mr *MockUserRepoMockRecorder) AddAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockUserRepo)(nil).AddAddress), arg0, arg1, arg2)
+}
+
+// DeleteAddress mocks base method
+func (m *MockUserRepo) DeleteAddress(arg0 context.Context, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAddress", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAddress indicates an expected call of DeleteAddress
+func (mr *MockUserRepoMockRecorder) DeleteAddress(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAddress", reflect.TypeOf((*MockUserRepo)(nil).DeleteAddress), arg0, arg1)
+}
+
+// GetAddress mocks base method
+func (m *MockUserRepo) GetAddress(arg0 context.Context, arg1 int) (*models.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAddress", arg0, arg1)
+	ret0, _ := ret[0].(*models.Address)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Create indicates an expected call of Create
-func (mr *MockUserRepoMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+// GetAddress indicates an expected call of GetAddress
+func (mr *MockUserRepoMockRecorder) GetAddress(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepo)(nil).Create), arg0, arg1)
-}
-
-// GetByLogin mocks base method
-func (m *MockUserRepo) GetByLogin(arg0 context.Context, arg1 string) (*models.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByLogin", arg0, arg1)
-	ret0, _ := ret[0].(*models.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByLogin indicates an expected call of GetByLogin
-func (mr *MockUserRepoMockRecorder) GetByLogin(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLogin", reflect.TypeOf((*MockUserRepo)(nil).GetByLogin), arg0, arg1)
-}
-
-// GetByUid mocks base method
-func (m *MockUserRepo) GetByUid(arg0 context.Context, arg1 int) (models.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUid", arg0, arg1)
-	ret0, _ := ret[0].(models.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByUid indicates an expected call of GetByUid
-func (mr *MockUserRepoMockRecorder) GetByUid(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUid", reflect.TypeOf((*MockUserRepo)(nil).GetByUid), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddress", reflect.TypeOf((*MockUserRepo)(nil).GetAddress), arg0, arg1)
 }
 
 // UpdateAvatar mocks base method
@@ -105,19 +103,4 @@ func (m *MockUserRepo) UpdateData(arg0 context.Context, arg1 models.UserData) er
 func (mr *MockUserRepoMockRecorder) UpdateData(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateData", reflect.TypeOf((*MockUserRepo)(nil).UpdateData), arg0, arg1)
-}
-
-// TODO: сделать тест
-// UpdateData mocks base method
-func (m *MockUserRepo) UpdateMainAddress(arg0 context.Context, arg1 int, arg2 string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMainAddress", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateData indicates an expected call of UpdateData
-func (mr *MockUserRepoMockRecorder) UpdateMainAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMainAddress", reflect.TypeOf((*MockUserRepo)(nil).UpdateMainAddress), arg0, arg1, arg2)
 }

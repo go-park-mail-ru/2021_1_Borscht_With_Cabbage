@@ -58,3 +58,7 @@ func (r *restaurantUsecase) GetById(ctx context.Context, id int) (
 
 	return restaurant, nil
 }
+
+func (r *restaurantUsecase) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
+	return r.restaurantRepo.GetReviews(ctx, id)
+}

@@ -21,16 +21,6 @@ CREATE TABLE users (
                        password BYTEA
 );
 
-CREATE TABLE addresses (
-                           aid SERIAL PRIMARY KEY,
-                           name TEXT DEFAULT '' NOT NULL,
-                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
-                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                           latitude TEXT DEFAULT '' NOT NULL,
-                           longitude TEXT DEFAULT '' NOT NULL,
-                           radius INTEGER DEFAULT 0 NOT NULL
-);
-
 CREATE TABLE restaurants (
                              rid SERIAL PRIMARY KEY,
                              name TEXT UNIQUE,
@@ -40,8 +30,19 @@ CREATE TABLE restaurants (
                              deliveryCost INTEGER DEFAULT 0,
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,
-                             rating FLOAT DEFAULT 0,
-                             avatar TEXT
+                             avatar TEXT,
+                             ratingsSum INTEGER DEFAULT 0,
+                             reviewsCount INTEGER DEFAULT 0
+);
+
+CREATE TABLE addresses (
+                           aid SERIAL PRIMARY KEY,
+                           name TEXT DEFAULT '' NOT NULL,
+                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                           latitude TEXT DEFAULT '' NOT NULL,
+                           longitude TEXT DEFAULT '' NOT NULL,
+                           radius INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE sections (
@@ -71,7 +72,9 @@ CREATE TABLE orders (
                         deliveryCost INTEGER,
                         sum INTEGER,
                         status TEXT,
-                        deliveryTime TIME
+                        deliveryTime TIMESTAMP,
+                        review TEXT,
+                        stars INTEGER
 );
 
 CREATE TABLE baskets (
@@ -93,7 +96,7 @@ CREATE TABLE basket_users (
 
 CREATE TABLE basket_orders(
                               basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
-                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
+                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE
 );
 
 CREATE TABLE messages(
@@ -105,7 +108,6 @@ CREATE TABLE messages(
                             content TEXT DEFAULT '' NOT NULL,
                             sentWhen TEXT DEFAULT '' NOT NULL
 );
-
 
 -- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
 -- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;

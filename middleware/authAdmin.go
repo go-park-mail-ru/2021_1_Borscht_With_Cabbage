@@ -3,15 +3,15 @@ package middleware
 import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
-	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
-	sessionModel "github.com/borscht/backend/internal/session"
+	//adminModel "github.com/borscht/backend/internal/restaurantAdmin"
+	"github.com/borscht/backend/internal/services/auth"
+	//sessionModel "github.com/borscht/backend/internal/session"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
 type AdminAuthMiddleware struct {
-	SessionUcase sessionModel.SessionUsecase
-	AdminUcase   adminModel.AdminRestaurantUsecase
+	AuthService auth.ServiceAuth
 }
 
 func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -24,7 +24,7 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
-		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
+		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -36,7 +36,7 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 
-		restaurant, err := m.AdminUcase.GetByRid(ctx, sessionData.Id)
+		restaurant, err := m.AuthService.GetByRid(ctx, sessionData.Id)
 		if err != nil {
 			return models.SendRedirectLogin(c)
 		}
@@ -48,9 +48,8 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitAdminMiddleware(adminUcase adminModel.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) *AdminAuthMiddleware {
+func InitAdminMiddleware(authService auth.ServiceAuth) *AdminAuthMiddleware {
 	return &AdminAuthMiddleware{
-		SessionUcase: sessionUcase,
-		AdminUcase:   adminUcase,
+		AuthService: authService,
 	}
 }

@@ -1,7 +1,7 @@
 package http
 
 import (
-	"fmt"
+	"github.com/borscht/backend/internal/services/auth"
 	"net/http"
 	"time"
 
@@ -9,8 +9,6 @@ import (
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
-	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
-	sessionModel "github.com/borscht/backend/internal/session"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -18,16 +16,14 @@ import (
 )
 
 type Handler struct {
-	UserUcase    userModel.UserUsecase
-	AdminUcase   adminModel.AdminRestaurantUsecase
-	SessionUcase sessionModel.SessionUsecase
+	UserUcase   userModel.UserUsecase
+	AuthService auth.ServiceAuth
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, adminUcase adminModel.AdminRestaurantUsecase, sessionUcase sessionModel.SessionUsecase) userModel.UserHandler {
+func NewUserHandler(userUcase userModel.UserUsecase, serviceAuth auth.ServiceAuth) userModel.UserHandler {
 	handler := &Handler{
-		UserUcase:    userUcase,
-		AdminUcase:   adminUcase,
-		SessionUcase: sessionUcase,
+		UserUcase:   userUcase,
+		AuthService: serviceAuth,
 	}
 
 	return handler
@@ -52,40 +48,10 @@ func deleteResponseCookie(c echo.Context) {
 	c.SetCookie(&sessionCookie)
 }
 
-func (h Handler) UpdateMainAddress(c echo.Context) error {
-	ctx := models.GetContext(c)
-	logger.DeliveryLevel().InlineDebugLog(ctx, "address delivery")
-
-	address := new(models.Address)
-	if err := c.Bind(address); err != nil {
-		sendErr := errors.BadRequestError(err.Error())
-		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-		return models.SendResponseWithError(c, sendErr)
-	}
-
-	err := h.UserUcase.UpdateMainAddress(ctx, *address)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
-
-	return models.SendResponse(c, nil)
-}
-
-func (h Handler) GetMainAddress(c echo.Context) error {
-	ctx := models.GetContext(c)
-	result, err := h.UserUcase.GetMainAddress(ctx)
-	if err != nil {
-		return models.SendResponseWithError(c, err)
-	}
-
-	return models.SendResponse(c, result)
-}
-
 func (h Handler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
 
 	newUser := new(models.User)
-
 	if err := c.Bind(newUser); err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -96,7 +62,12 @@ func (h Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	responseUser, err := h.UserUcase.Create(ctx, *newUser)
+	responseUser, err := h.AuthService.Create(ctx, *newUser)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	err = h.UserUcase.AddAddress(ctx, responseUser.Uid, responseUser.Address)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -106,7 +77,7 @@ func (h Handler) Create(c echo.Context) error {
 		Role: config.RoleUser,
 	}
 
-	session, err := h.SessionUcase.Create(ctx, sessionInfo)
+	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -129,12 +100,10 @@ func (h Handler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
-		fmt.Println(err)
 		return models.SendResponseWithError(c, err)
 	}
 
-	oldUser, err := h.UserUcase.CheckUserExists(ctx, *newUser)
-
+	oldUser, err := h.AuthService.CheckUserExists(ctx, *newUser)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -143,7 +112,7 @@ func (h Handler) Login(c echo.Context) error {
 		Id:   oldUser.Uid,
 		Role: config.RoleUser,
 	}
-	session, err := h.SessionUcase.Create(ctx, sessionInfo)
+	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -212,7 +181,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 
 	sessionData := new(models.SessionInfo)
 	var exist bool
-	*sessionData, exist, err = h.SessionUcase.Check(ctx, cookie.Value)
+	*sessionData, exist, err = h.AuthService.CheckSession(ctx, cookie.Value)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -224,7 +193,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 
 	switch sessionData.Role {
 	case config.RoleAdmin:
-		restaurant, err := h.AdminUcase.GetByRid(ctx, sessionData.Id)
+		restaurant, err := h.AuthService.GetByRid(ctx, sessionData.Id)
 		if err != nil {
 			sendErr := errors.BadRequestError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -233,7 +202,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 		return models.SendResponse(c, restaurant)
 
 	case config.RoleUser:
-		user, err := h.UserUcase.GetByUid(ctx, sessionData.Id)
+		user, err := h.AuthService.GetByUid(ctx, sessionData.Id)
 		if err != nil {
 			sendErr := errors.BadRequestError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -257,11 +226,40 @@ func (h Handler) Logout(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	err = h.SessionUcase.Delete(ctx, cook.Value)
+	err = h.AuthService.DeleteSession(ctx, cook.Value)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 	deleteResponseCookie(c)
 
 	return models.SendResponse(c, nil)
+}
+
+func (h Handler) UpdateMainAddress(c echo.Context) error {
+	ctx := models.GetContext(c)
+	logger.DeliveryLevel().InlineDebugLog(ctx, "address delivery")
+
+	address := new(models.Address)
+	if err := c.Bind(address); err != nil {
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := h.UserUcase.UpdateMainAddress(ctx, *address)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}
+
+func (h Handler) GetMainAddress(c echo.Context) error {
+	ctx := models.GetContext(c)
+	result, err := h.UserUcase.GetMainAddress(ctx)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, result)
 }

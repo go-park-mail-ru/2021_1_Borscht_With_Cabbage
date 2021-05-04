@@ -34,49 +34,47 @@ func (m *MockAdminRestaurantRepo) EXPECT() *MockAdminRestaurantRepoMockRecorder 
 	return m.recorder
 }
 
-// CreateRestaurant mocks base method
-func (m *MockAdminRestaurantRepo) CreateRestaurant(arg0 context.Context, arg1 models.RestaurantInfo) (int, error) {
+// AddAddress mocks base method
+func (m *MockAdminRestaurantRepo) AddAddress(arg0 context.Context, arg1 int, arg2 models.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRestaurant", arg0, arg1)
-	ret0, _ := ret[0].(int)
+	ret := m.ctrl.Call(m, "AddAddress", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddAddress indicates an expected call of AddAddress
+func (mr *MockAdminRestaurantRepoMockRecorder) AddAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).AddAddress), arg0, arg1, arg2)
+}
+
+// GetAddress mocks base method
+func (m *MockAdminRestaurantRepo) GetAddress(arg0 context.Context, arg1 int) (*models.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAddress", arg0, arg1)
+	ret0, _ := ret[0].(*models.Address)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateRestaurant indicates an expected call of CreateRestaurant
-func (mr *MockAdminRestaurantRepoMockRecorder) CreateRestaurant(arg0, arg1 interface{}) *gomock.Call {
+// GetAddress indicates an expected call of GetAddress
+func (mr *MockAdminRestaurantRepoMockRecorder) GetAddress(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRestaurant", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).CreateRestaurant), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddress", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).GetAddress), arg0, arg1)
 }
 
-// GetByLogin mocks base method
-func (m *MockAdminRestaurantRepo) GetByLogin(arg0 context.Context, arg1 string) (*models.RestaurantInfo, error) {
+// UpdateAddress mocks base method
+func (m *MockAdminRestaurantRepo) UpdateAddress(arg0 context.Context, arg1 int, arg2 models.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByLogin", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "UpdateAddress", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetByLogin indicates an expected call of GetByLogin
-func (mr *MockAdminRestaurantRepoMockRecorder) GetByLogin(arg0, arg1 interface{}) *gomock.Call {
+// UpdateAddress indicates an expected call of UpdateAddress
+func (mr *MockAdminRestaurantRepoMockRecorder) UpdateAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLogin", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).GetByLogin), arg0, arg1)
-}
-
-// GetByRid mocks base method
-func (m *MockAdminRestaurantRepo) GetByRid(arg0 context.Context, arg1 int) (*models.RestaurantInfo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByRid", arg0, arg1)
-	ret0, _ := ret[0].(*models.RestaurantInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByRid indicates an expected call of GetByRid
-func (mr *MockAdminRestaurantRepoMockRecorder) GetByRid(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByRid", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).GetByRid), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAddress", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).UpdateAddress), arg0, arg1, arg2)
 }
 
 // UpdateRestaurantData mocks base method

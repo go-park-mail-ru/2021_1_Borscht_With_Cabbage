@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/borscht/backend/internal/services/auth"
 	"net/http"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
-	sessionModel "github.com/borscht/backend/internal/session"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
@@ -17,15 +17,13 @@ import (
 
 type RestaurantHandler struct {
 	RestaurantUsecase adminModel.AdminRestaurantUsecase
-	SessionUcase      sessionModel.SessionUsecase
+	AuthService       auth.ServiceAuth
 }
 
-func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase,
-	sessionUcase sessionModel.SessionUsecase) adminModel.AdminRestaurantHandler {
-
+func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase, authService auth.ServiceAuth) adminModel.AdminRestaurantHandler {
 	return &RestaurantHandler{
 		RestaurantUsecase: adminUCase,
-		SessionUcase:      sessionUcase,
+		AuthService:       authService,
 	}
 }
 
@@ -71,7 +69,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	responseRestaurant, err := a.RestaurantUsecase.CreateRestaurant(ctx, *newRestaurant)
+	responseRestaurant, err := a.AuthService.CreateRestaurant(ctx, *newRestaurant)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -80,7 +78,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 		Id:   responseRestaurant.ID,
 		Role: config.RoleAdmin,
 	}
-	session, err := a.SessionUcase.Create(ctx, sessionInfo)
+	session, err := a.AuthService.CreateSession(ctx, sessionInfo)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -105,7 +103,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
-	existingRest, err := a.RestaurantUsecase.CheckRestaurantExists(ctx, *newRest)
+	existingRest, err := a.AuthService.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -114,7 +112,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 		Id:   existingRest.ID,
 		Role: config.RoleAdmin,
 	}
-	session, err := a.SessionUcase.Create(ctx, sessionInfo)
+	session, err := a.AuthService.CreateSession(ctx, sessionInfo)
 
 	if err != nil {
 		return models.SendResponseWithError(c, err)

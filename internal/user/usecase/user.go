@@ -12,7 +12,6 @@ import (
 	"github.com/borscht/backend/internal/user"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
-	"github.com/borscht/backend/utils/secure"
 	"github.com/borscht/backend/utils/uniq"
 )
 
@@ -32,6 +31,10 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 		userRepository:  repo,
 		imageRepository: image,
 	}
+}
+
+func (a userUsecase) AddAddress(ctx context.Context, uid int, address models.Address) error {
+	return a.userRepository.AddAddress(ctx, uid, address)
 }
 
 func (a userUsecase) UpdateMainAddress(ctx context.Context, address models.Address) error {
@@ -62,83 +65,6 @@ func (a userUsecase) GetMainAddress(ctx context.Context) (*models.Address, error
 	return a.userRepository.GetAddress(ctx, user.Uid)
 }
 
-func (u *userUsecase) Create(ctx context.Context, newUser models.User) (*models.SuccessUserResponse, error) {
-	newUser.Avatar = config.DefaultUserImage
-
-	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
-
-	uid, err := u.userRepository.Create(ctx, newUser)
-	if err != nil {
-		return nil, err
-	}
-	newUser.Uid = uid
-	newUser.Password = "" // TODO: подумать как это более аккуратно сделать
-	newUser.HashPassword = nil
-
-	err = u.userRepository.AddAddress(ctx, uid, newUser.Address)
-	if err != nil {
-		// TODO: подумать над тем чтобы удалять пользователя
-		return nil, err
-	}
-
-	response := &models.SuccessUserResponse{
-		User: newUser,
-		Role: config.RoleUser,
-	}
-
-	return response, nil
-}
-
-func (u *userUsecase) CheckUserExists(ctx context.Context, userAuth models.UserAuth) (*models.SuccessUserResponse, error) {
-	user, err := u.userRepository.GetByLogin(ctx, userAuth.Login)
-	if err != nil {
-		return nil, err
-	}
-	logger.UsecaseLevel().InlineDebugLog(ctx, &user.HashPassword)
-
-	if !secure.CheckPassword(ctx, user.HashPassword, userAuth.Password) {
-		err = errors.AuthorizationError("bad password")
-		logger.UsecaseLevel().ErrorLog(ctx, err)
-		return nil, err
-	}
-	user.HashPassword = nil
-
-	address, err := u.userRepository.GetAddress(ctx, user.Uid)
-	if err != nil {
-		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
-		return nil, err
-	}
-	if address != nil {
-		user.Address = *address
-	}
-
-	return &models.SuccessUserResponse{
-		User: *user,
-		Role: config.RoleUser,
-	}, nil
-}
-
-func (u *userUsecase) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResponse, error) {
-	user, err := u.userRepository.GetByUid(ctx, uid)
-	if err != nil {
-		return nil, err
-	}
-
-	address, err := u.userRepository.GetAddress(ctx, uid)
-	if err != nil {
-		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address error": err})
-		return nil, err
-	}
-	if address != nil {
-		user.Address = *address
-	}
-
-	return &models.SuccessUserResponse{
-		User: user,
-		Role: config.RoleUser,
-	}, nil
-}
-
 func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserResponse, error) {
 	user := ctx.Value("User")
 
@@ -156,7 +82,6 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 }
 
 func correctUserData(newUser *models.UserData, oldUser *models.User) {
-
 	newUser.ID = oldUser.Uid
 	if newUser.Name == "" {
 		newUser.Name = oldUser.Name

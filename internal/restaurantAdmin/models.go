@@ -31,10 +31,8 @@ type AdminSectionHandler interface {
 }
 
 type AdminRestaurantUsecase interface {
-	CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error)
+	AddAddress(ctx context.Context, rid int, address models.Address) error
 	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (*models.SuccessRestaurantResponse, error)
-	CheckRestaurantExists(ctx context.Context, user models.RestaurantAuth) (*models.SuccessRestaurantResponse, error)
-	GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error)
 	UploadRestaurantImage(ctx context.Context, image *multipart.FileHeader) (*models.RestaurantImageResponse, error)
 }
 
@@ -53,10 +51,7 @@ type AdminSectionUsecase interface {
 }
 
 type AdminRestaurantRepo interface {
-	CreateRestaurant(ctx context.Context, user models.RestaurantInfo) (int, error)
 	UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) error
-	GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error)
-	GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error)
 	UpdateRestaurantImage(ctx context.Context, idRestaurant int, filename string) error
 	AddAddress(ctx context.Context, rid int, address models.Address) error
 	UpdateAddress(ctx context.Context, rid int, address models.Address) error

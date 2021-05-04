@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/internal/session"
+	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/gorilla/websocket"
@@ -16,7 +17,7 @@ import (
 
 type chatHandler struct {
 	ChatUsecase    chat.ChatUsecase
-	SessionUsecase session.SessionUsecase
+	SessionService auth.ServiceAuth
 }
 
 var (
@@ -28,17 +29,56 @@ var (
 )
 
 func NewChatHandler(chatUsecase chat.ChatUsecase,
-	sessionUsecase session.SessionUsecase) chat.ChatHandler {
+	sessionService auth.ServiceAuth) chat.ChatHandler {
 	return &chatHandler{
 		ChatUsecase:    chatUsecase,
-		SessionUsecase: sessionUsecase,
+		SessionService: sessionService,
 	}
+}
+
+func getSessionInfo(ctx context.Context) (*models.SessionInfo, error) {
+	userInterface := ctx.Value("User")
+	if userInterface != nil {
+		user, ok := userInterface.(models.User)
+		if !ok {
+			failError := errors.FailServerError("failed to convert to models.User")
+			logger.UsecaseLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+
+		return &models.SessionInfo{
+			Id:   user.Uid,
+			Role: config.RoleUser,
+		}, nil
+	}
+
+	restaurantInterface := ctx.Value("Restaurant")
+	if restaurantInterface != nil {
+		restaurant, ok := restaurantInterface.(models.RestaurantInfo)
+		if !ok {
+			failError := errors.FailServerError("failed to convert to models.Restaurant")
+			logger.UsecaseLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+
+		return &models.SessionInfo{
+			Id:   restaurant.ID,
+			Role: config.RoleAdmin,
+		}, nil
+	}
+
+	return nil, errors.BadRequestError("not authorization")
 }
 
 func (ch chatHandler) GetKey(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	resuslt, err := ch.SessionUsecase.CreateKey(ctx)
+	sessionInfo, err := getSessionInfo(ctx)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	resuslt, err := ch.SessionService.CreateKey(ctx, *sessionInfo)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

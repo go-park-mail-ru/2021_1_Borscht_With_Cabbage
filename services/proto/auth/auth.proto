@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+// PATH="${PATH}:${HOME}/go/bin" protoc --go_out=plugins=grpc:. *.proto
+
+option go_package = "github.com/borscht/backend/internal/services/proto";
+
+package protoAuth;
+
+message Session {
+  string SessionID = 1;
+  string Number = 2;
+}
+
+message User {
+  string Name = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+}
+
+message UID {
+  int32 uid = 1;
+}
+
+message UserAuth {
+  string Login = 1;
+  string Password = 2;
+}
+
+message SuccessUserResponse {
+  string Name = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+  string Role = 5;
+  string Avatar = 6;
+  int32 UID = 7;
+  string AddressName = 8;
+  string Longitude = 9;
+  string Latitude = 10;
+  int32 Radius = 11;
+}
+
+message RID {
+  int32 rid = 1;
+}
+
+message SuccessRestaurantResponse {
+  string Title = 1;
+  string Email = 2;
+  string Password = 3;
+  string Phone = 4;
+  string Role = 5;
+  string Avatar = 6;
+  int32 RID = 7;
+  float Rating = 8;
+  int32 DeliveryCost = 9;
+  int32 AvgCheck = 10;
+  string Description = 11;
+  string AddressName = 12;
+  string Longitude = 13;
+  string Latitude = 14;
+  int32 Radius = 15;
+}
+
+message SessionValue {
+  string session = 1;
+}
+
+message SessionInfo {
+  int32 id = 1;
+  string role = 2;
+  bool exists = 3;
+}
+
+message Error {
+}
+
+service Auth {
+    rpc CheckKey(SessionValue) returns (SessionInfo) {}
+    rpc CreateKey(SessionInfo) returns (SessionValue) {}
+    rpc CreateUser(User) returns (SuccessUserResponse) {}
+    rpc CheckUserExists(UserAuth) returns (SuccessUserResponse) {}
+    rpc	GetByUid(UID) returns (SuccessUserResponse) {}
+    rpc CreateRestaurant(User) returns (SuccessRestaurantResponse) {}
+    rpc CheckRestaurantExists(UserAuth) returns (SuccessRestaurantResponse) {}
+    rpc	GetByRid(RID) returns (SuccessRestaurantResponse) {}
+    rpc CheckSession(SessionValue) returns (SessionInfo) {}
+    rpc CreateSession(SessionInfo) returns (SessionValue) {}
+    rpc DeleteSession(SessionValue) returns (Error) {}
+}

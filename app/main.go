@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/borscht/backend/internal/services/auth"
+	"github.com/borscht/backend/internal/services/basket"
+	protoAuth "github.com/borscht/backend/services/proto/auth"
+	protoBasket "github.com/borscht/backend/services/proto/basket"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat"
 	chatDelivery "github.com/borscht/backend/internal/chat/delivery/http"
@@ -23,8 +28,6 @@ import (
 	restaurantAdminDelivery "github.com/borscht/backend/internal/restaurantAdmin/delivery/http"
 	restaurantAdminRepo "github.com/borscht/backend/internal/restaurantAdmin/repository"
 	restaurantAdminUsecase "github.com/borscht/backend/internal/restaurantAdmin/usecase"
-	sessionRepo "github.com/borscht/backend/internal/session/repository"
-	sessionUcase "github.com/borscht/backend/internal/session/usecase"
 	"github.com/borscht/backend/internal/user"
 	userDelivery "github.com/borscht/backend/internal/user/delivery/http"
 	userRepo "github.com/borscht/backend/internal/user/repository"
@@ -38,8 +41,6 @@ import (
 
 	serviceChat "github.com/borscht/backend/internal/services/chat"
 	protoChat "github.com/borscht/backend/services/proto/chat"
-
-	"github.com/gomodule/redigo/redis"
 )
 
 type initRoute struct {
@@ -72,6 +73,8 @@ func route(data initRoute) {
 	data.e.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.GET("/orders", data.order.GetRestaurantOrders)
+	restaurantGroup.PUT("/order/status", data.order.SetNewStatus)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
 	restaurantGroup.DELETE("/dish", data.dishAdmin.DeleteDish)
 	restaurantGroup.PUT("/dish", data.dishAdmin.UpdateDishData)
@@ -89,6 +92,7 @@ func route(data initRoute) {
 	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
 	userGroup.GET("/orders", data.order.GetUserOrders)
 	userGroup.POST("/order", data.order.Create)
+	userGroup.POST("/order/review", data.order.CreateReview)
 	userGroup.PUT("/basket", data.order.AddToBasket)
 	userGroup.GET("/basket", data.order.GetBasket)
 	userGroup.POST("/basket", data.order.AddBasket)
@@ -96,6 +100,7 @@ func route(data initRoute) {
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
 	data.e.GET("/restaurants", data.restaurant.GetVendor)
+	data.e.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
 }
 
 func initServer(e *echo.Echo) {
@@ -106,9 +111,9 @@ func initServer(e *echo.Echo) {
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
-	// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-	// 	TokenLookup: "header:X-XSRF-TOKEN",
-	// }))
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "header:X-XSRF-TOKEN",
+	}))
 
 	e.Use(middleware.Secure())
 
@@ -118,6 +123,30 @@ func initServer(e *echo.Echo) {
 func main() {
 	e := echo.New()
 	initServer(e)
+	grpcConnAuth, errr := grpc.Dial(
+		config.AuthServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnAuth.Close()
+
+	authClient := protoAuth.NewAuthClient(grpcConnAuth)
+	authService := auth.NewService(authClient)
+
+	grpcConnBasket, errr := grpc.Dial(
+		config.BasketServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnBasket.Close()
+
+	basketClient := protoBasket.NewBasketClient(grpcConnBasket)
+	basketService := basket.NewService(basketClient)
+
 	grpcConnChat, errr := grpc.Dial(
 		config.ChatServiceAddress,
 		grpc.WithInsecure(),
@@ -145,15 +174,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// подключение redis
-	redisConn, err := redis.Dial("tcp", config.RedisHost)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer redisConn.Close()
-
 	userRepo := userRepo.NewUserRepo(db)
-	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
 	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
@@ -163,7 +184,6 @@ func main() {
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	orderRepo := repository.NewOrderRepo(db)
-	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
@@ -171,18 +191,18 @@ func main() {
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
 	chatUsecase := chatUsecase.NewChatUsecase(chatRepo, chatService)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
-	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
+	userHandler := userDelivery.NewUserHandler(userUcase, authService)
+	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
-	orderHandler := http.NewOrderHandler(orderUsecase)
-	chatHandler := chatDelivery.NewChatHandler(chatUsecase, sessionUcase)
+	orderHandler := http.NewOrderHandler(orderUsecase, basketService)
+	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
-	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
-	initWsMiddleware := custMiddleware.InitWsMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
+	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService)
+	initWsMiddleware := custMiddleware.InitWsMiddleware(authService)
 
 	route(initRoute{
 		e:               e,
