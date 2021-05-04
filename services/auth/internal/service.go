@@ -65,6 +65,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 		Phone:    user.Phone,
 		Name:     user.Name,
 		Password: user.Password,
+		Avatar:   config.DefaultUserImage,
 	}
 
 	uid, err := s.userAuthRepo.Create(ctx, newUser)
@@ -120,6 +121,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		AdminEmail:    restaurant.Email,
 		AdminPhone:    restaurant.Phone,
 		AdminPassword: restaurant.Password,
+		Avatar:        config.DefaultRestaurantImage,
 	}
 
 	rid, err := s.restaurantAuthRepo.CreateRestaurant(ctx, newRestaurant)
