@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const headKey = "key:"
+
 func TestNewSessionRepo(t *testing.T) {
 	redisConn, err := redis.Dial("tcp", config.RedisHost)
 	if err != nil {
