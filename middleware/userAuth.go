@@ -23,7 +23,6 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		sessionData := new(models.SessionInfo)
 		var exists bool
 		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
-
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -36,10 +35,10 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		user, err := m.AuthService.GetByUid(ctx, sessionData.Id)
-
 		if err != nil {
 			return models.SendRedirectLogin(c)
 		}
+
 		user.Uid = sessionData.Id
 		c.Set("User", user.User)
 		logger.MiddleLevel().DataLog(ctx, "user auth", c.Get("User"))

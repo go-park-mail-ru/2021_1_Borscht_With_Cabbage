@@ -74,11 +74,18 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
+	err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, newRestaurant.Address)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
 	sessionInfo := models.SessionInfo{
 		Id:   responseRestaurant.ID,
 		Role: config.RoleAdmin,
 	}
+
 	session, err := a.AuthService.CreateSession(ctx, sessionInfo)
+
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

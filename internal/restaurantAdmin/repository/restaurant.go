@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
@@ -21,11 +20,10 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 }
 
 func (r restaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
-	queri := `SELECT name, latitude, longitude, radius FROM addresses WHERE rid = $1`
-
+	query := `SELECT name, latitude, longitude, radius FROM addresses WHERE rid = $1`
 	logger.RepoLevel().DebugLog(ctx, logger.Fields{"rid": rid})
 	var address models.Address
-	err := r.DB.QueryRow(queri, rid).Scan(&address.Name, &address.Latitude,
+	err := r.DB.QueryRow(query, rid).Scan(&address.Name, &address.Latitude,
 		&address.Longitude, &address.Radius)
 
 	if err == sql.ErrNoRows {

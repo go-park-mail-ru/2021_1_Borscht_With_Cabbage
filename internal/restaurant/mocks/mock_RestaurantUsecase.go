@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	models "github.com/borscht/backend/internal/models"
+	restaurant "github.com/borscht/backend/internal/restaurant"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -65,16 +66,16 @@ func (mr *MockRestaurantUsecaseMockRecorder) GetReviews(arg0, arg1 interface{}) 
 }
 
 // GetVendor mocks base method
-func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1, arg2 int) ([]models.RestaurantInfo, error) {
+func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1 restaurant.GetVendorParams) ([]models.RestaurantInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVendor", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetVendor", arg0, arg1)
 	ret0, _ := ret[0].([]models.RestaurantInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetVendor indicates an expected call of GetVendor
-func (mr *MockRestaurantUsecaseMockRecorder) GetVendor(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockRestaurantUsecaseMockRecorder) GetVendor(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendor", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetVendor), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVendor", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetVendor), arg0, arg1)
 }
