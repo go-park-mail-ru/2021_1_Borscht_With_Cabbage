@@ -1,7 +1,9 @@
 package http
 
 import (
+	"context"
 	"strconv"
+	"strings"
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
@@ -21,33 +23,46 @@ func NewRestaurantHandler(restUCase restModel.RestaurantUsecase) restModel.Resta
 }
 
 func (h *RestaurantHandler) GetVendor(c echo.Context) error {
-	limit, errLimit := strconv.Atoi(c.QueryParam("limit"))
-	offset, errOffset := strconv.Atoi(c.QueryParam("offset"))
-	latitude := c.QueryParam("latitude")
-	longitude := c.QueryParam("longitude")
-
 	ctx := models.GetContext(c)
 
-	params := restModel.GetVendorParams{
-		Limit:     limit,
-		Offset:    offset,
-		Address:   true,
-		Latitude:  latitude,
-		Longitude: longitude,
-	}
-	if longitude == "" || latitude == "" { // адрес не передан
-		params.Address = false
-	}
-	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"getVendor params": params})
-
-	if errLimit != nil {
-		return models.SendResponseWithError(c, errors.BadRequestError(errLimit.Error()))
-	}
-	if errOffset != nil {
-		return models.SendResponseWithError(c, errors.BadRequestError(errOffset.Error()))
+	params := make([]string, 0)
+	params = append(params, c.QueryParam("limit"))
+	params = append(params, c.QueryParam("offset"))
+	params = append(params, c.QueryParam("time"))
+	params = append(params, c.QueryParam("receipt"))
+	paramsNumber, err := AtoiParams(ctx, params...)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
 	}
 
-	result, err := h.restaurantUsecase.GetVendor(ctx, params)
+	rating, parseErr := strconv.ParseFloat(c.QueryParam("rating"), 64)
+	if parseErr != nil {
+		requestError := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, requestError)
+		return models.SendResponseWithError(c, requestError)
+	}
+
+	categories := strings.Split(c.QueryParam("category"), ",")
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"categories": categories, "size": len(categories)})
+
+	request := models.RestaurantRequest{
+		Limit:         paramsNumber[0],
+		Offset:        paramsNumber[1],
+		Categories:    categories,
+		Time:          paramsNumber[2],
+		Receipt:       paramsNumber[3],
+		Rating:        rating,
+		LatitudeUser:  c.QueryParam("latitude"),
+		LongitudeUser: c.QueryParam("longitude"),
+		Address:       true,
+	}
+
+	if request.LatitudeUser == "" || request.LongitudeUser == "" { // адрес не передан
+		request.Address = false
+	}
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"getVendor params": request})
+
+	result, err := h.restaurantUsecase.GetVendor(ctx, request)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -103,4 +118,19 @@ func (h *RestaurantHandler) GetReviews(c echo.Context) error {
 	}
 
 	return models.SendMoreResponse(c, response...)
+}
+
+func AtoiParams(ctx context.Context, params ...string) ([]int, error) {
+	result := make([]int, 0)
+	for _, value := range params {
+		valueNumber, err := strconv.Atoi(value)
+		if err != nil {
+			requestError := errors.BadRequestError(err.Error())
+			logger.DeliveryLevel().ErrorLog(ctx, requestError)
+			return nil, requestError
+		}
+
+		result = append(result, valueNumber)
+	}
+	return result, nil
 }

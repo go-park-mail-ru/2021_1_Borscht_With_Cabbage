@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/internal/restaurantAdmin"
@@ -22,10 +23,19 @@ func NewRestaurantUsecase(repo restModel.RestaurantRepo,
 	}
 }
 
-func (r *restaurantUsecase) GetVendor(ctx context.Context, params restModel.GetVendorParams) (
+func (r *restaurantUsecase) GetVendor(ctx context.Context, request models.RestaurantRequest) (
 	restaurants []models.RestaurantInfo, err error) {
-
-	restaurants, err = r.restaurantRepo.GetVendor(ctx, params)
+	if request.Receipt == 0 {
+		request.Receipt = 100000
+	}
+	if request.Time == 0 {
+		request.Time = 1000
+	}
+	if len(request.Categories) == 0 || request.Categories[0] == "" {
+		restaurants, err = r.restaurantRepo.GetVendor(ctx, request)
+	} else {
+		restaurants, err = r.restaurantRepo.GetVendorWithCategory(ctx, request)
+	}
 	if err != nil {
 		return nil, err
 	}
