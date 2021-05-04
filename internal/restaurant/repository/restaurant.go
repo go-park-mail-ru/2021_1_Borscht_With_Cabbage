@@ -51,7 +51,7 @@ func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest st
 	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
 	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
 	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
-		distanse := getDistanceFromLatLonInKm(latitudeU, longitudeU, latitudeR, longitudeR)
+		distanse := getDistanceFromLatLonInKm(twoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
 		return int(restModel.MinutesInHour*distanse/restModel.CourierSpeed + restModel.CookingTime)
 	}
 	return 0
