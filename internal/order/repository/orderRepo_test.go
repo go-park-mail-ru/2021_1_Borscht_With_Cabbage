@@ -507,12 +507,12 @@ func TestOrderRepo_GetUserOrders(t *testing.T) {
 		DB: db,
 	}
 
-	orders := sqlmock.NewRows([]string{"oid", "restaurant", "orderTime", "address", "deliverycost", "sum", "status", "deliverytime", "review", "stars"})
+	orders := sqlmock.NewRows([]string{"oid", "restaurant", "orderTime", "address", "deliverycost", "sum", "status", "deliverytime", "review", "stars", "rid"})
 	expectOrders := []models.Order{
-		{OID: 1, Restaurant: "rest1", OrderTime: "15:00", Address: "Prospekt mira 2", DeliveryCost: 200, Summary: 1200, Status: models.StatusOrderAdded, DeliveryTime: "17:00"},
+		{OID: 1, Restaurant: "rest1", OrderTime: "15:00", Address: "Prospekt mira 2", DeliveryCost: 200, Summary: 1200, Status: models.StatusOrderAdded, DeliveryTime: "17:00", RID: 1},
 	}
 	for _, item := range expectOrders {
-		orders = orders.AddRow(item.OID, item.Restaurant, item.OrderTime, item.Address, item.DeliveryCost, item.Summary, item.Status, item.DeliveryTime, item.Review, item.Stars)
+		orders = orders.AddRow(item.OID, item.Restaurant, item.OrderTime, item.Address, item.DeliveryCost, item.Summary, item.Status, item.DeliveryTime, item.Review, item.Stars, item.RID)
 	}
 
 	dishes := sqlmock.NewRows([]string{"name", "price", "image", "number"})
@@ -532,16 +532,11 @@ func TestOrderRepo_GetUserOrders(t *testing.T) {
 		basketID = basketID.AddRow(item.BID)
 	}
 
-	restaurantAvatar := sqlmock.NewRows([]string{"dish"})
-	expectRestaurantAvatar := []models.RestaurantInfo{
-		{Avatar: "img.jpg"},
-	}
-	for _, item := range expectRestaurantAvatar {
-		restaurantAvatar = restaurantAvatar.AddRow(item.Avatar)
-	}
+	restaurantAvatar := sqlmock.NewRows([]string{"dish", "id"})
+	restaurantAvatar.AddRow("img.jpg", 1)
 
 	mock.
-		ExpectQuery("select oid, restaurant,").
+		ExpectQuery("SELECT o.oid").
 		WithArgs(1).
 		WillReturnRows(orders)
 	mock.
@@ -552,7 +547,7 @@ func TestOrderRepo_GetUserOrders(t *testing.T) {
 		ExpectQuery("select d.name, d.price,").
 		WillReturnRows(dishes)
 	mock.
-		ExpectQuery("select avatar from restaurants").
+		ExpectQuery("select avatar").
 		WithArgs("rest1").
 		WillReturnRows(restaurantAvatar)
 

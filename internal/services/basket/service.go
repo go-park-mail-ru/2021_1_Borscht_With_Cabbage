@@ -5,6 +5,7 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	protoBasket "github.com/borscht/backend/services/proto/basket"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type ServiceBasket interface {
@@ -129,13 +130,6 @@ func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser,
 		return nil, err
 	}
 
-	address := models.Address{
-		Name:      basket.Address.AddressName,
-		Longitude: basket.Address.Longitude,
-		Latitude:  basket.Address.Latitude,
-		Radius:    int(basket.Address.Radius),
-	}
-
 	basketForUser := models.BasketForUser{
 		BID:             int(basket.Bid),
 		Restaurant:      basket.RestaurantName,
@@ -143,6 +137,17 @@ func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser,
 		RID:             int(basket.Rid),
 		DeliveryCost:    int(basket.DeliveryCost),
 		Summary:         int(basket.Summary),
+	}
+
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"address": basket.Address})
+	if basket.Address != nil {
+		address := models.Address{
+			Name:      basket.Address.AddressName,
+			Longitude: basket.Address.Longitude,
+			Latitude:  basket.Address.Latitude,
+			Radius:    int(basket.Address.Radius),
+		}
+		basketForUser.Address = address
 	}
 
 	dishes := make([]models.DishInBasket, 0)
@@ -157,7 +162,6 @@ func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser,
 		dishes = append(dishes, dishInfo)
 	}
 	basketForUser.Foods = dishes
-	basketForUser.Address = address
 
 	return &basketForUser, nil
 }
