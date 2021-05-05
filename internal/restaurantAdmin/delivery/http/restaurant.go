@@ -1,9 +1,10 @@
 package http
 
 import (
-	"github.com/borscht/backend/internal/services/auth"
 	"net/http"
 	"time"
+
+	"github.com/borscht/backend/internal/services/auth"
 
 	"github.com/borscht/backend/utils/validation"
 
@@ -70,6 +71,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	}
 
 	responseRestaurant, err := a.AuthService.CreateRestaurant(ctx, *newRestaurant)
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"restaurant auth": responseRestaurant})
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
