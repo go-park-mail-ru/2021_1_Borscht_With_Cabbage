@@ -75,19 +75,16 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 
 	// если запрос с фильтрацией по адресу
 	if request.Address {
-		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		query += ` and ST_DWithin(
-					   Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
-					   ST_GeogFromText($2), a.radius)
-					   ORDER BY r.rid OFFSET $3 LIMIT $4;`
-		userAddress := "SRID=4326; POINT(" + request.LatitudeUser + " " + request.LongitudeUser + ")"
-		queryParametres = append(queryParametres, userAddress)
-
+		//logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		//query += ` and ST_DWithin(
+		//			   ST_GeogFromText('SRID=4326;POINT(a.latitude a.longitude)'),
+		//			   ST_GeogFromText($2), a.radius)`
+		//userAddress := "'SRID=4326;POINT(" + request.LatitudeUser + " " + request.LongitudeUser + "')"
+		//queryParametres = append(queryParametres, userAddress)
 	} else {
-		query += `ORDER BY r.rid OFFSET $2 LIMIT $3;`
+		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
+		queryParametres = append(queryParametres, request.Offset, request.Limit)
 	}
-
-	queryParametres = append(queryParametres, request.Offset, request.Limit)
 
 	restaurantsDB, err := r.DB.Query(query, queryParametres...)
 	if err != nil {
