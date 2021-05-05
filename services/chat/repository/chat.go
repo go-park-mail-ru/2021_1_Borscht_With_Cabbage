@@ -10,8 +10,6 @@ import (
 )
 
 type ChatRepo interface {
-	// SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
-	// SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
 	GetAllChatsUser(ctx context.Context, uid int) ([]*protoChat.BriefInfoChat, error)
 	GetAllChatsRestaurant(ctx context.Context, rid int) ([]*protoChat.BriefInfoChat, error)
 	GetAllMessagesFromUser(ctx context.Context, uid, rid int) ([]*protoChat.InfoMessage, error)
@@ -28,60 +26,30 @@ func NewChatRepository(db *sql.DB) ChatRepo {
 	}
 }
 
-// func (c chatRepository) SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (
-// 	mid int, err error) {
-
-// 	query :=
-// 		`
-// 		INSERT INTO messages (sentFromUser, sentToRestaurant, content, sentWhen)
-// 		VALUES ($1, $2, $3, $4)
-// 		RETURNING mid
-// 	`
-
-// 	err = c.DB.QueryRow(query, info.SentFromId, info.SentToId,
-// 		info.Content, info.Date).Scan(&mid)
-
-// 	if err != nil {
-// 		insertError := errors.FailServerError(err.Error())
-// 		logger.RepoLevel().ErrorLog(ctx, insertError)
-// 		return 0, insertError
-// 	}
-
-// 	return mid, nil
-// }
-
-// func (c chatRepository) SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (
-// 	mid int, err error) {
-
-// 	query :=
-// 		`
-// 		INSERT INTO messages (sentFromRestaurant, sentToUser, content, sentWhen)
-// 		VALUES ($1, $2, $3, $4)
-// 		RETURNING mid
-// 	`
-
-// 	err = c.DB.QueryRow(query, info.SentFromId, info.SentToId,
-// 		info.Content, info.Date).Scan(&mid)
-
-// 	if err != nil {
-// 		insertError := errors.FailServerError(err.Error())
-// 		logger.RepoLevel().ErrorLog(ctx, insertError)
-// 		return 0, insertError
-// 	}
-
-// 	return mid, nil
-// }
-
 func (ch chatRepo) GetAllChatsUser(ctx context.Context, uid int) ([]*protoChat.BriefInfoChat, error) {
 	query :=
 		`
-		SELECT r.rid, r.name, r.avatar, m1.content
-		FROM messages m1 LEFT 
-		JOIN messages m2
-		ON (m1.sentToRestaurant = m2.sentToRestaurant AND m1.mid < m2.mid) 
-		JOIN restaurants r 
-		ON (m1.sentToRestaurant = r.rid)
-		WHERE m2.mid IS NULL AND m1.sentFromUser = $1 order by m1.mid DESC;
+		SELECT res.rid, res.name, res.avatar, res.content FROM (
+			SELECT m1.mid, r.rid, r.name, r.avatar, m1.content
+			FROM messages m1 LEFT 
+			JOIN messages m2
+			ON (m1.sentToRestaurant = m2.sentToRestaurant AND m1.mid < m2.mid) 
+			JOIN restaurants r 
+			ON (m1.sentToRestaurant = r.rid)
+			WHERE m2.mid IS NULL AND m1.sentFromUser = $1
+	
+			UNION
+	
+			SELECT m1.mid, r.rid, r.name, r.avatar, m1.content
+			FROM messages m1 LEFT 
+			JOIN messages m2
+			ON (m1.sentFromRestaurant = m2.sentFromRestaurant AND m1.mid < m2.mid) 
+			JOIN restaurants r 
+			ON (m1.sentFromRestaurant = r.rid)
+			WHERE m2.mid IS NULL AND m1.sentToUser = $1 
+			
+			ORDER BY mid DESC
+		) AS res;
 	`
 
 	return ch.getAllChats(ctx, query, uid)
@@ -90,13 +58,27 @@ func (ch chatRepo) GetAllChatsUser(ctx context.Context, uid int) ([]*protoChat.B
 func (ch chatRepo) GetAllChatsRestaurant(ctx context.Context, rid int) ([]*protoChat.BriefInfoChat, error) {
 	query :=
 		`
-		SELECT u.uid, u.name, u.photo, m1.content
-		FROM messages m1 LEFT 
-		JOIN messages m2
-		ON (m1.sentToUser = m2.sentToUser AND m1.mid < m2.mid) 
-		JOIN users u 
-		ON (m1.sentToUser = u.uid)
-		WHERE m2.mid IS NULL AND m1.sentFromRestaurant = $1 order by m1.mid DESC;
+		SELECT res.uid, res.name, res.photo, res.content FROM (
+			SELECT m1.mid, u.uid, u.name, u.photo, m1.content
+			FROM messages m1 LEFT 
+			JOIN messages m2
+			ON (m1.sentToUser = m2.sentToUser AND m1.mid < m2.mid) 
+			JOIN users u 
+			ON (m1.sentToUser = u.uid)
+			WHERE m2.mid IS NULL AND m1.sentFromRestaurant = $1
+
+			UNION
+
+			SELECT m1.mid, u.uid, u.name, u.photo, m1.content
+			FROM messages m1 LEFT 
+			JOIN messages m2
+			ON (m1.sentFromUser = m2.sentFromUser AND m1.mid < m2.mid) 
+			JOIN users u 
+			ON (m1.sentFromUser = u.uid)
+			WHERE m2.mid IS NULL AND m1.sentToRestaurant = $1 
+			
+			ORDER BY mid DESC
+		) AS res;
 	`
 
 	return ch.getAllChats(ctx, query, rid)

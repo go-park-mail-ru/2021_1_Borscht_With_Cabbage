@@ -78,6 +78,9 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 }
 
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
+	latitude := c.QueryParam("latitude")
+	longitude := c.QueryParam("longitude")
+	coordinates := models.Coordinates{Latitude: latitude, Longitude: longitude}
 	ctx := models.GetContext(c)
 
 	id, err := strconv.Atoi(c.Param("id"))
@@ -87,7 +90,7 @@ func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
 		return models.SendResponseWithError(c, badRequest)
 	}
 
-	restaurant, err := h.restaurantUsecase.GetById(ctx, id)
+	restaurant, err := h.restaurantUsecase.GetById(ctx, coordinates, id)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

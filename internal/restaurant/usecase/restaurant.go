@@ -52,9 +52,9 @@ func (r *restaurantUsecase) GetVendor(ctx context.Context, request models.Restau
 	return restaurants, nil
 }
 
-func (r *restaurantUsecase) GetById(ctx context.Context, id int) (
+func (r *restaurantUsecase) GetById(ctx context.Context, coordinates models.Coordinates, id int) (
 	restaurant *models.RestaurantWithDishes, err error) {
-	restaurant, err = r.restaurantRepo.GetById(ctx, id)
+	restaurant, err = r.restaurantRepo.GetById(ctx, id, coordinates)
 	if err != nil {
 		return nil, err
 	}

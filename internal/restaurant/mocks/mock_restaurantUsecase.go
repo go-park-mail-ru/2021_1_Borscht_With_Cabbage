@@ -36,18 +36,18 @@ func (m *MockRestaurantUsecase) EXPECT() *MockRestaurantUsecaseMockRecorder {
 }
 
 // GetById mocks base method
-func (m *MockRestaurantUsecase) GetById(arg0 context.Context, arg1 int) (*models.RestaurantWithDishes, error) {
+func (m *MockRestaurantUsecase) GetById(arg0 context.Context, arg1 models.Coordinates, arg2 int) (*models.RestaurantWithDishes, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetById", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.RestaurantWithDishes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetById indicates an expected call of GetById
-func (mr *MockRestaurantUsecaseMockRecorder) GetById(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRestaurantUsecaseMockRecorder) GetById(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetById), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetById), arg0, arg1, arg2)
 }
 
 // GetReviews mocks base method

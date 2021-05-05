@@ -8,6 +8,7 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
+	"github.com/borscht/backend/utils/calcDistance"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/lib/pq"
@@ -201,19 +202,21 @@ func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request mode
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
+func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models.Coordinates) (*models.RestaurantWithDishes, error) {
 	restaurant := new(models.RestaurantWithDishes)
 	var ratingsSum, reviewsCount int
 	query :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount
-	FROM restaurants 
-	WHERE rid=$1
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount, a.latitude, a.longitude
+	FROM restaurants as r
+	JOIN addresses a on r.rid = a.rid
+	WHERE r.rid=$1
 	`
 
+	var restaurantLongitude, restaurantLatitude string
 	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount)
+			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount, &restaurantLatitude, &restaurantLongitude)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -221,6 +224,10 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 	}
 	if reviewsCount != 0 {
 		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+	}
+
+	if coordinates.Latitude != "" && coordinates.Longitude != "" {
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, restaurantLatitude, restaurantLongitude)
 	}
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)

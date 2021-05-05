@@ -90,6 +90,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	}
 
 	responseRestaurant, err := a.AuthService.CreateRestaurant(ctx, *newRestaurant)
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"restaurant auth": responseRestaurant})
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

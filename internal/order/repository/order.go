@@ -135,9 +135,14 @@ func (o orderRepo) GetUserOrders(ctx context.Context, uid int) ([]models.Order, 
 		order.Summary = sum + order.DeliveryCost
 
 		var restaurantImage string
+
 		var rid int
 		err = o.DB.QueryRow("select avatar, rid from restaurants where name=$1", order.Restaurant).Scan(&restaurantImage, &rid)
-		fmt.Println(err)
+		if err != nil {
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting user's info")
+			return nil, errors.BadRequestError("Error with getting user's inf")
+		}
+
 		order.RestaurantImage = restaurantImage
 		order.RID = rid
 

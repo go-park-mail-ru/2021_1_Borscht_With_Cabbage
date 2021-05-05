@@ -169,9 +169,12 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{
-		ID:     int(restaurantResult.RID),
-		Title:  restaurantResult.Title,
-		Avatar: config.DefaultRestaurantImage,
+		ID:         int(restaurantResult.RID),
+		Title:      restaurantResult.Title,
+		Avatar:     config.DefaultRestaurantImage,
+		AdminEmail: restaurant.AdminEmail,
+		AdminPhone: restaurant.AdminPhone,
+		Address:    restaurant.Address,
 	}
 
 	return &models.SuccessRestaurantResponse{
