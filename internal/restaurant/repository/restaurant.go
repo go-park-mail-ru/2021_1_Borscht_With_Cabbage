@@ -33,22 +33,21 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 
 	var queryParametres []interface{}
 	queryParametres = append(queryParametres, params.Offset, params.Limit+params.Offset)
-
-	// если запрос с фильтрацией по адресу
-	if params.Address {
-		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		query += ` and ST_DWithin(
-					   Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
-					   ST_GeogFromText($3), a.radius)`
-		userAddress := "SRID=4326; POINT(" + params.Latitude + " " + params.Longitude + ")"
-		queryParametres = append(queryParametres, userAddress)
-	}
-
 	restaurantsDB, err := r.DB.Query(query, queryParametres...)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
 		return []models.RestaurantInfo{}, failError
+	}
+
+	// если запрос с фильтрацией по адресу
+	if params.Address {
+		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		query += ` and ST_DWithin(
+					   ST_GeogFromText(SRID=4326; POINT(a.latitude a.longitude)),
+					   ST_GeogFromText($3), a.radius)`
+		userAddress := "SRID=4326; POINT(" + params.Latitude + " " + params.Longitude + ")"
+		queryParametres = append(queryParametres, userAddress)
 	}
 
 	restaurants := make([]models.RestaurantInfo, 0)
