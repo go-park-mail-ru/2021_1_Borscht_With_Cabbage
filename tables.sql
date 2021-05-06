@@ -102,19 +102,13 @@ CREATE TABLE basket_orders(
 );
 
 CREATE TABLE messages(
-                            -- mid SERIAL PRIMARY KEY,
-                            -- sentFromUser INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                            -- sentToUser INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                            -- sentFromRestaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
-                            -- sentToRestaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
-                            -- content TEXT DEFAULT '' NOT NULL,
-                            -- sentWhen TEXT DEFAULT '' NOT NULL
-
                             mid SERIAL PRIMARY KEY,
                             senderId INTEGER NOT NULL,
                             senderRole TEXT NOT NULL,
                             recipientId INTEGER NOT NULL,
-                            recipientRole TEXT NOT NULL
+                            recipientRole TEXT NOT NULL,
+                            content TEXT DEFAULT '' NOT NULL,
+                            sentWhen TEXT DEFAULT '' NOT NULL
 );
 
 -- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
