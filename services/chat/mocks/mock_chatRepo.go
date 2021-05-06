@@ -6,7 +6,7 @@ package mocks
 
 import (
 	context "context"
-	chat "github.com/borscht/backend/services/proto/chat"
+	models "github.com/borscht/backend/services/chat/models"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,62 +34,47 @@ func (m *MockChatRepo) EXPECT() *MockChatRepoMockRecorder {
 	return m.recorder
 }
 
-// GetAllChatsRestaurant mocks base method
-func (m *MockChatRepo) GetAllChatsRestaurant(arg0 context.Context, arg1 int) ([]*chat.BriefInfoChat, error) {
+// GetAllChats mocks base method
+func (m *MockChatRepo) GetAllChats(arg0 context.Context, arg1 models.User) ([]models.ChatInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllChatsRestaurant", arg0, arg1)
-	ret0, _ := ret[0].([]*chat.BriefInfoChat)
+	ret := m.ctrl.Call(m, "GetAllChats", arg0, arg1)
+	ret0, _ := ret[0].([]models.ChatInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllChatsRestaurant indicates an expected call of GetAllChatsRestaurant
-func (mr *MockChatRepoMockRecorder) GetAllChatsRestaurant(arg0, arg1 interface{}) *gomock.Call {
+// GetAllChats indicates an expected call of GetAllChats
+func (mr *MockChatRepoMockRecorder) GetAllChats(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllChatsRestaurant", reflect.TypeOf((*MockChatRepo)(nil).GetAllChatsRestaurant), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllChats", reflect.TypeOf((*MockChatRepo)(nil).GetAllChats), arg0, arg1)
 }
 
-// GetAllChatsUser mocks base method
-func (m *MockChatRepo) GetAllChatsUser(arg0 context.Context, arg1 int) ([]*chat.BriefInfoChat, error) {
+// GetAllMessages mocks base method
+func (m *MockChatRepo) GetAllMessages(arg0 context.Context, arg1, arg2 models.User) ([]models.Chat, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllChatsUser", arg0, arg1)
-	ret0, _ := ret[0].([]*chat.BriefInfoChat)
+	ret := m.ctrl.Call(m, "GetAllMessages", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.Chat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllChatsUser indicates an expected call of GetAllChatsUser
-func (mr *MockChatRepoMockRecorder) GetAllChatsUser(arg0, arg1 interface{}) *gomock.Call {
+// GetAllMessages indicates an expected call of GetAllMessages
+func (mr *MockChatRepoMockRecorder) GetAllMessages(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllChatsUser", reflect.TypeOf((*MockChatRepo)(nil).GetAllChatsUser), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessages", reflect.TypeOf((*MockChatRepo)(nil).GetAllMessages), arg0, arg1, arg2)
 }
 
-// GetAllMessagesFromRestaurant mocks base method
-func (m *MockChatRepo) GetAllMessagesFromRestaurant(arg0 context.Context, arg1, arg2 int) ([]*chat.InfoMessage, error) {
+// SaveMessage mocks base method
+func (m *MockChatRepo) SaveMessage(arg0 context.Context, arg1 models.Chat) (int32, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllMessagesFromRestaurant", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*chat.InfoMessage)
+	ret := m.ctrl.Call(m, "SaveMessage", arg0, arg1)
+	ret0, _ := ret[0].(int32)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllMessagesFromRestaurant indicates an expected call of GetAllMessagesFromRestaurant
-func (mr *MockChatRepoMockRecorder) GetAllMessagesFromRestaurant(arg0, arg1, arg2 interface{}) *gomock.Call {
+// SaveMessage indicates an expected call of SaveMessage
+func (mr *MockChatRepoMockRecorder) SaveMessage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessagesFromRestaurant", reflect.TypeOf((*MockChatRepo)(nil).GetAllMessagesFromRestaurant), arg0, arg1, arg2)
-}
-
-// GetAllMessagesFromUser mocks base method
-func (m *MockChatRepo) GetAllMessagesFromUser(arg0 context.Context, arg1, arg2 int) ([]*chat.InfoMessage, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllMessagesFromUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*chat.InfoMessage)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAllMessagesFromUser indicates an expected call of GetAllMessagesFromUser
-func (mr *MockChatRepoMockRecorder) GetAllMessagesFromUser(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessagesFromUser", reflect.TypeOf((*MockChatRepo)(nil).GetAllMessagesFromUser), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveMessage", reflect.TypeOf((*MockChatRepo)(nil).SaveMessage), arg0, arg1)
 }

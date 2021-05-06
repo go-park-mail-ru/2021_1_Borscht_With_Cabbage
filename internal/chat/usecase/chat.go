@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
@@ -116,7 +115,6 @@ func (ch *chatUsecase) MessageCame(ctx context.Context, ws *websocket.Conn, msg 
 		wsOpponent.Name = user.Name
 		wsOpponent.Id = user.Uid
 		wsSent = ch.poolRestaurant.Get(opponent.Id)
-
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
 		me.Id = restaurant.ID
 		me.Role = config.RoleAdmin
@@ -126,6 +124,10 @@ func (ch *chatUsecase) MessageCame(ctx context.Context, ws *websocket.Conn, msg 
 		wsOpponent.Name = restaurant.Title
 		wsOpponent.Id = restaurant.ID
 		wsSent = ch.poolUsers.Get(opponent.Id)
+	} else {
+		foundError := errors.AuthorizationError("not user and restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, foundError)
+		return foundError
 	}
 
 	messageSent, err := ch.ChatService.ProcessMessage(ctx, models.InfoChatMessage{
@@ -144,7 +146,7 @@ func (ch *chatUsecase) MessageCame(ctx context.Context, ws *websocket.Conn, msg 
 	if wsSent != nil {
 		return wsSent.WriteJSON(msgSend)
 	}
-	logger.UsecaseLevel().InlineInfoLog(ctx, "not id in connection pool")
+	logger.UsecaseLevel().InlineInfoLog(ctx, "no id in connection pool")
 
 	return err
 }
@@ -211,7 +213,6 @@ func (ch *chatUsecase) convertChats(ctx context.Context, me models.ChatUser,
 }
 
 func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.InfoChat, error) {
-
 	me := new(models.ChatUser)
 	opponent := new(models.ChatUser)
 	chat := new(models.InfoChat)

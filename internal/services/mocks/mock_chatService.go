@@ -35,46 +35,46 @@ func (m *MockServiceChat) EXPECT() *MockServiceChatMockRecorder {
 }
 
 // GetAllChats mocks base method
-func (m *MockServiceChat) GetAllChats(arg0 context.Context, arg1, arg2 int) ([]models.BriefInfoChat, error) {
+func (m *MockServiceChat) GetAllChats(arg0 context.Context, arg1 models.ChatUser) ([]models.InfoChatMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllChats", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]models.BriefInfoChat)
+	ret := m.ctrl.Call(m, "GetAllChats", arg0, arg1)
+	ret0, _ := ret[0].([]models.InfoChatMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllChats indicates an expected call of GetAllChats
-func (mr *MockServiceChatMockRecorder) GetAllChats(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockServiceChatMockRecorder) GetAllChats(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllChats", reflect.TypeOf((*MockServiceChat)(nil).GetAllChats), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllChats", reflect.TypeOf((*MockServiceChat)(nil).GetAllChats), arg0, arg1)
 }
 
-// GetAllMessagesRestaurant mocks base method
-func (m *MockServiceChat) GetAllMessagesRestaurant(arg0 context.Context, arg1, arg2 int) ([]models.InfoMessage, error) {
+// GetAllMessages mocks base method
+func (m *MockServiceChat) GetAllMessages(arg0 context.Context, arg1, arg2 models.ChatUser) ([]models.InfoChatMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllMessagesRestaurant", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]models.InfoMessage)
+	ret := m.ctrl.Call(m, "GetAllMessages", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.InfoChatMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllMessagesRestaurant indicates an expected call of GetAllMessagesRestaurant
-func (mr *MockServiceChatMockRecorder) GetAllMessagesRestaurant(arg0, arg1, arg2 interface{}) *gomock.Call {
+// GetAllMessages indicates an expected call of GetAllMessages
+func (mr *MockServiceChatMockRecorder) GetAllMessages(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessagesRestaurant", reflect.TypeOf((*MockServiceChat)(nil).GetAllMessagesRestaurant), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessages", reflect.TypeOf((*MockServiceChat)(nil).GetAllMessages), arg0, arg1, arg2)
 }
 
-// GetAllMessagesUser mocks base method
-func (m *MockServiceChat) GetAllMessagesUser(arg0 context.Context, arg1, arg2 int) ([]models.InfoMessage, error) {
+// ProcessMessage mocks base method
+func (m *MockServiceChat) ProcessMessage(arg0 context.Context, arg1 models.InfoChatMessage) (models.InfoChatMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllMessagesUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]models.InfoMessage)
+	ret := m.ctrl.Call(m, "ProcessMessage", arg0, arg1)
+	ret0, _ := ret[0].(models.InfoChatMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllMessagesUser indicates an expected call of GetAllMessagesUser
-func (mr *MockServiceChatMockRecorder) GetAllMessagesUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+// ProcessMessage indicates an expected call of ProcessMessage
+func (mr *MockServiceChatMockRecorder) ProcessMessage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessagesUser", reflect.TypeOf((*MockServiceChat)(nil).GetAllMessagesUser), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessMessage", reflect.TypeOf((*MockServiceChat)(nil).ProcessMessage), arg0, arg1)
 }

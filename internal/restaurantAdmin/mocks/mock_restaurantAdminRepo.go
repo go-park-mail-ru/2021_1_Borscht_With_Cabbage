@@ -48,6 +48,34 @@ func (mr *MockAdminRestaurantRepoMockRecorder) AddAddress(arg0, arg1, arg2 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).AddAddress), arg0, arg1, arg2)
 }
 
+// AddCategories mocks base method
+func (m *MockAdminRestaurantRepo) AddCategories(arg0 context.Context, arg1 int, arg2 []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCategories", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddCategories indicates an expected call of AddCategories
+func (mr *MockAdminRestaurantRepoMockRecorder) AddCategories(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCategories", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).AddCategories), arg0, arg1, arg2)
+}
+
+// DeleteAllCategories mocks base method
+func (m *MockAdminRestaurantRepo) DeleteAllCategories(arg0 context.Context, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAllCategories", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllCategories indicates an expected call of DeleteAllCategories
+func (mr *MockAdminRestaurantRepoMockRecorder) DeleteAllCategories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllCategories", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).DeleteAllCategories), arg0, arg1)
+}
+
 // GetAddress mocks base method
 func (m *MockAdminRestaurantRepo) GetAddress(arg0 context.Context, arg1 int) (*models.Address, error) {
 	m.ctrl.T.Helper()

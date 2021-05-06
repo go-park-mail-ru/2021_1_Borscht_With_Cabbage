@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat/mocks"
 	"github.com/borscht/backend/internal/models"
 	serviceMocks "github.com/borscht/backend/internal/services/mocks"
@@ -16,7 +17,8 @@ func TestChatUsecase_ConnectUser(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	user := models.User{
 		Uid: 1,
@@ -36,7 +38,8 @@ func TestChatUsecase_ConnectRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -56,7 +59,8 @@ func TestChatUsecase_Error(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -73,7 +77,8 @@ func TestChatUsecase_UnConnectUser(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	user := models.User{
 		Uid: 1,
@@ -93,7 +98,8 @@ func TestChatUsecase_UnConnectRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -113,7 +119,8 @@ func TestChatUsecase_UnConnect_Error(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -130,7 +137,8 @@ func TestChatUsecase_MessageCameFromUser(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	user := models.User{
 		Uid:    1,
@@ -141,7 +149,7 @@ func TestChatUsecase_MessageCameFromUser(t *testing.T) {
 	ctx := context.WithValue(c, "User", user)
 	logger.InitLogger()
 
-	message := models.FromClient{
+	msg := models.FromClient{
 		Action: "",
 		Payload: models.FromClientPayload{
 			To: models.WsOpponent{
@@ -156,16 +164,28 @@ func TestChatUsecase_MessageCameFromUser(t *testing.T) {
 			},
 		},
 	}
-	saveInfo := models.WsMessageForRepo{
-		Date:       message.Payload.Message.Date,
-		Content:    message.Payload.Message.Text,
-		SentToId:   message.Payload.To.Id,
-		SentFromId: 1,
+	message := models.ChatMessage{
+		Text: msg.Payload.Message.Text,
+		Date: msg.Payload.Message.Date,
+	}
+	me := models.ChatUser{
+		Id:   user.Uid,
+		Role: config.RoleUser,
+	}
+	opponent := models.ChatUser{
+		Id:   1,
+		Role: config.RoleAdmin,
 	}
 
-	ChatRepoMock.EXPECT().SaveMessageFromUser(ctx, saveInfo).Return(1, nil)
+	infoChat := models.InfoChatMessage{
+		Message:   message,
+		Sender:    me,
+		Recipient: opponent,
+	}
 
-	err := chatUsecase.MessageCame(ctx, &websocket.Conn{}, message)
+	ChatServiceMock.EXPECT().ProcessMessage(ctx, infoChat).Return(models.InfoChatMessage{}, nil)
+
+	err := chatUsecase.MessageCame(ctx, &websocket.Conn{}, msg)
 	if err != nil {
 		t.Errorf("incorrect result")
 		return
@@ -177,7 +197,8 @@ func TestChatUsecase_MessageCameFromRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -186,7 +207,7 @@ func TestChatUsecase_MessageCameFromRestaurant(t *testing.T) {
 	ctx := context.WithValue(c, "Restaurant", restaurant)
 	logger.InitLogger()
 
-	message := models.FromClient{
+	msg := models.FromClient{
 		Action: "",
 		Payload: models.FromClientPayload{
 			To: models.WsOpponent{
@@ -201,16 +222,27 @@ func TestChatUsecase_MessageCameFromRestaurant(t *testing.T) {
 			},
 		},
 	}
-	saveInfo := models.WsMessageForRepo{
-		Date:       message.Payload.Message.Date,
-		Content:    message.Payload.Message.Text,
-		SentToId:   message.Payload.To.Id,
-		SentFromId: 1,
+	message := models.ChatMessage{
+		Text: msg.Payload.Message.Text,
+		Date: msg.Payload.Message.Date,
+	}
+	me := models.ChatUser{
+		Id:   restaurant.ID,
+		Role: config.RoleAdmin,
+	}
+	opponent := models.ChatUser{
+		Id:   1,
+		Role: config.RoleUser,
+	}
+	infoChat := models.InfoChatMessage{
+		Message:   message,
+		Sender:    me,
+		Recipient: opponent,
 	}
 
-	ChatRepoMock.EXPECT().SaveMessageFromRestaurant(ctx, saveInfo).Return(1, nil)
+	ChatServiceMock.EXPECT().ProcessMessage(ctx, infoChat).Return(models.InfoChatMessage{}, nil)
 
-	err := chatUsecase.MessageCame(ctx, &websocket.Conn{}, message)
+	err := chatUsecase.MessageCame(ctx, &websocket.Conn{}, msg)
 	if err != nil {
 		t.Errorf("incorrect result")
 		return
@@ -222,7 +254,8 @@ func TestChatUsecase_MessageCame_AuthError(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -235,20 +268,13 @@ func TestChatUsecase_MessageCame_AuthError(t *testing.T) {
 	}
 }
 
-func TestChatUsecase_MessageFromUser(t *testing.T) {
-
-}
-
-func TestChatUsecase_MessageFromRestaurant(t *testing.T) {
-
-}
-
 func TestChatUsecase_GetAllChatsUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	user := models.User{
 		Uid: 1,
@@ -257,7 +283,11 @@ func TestChatUsecase_GetAllChatsUser(t *testing.T) {
 	ctx := context.WithValue(c, "User", user)
 	logger.InitLogger()
 
-	ChatServiceMock.EXPECT().GetAllChats(ctx, 1, 0).Return([]models.BriefInfoChat{}, nil)
+	me := models.ChatUser{
+		Id:   user.Uid,
+		Role: config.RoleUser,
+	}
+	ChatServiceMock.EXPECT().GetAllChats(ctx, me).Return([]models.InfoChatMessage{}, nil)
 
 	_, err := chatUsecase.GetAllChats(ctx)
 	if err != nil {
@@ -271,7 +301,8 @@ func TestChatUsecase_GetAllChatsRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -280,7 +311,11 @@ func TestChatUsecase_GetAllChatsRestaurant(t *testing.T) {
 	ctx := context.WithValue(c, "Restaurant", restaurant)
 	logger.InitLogger()
 
-	ChatServiceMock.EXPECT().GetAllChats(ctx, 0, 1).Return([]models.BriefInfoChat{}, nil)
+	me := models.ChatUser{
+		Id:   restaurant.ID,
+		Role: config.RoleAdmin,
+	}
+	ChatServiceMock.EXPECT().GetAllChats(ctx, me).Return([]models.InfoChatMessage{}, nil)
 
 	_, err := chatUsecase.GetAllChats(ctx)
 	if err != nil {
@@ -294,7 +329,8 @@ func TestChatUsecase_GetAllChats_Error(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -312,7 +348,8 @@ func TestChatUsecase_GetAllMessagesUser(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	id := 1
 	user := models.User{
@@ -322,8 +359,17 @@ func TestChatUsecase_GetAllMessagesUser(t *testing.T) {
 	ctx := context.WithValue(c, "User", user)
 	logger.InitLogger()
 
-	ChatServiceMock.EXPECT().GetAllMessagesUser(ctx, user.Uid, id).Return([]models.InfoMessage{}, nil)
-	ChatRepoMock.EXPECT().GetRestaurant(ctx, id).Return(&models.InfoOpponent{}, nil)
+	me := models.ChatUser{
+		Id:   user.Uid,
+		Role: config.RoleUser,
+	}
+	opponent := models.ChatUser{
+		Id:   id,
+		Role: config.RoleAdmin,
+	}
+
+	AuthServiceMock.EXPECT().GetByRid(ctx, id).Return(&models.SuccessRestaurantResponse{}, nil)
+	ChatServiceMock.EXPECT().GetAllMessages(ctx, me, opponent).Return([]models.InfoChatMessage{}, nil)
 
 	_, err := chatUsecase.GetAllMessages(ctx, id)
 	if err != nil {
@@ -337,7 +383,8 @@ func TestChatUsecase_GetAllMessagesRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	ChatRepoMock := mocks.NewMockChatRepo(ctrl)
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
-	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock)
+	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
+	chatUsecase := NewChatUsecase(ChatRepoMock, ChatServiceMock, AuthServiceMock)
 
 	id := 1
 	restaurant := models.RestaurantInfo{
@@ -346,9 +393,17 @@ func TestChatUsecase_GetAllMessagesRestaurant(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", restaurant)
 	logger.InitLogger()
+	me := models.ChatUser{
+		Id:   restaurant.ID,
+		Role: config.RoleAdmin,
+	}
+	opponent := models.ChatUser{
+		Id:   id,
+		Role: config.RoleUser,
+	}
 
-	ChatServiceMock.EXPECT().GetAllMessagesRestaurant(ctx, restaurant.ID, id).Return([]models.InfoMessage{}, nil)
-	ChatRepoMock.EXPECT().GetUser(ctx, id).Return(&models.InfoOpponent{}, nil)
+	AuthServiceMock.EXPECT().GetByUid(ctx, id).Return(&models.SuccessUserResponse{}, nil)
+	ChatServiceMock.EXPECT().GetAllMessages(ctx, me, opponent).Return([]models.InfoChatMessage{}, nil)
 
 	_, err := chatUsecase.GetAllMessages(ctx, id)
 	if err != nil {

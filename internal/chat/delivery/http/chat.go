@@ -60,7 +60,6 @@ func getSessionInfo(ctx context.Context) (*models.SessionInfo, error) {
 			logger.UsecaseLevel().ErrorLog(ctx, failError)
 			return nil, failError
 		}
-
 		return &models.SessionInfo{
 			Id:   restaurant.ID,
 			Role: config.RoleAdmin,
