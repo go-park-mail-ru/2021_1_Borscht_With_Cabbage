@@ -65,3 +65,19 @@ type CheckRestaurantExists struct {
 type DeleteSuccess struct {
 	ID int `json:"id"`
 }
+
+type RestaurantRequest struct {
+	Limit         int      `json:"limit"`
+	Offset        int      `json:"offset"`
+	Categories    []string `json:"categories"`
+	Time          int      `json:"time"`
+	Receipt       int      `json:"receipt"`
+	Rating        float64  `json:"rating"`
+	LatitudeUser  string   `json:"latitude"`
+	LongitudeUser string   `json:"longitude"`
+	Address       bool     `json:"address"`
+}
+
+type Categories struct {
+	CategoriesID []string `json:"categories"`
+}
