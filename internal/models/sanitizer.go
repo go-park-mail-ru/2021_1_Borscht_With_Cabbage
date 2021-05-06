@@ -8,7 +8,7 @@ func (u *SuccessUserResponse) Sanitize() {
 	u.Email = sanitizer.Sanitize(u.Email)
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Phone = sanitizer.Sanitize(u.Phone)
-	u.MainAddress = sanitizer.Sanitize(u.MainAddress)
+	u.Address.Sanitize()
 }
 
 func (u *User) Sanitize() {
@@ -17,7 +17,7 @@ func (u *User) Sanitize() {
 	u.Email = sanitizer.Sanitize(u.Email)
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Phone = sanitizer.Sanitize(u.Phone)
-	u.MainAddress = sanitizer.Sanitize(u.MainAddress)
+	u.Address.Sanitize()
 }
 
 func (u *UserData) Sanitize() {
@@ -40,6 +40,7 @@ func (u *SuccessRestaurantResponse) Sanitize() {
 	u.AdminPhone = sanitizer.Sanitize(u.AdminPhone)
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Description = sanitizer.Sanitize(u.Description)
+	u.Address.Sanitize()
 }
 
 func (u *Dish) Sanitize() {
@@ -85,6 +86,7 @@ func (u *RestaurantWithDishes) Sanitize() {
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Description = sanitizer.Sanitize(u.Description)
 	u.Title = sanitizer.Sanitize(u.Title)
+	u.Address.Sanitize()
 }
 
 func (u *RestaurantInfo) Sanitize() {
@@ -94,6 +96,13 @@ func (u *RestaurantInfo) Sanitize() {
 	u.Avatar = sanitizer.Sanitize(u.Avatar)
 	u.Description = sanitizer.Sanitize(u.Description)
 	u.Title = sanitizer.Sanitize(u.Title)
+	u.Address.Sanitize()
+}
+
+func (u *RestaurantReview) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Review = sanitizer.Sanitize(u.Review)
+	u.UserName = sanitizer.Sanitize(u.UserName)
 }
 
 func (u *DishInOrder) Sanitize() {
@@ -128,5 +137,37 @@ func (u *BasketForUser) Sanitize() {
 
 	for i := range u.Foods {
 		u.Foods[i].Sanitize()
+	}
+}
+
+func (u *Key) Sanitize() {}
+
+func (u *Address) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Latitude = sanitizer.Sanitize(u.Latitude)
+	u.Longitude = sanitizer.Sanitize(u.Longitude)
+}
+
+func (u *BriefInfoChat) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Avatar = sanitizer.Sanitize(u.Avatar)
+	u.LastMessage = sanitizer.Sanitize(u.LastMessage)
+}
+
+func (u *InfoMessage) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Date = sanitizer.Sanitize(u.Date)
+	u.Text = sanitizer.Sanitize(u.Text)
+}
+
+func (u *InfoChat) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Avatar = sanitizer.Sanitize(u.Avatar)
+
+	for i := range u.Messages {
+		u.Messages[i].Sanitize()
 	}
 }

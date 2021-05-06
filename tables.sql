@@ -1,6 +1,7 @@
+--CREATE EXTENSION postgis;
+
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS sessions;
-DROP TABLE IF EXISTS addresses;
 DROP TABLE IF EXISTS restaurants CASCADE;
 DROP TABLE IF EXISTS sections CASCADE;
 DROP TABLE IF EXISTS dishes CASCADE;
@@ -9,6 +10,10 @@ DROP TABLE IF EXISTS baskets CASCADE;
 DROP TABLE IF EXISTS baskets_food;
 DROP TABLE IF EXISTS basket_users;
 DROP TABLE IF EXISTS basket_orders;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS categories_restaurants;
 
 CREATE TABLE users (
                        uid SERIAL PRIMARY KEY,
@@ -16,13 +21,8 @@ CREATE TABLE users (
                        phone TEXT,
                        email TEXT,
                        photo TEXT,
-    -- mainAddress text references addresses(address) on delete cascade ,
+                       mainAddress TEXT DEFAULT '' NOT NULL,
                        password BYTEA
-);
-
-CREATE TABLE addresses (
-                           address TEXT,
-                           "user" INTEGER REFERENCES users(uid) ON DELETE CASCADE
 );
 
 CREATE TABLE restaurants (
@@ -34,8 +34,19 @@ CREATE TABLE restaurants (
                              deliveryCost INTEGER DEFAULT 0,
                              avgCheck INTEGER DEFAULT 0,
                              description TEXT,
-                             rating FLOAT DEFAULT 0,
-                             avatar TEXT
+                             avatar TEXT,
+                             ratingsSum INTEGER DEFAULT 0,
+                             reviewsCount INTEGER DEFAULT 0
+);
+
+CREATE TABLE addresses (
+                           aid SERIAL PRIMARY KEY,
+                           name TEXT DEFAULT '' NOT NULL,
+                           rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
+                           uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
+                           latitude TEXT DEFAULT '' NOT NULL,
+                           longitude TEXT DEFAULT '' NOT NULL,
+                           radius INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE sections (
@@ -65,7 +76,9 @@ CREATE TABLE orders (
                         deliveryCost INTEGER,
                         sum INTEGER,
                         status TEXT,
-                        deliveryTime TIME
+                        deliveryTime TIMESTAMP,
+                        review TEXT,
+                        stars INTEGER
 );
 
 CREATE TABLE baskets (
@@ -87,18 +100,48 @@ CREATE TABLE basket_users (
 
 CREATE TABLE basket_orders(
                               basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
-                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE -- любо уже сформированному заказу
+                              orderID INTEGER REFERENCES orders(oid) ON DELETE CASCADE
 );
 
+CREATE TABLE categories(
+                            cid TEXT PRIMARY KEY,
+                            name TEXT
+);
 
--- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
--- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
--- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
+INSERT INTO categories (cid, name) VALUES
+    ('sushi', 'Суши'),
+    ('pizza', 'Пицца'),
+    ('burgers', 'Бургеры'),
+    ('meat', 'Мясо'),
+    ('fast_food', 'Фастфуд'),
+    ('zosh', 'Здоровая еда');
+
+CREATE TABLE categories_restaurants(
+                            categoryID TEXT REFERENCES categories(cid) ON DELETE CASCADE,
+                            restaurantID INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
+);
+
+CREATE TABLE messages(
+                            mid SERIAL PRIMARY KEY,
+                            senderId INTEGER NOT NULL,
+                            senderRole TEXT NOT NULL,
+                            recipientId INTEGER NOT NULL,
+                            recipientRole TEXT NOT NULL,
+                            content TEXT DEFAULT '' NOT NULL,
+                            sentWhen TEXT DEFAULT '' NOT NULL
+);
+
+GRANT ALL PRIVILEGES ON TABLE users TO delivery;
+GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
+GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
+GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
+GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
+GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
+GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
+GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
+GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
+GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
+GRANT ALL PRIVILEGES ON TABLE categories TO delivery;
+GRANT ALL PRIVILEGES ON TABLE categories_restaurants TO delivery;
+GRANT ALL PRIVILEGES ON TABLE messages TO delivery;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;

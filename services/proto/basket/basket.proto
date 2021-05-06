@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+// PATH="${PATH}:${HOME}/go/bin" protoc --go_out=plugins=grpc:. *.proto
+
+option go_package = "github.com/borscht/backend/internal/services/proto";
+
+package protoBasket;
+
+message Address {
+    string AddressName = 1;
+    string Longitude = 2;
+    string Latitude = 3;
+    int32 Radius = 4;
+}
+
+message DishFromBasket {
+    int32 ID = 1;
+    string Name = 2;
+    int32 Price = 3;
+    int32 Number = 4;
+    string Image = 5;
+}
+
+message BasketInfo {
+    int32 Bid = 1;
+    string RestaurantName = 2;
+    string RestaurantImage = 3;
+    int32 Rid = 4;
+    int32 DeliveryCost = 5;
+    int32 Summary = 6;
+    repeated DishFromBasket Dishes = 7;
+    Address Address = 8;
+    int32 Uid = 9;
+}
+
+message UserRestaurantBasket {
+    int32 UserID = 1;
+    int32 RestaurantID = 2;
+}
+
+message UID {
+    int32 uid = 1;
+}
+
+message DishToBasket {
+    int32 Uid = 1;
+    int32 Did = 2;
+    bool IsPlus = 3;
+    bool SameBasket = 4;
+}
+
+message Nothing {
+}
+
+service Basket {
+    rpc AddToBasket(DishToBasket) returns (Nothing);
+    rpc DeleteFromBasket(DishToBasket) returns (Nothing);
+    rpc GetBasket(UID) returns (BasketInfo);
+    rpc AddBasket(BasketInfo) returns (BasketInfo);
+}

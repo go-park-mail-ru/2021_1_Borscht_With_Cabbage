@@ -11,7 +11,16 @@ import (
 )
 
 func TestNewSectionRepo(t *testing.T) {
-
+	db, _, err := sqlmock.New()
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	defer db.Close()
+	sectionRepo := NewSectionRepo(db)
+	if sectionRepo != nil {
+		return
+	}
 }
 
 func TestSectionRepo_AddSection(t *testing.T) {

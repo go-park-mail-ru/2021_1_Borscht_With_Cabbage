@@ -2,28 +2,27 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/borscht/backend/config"
-	"github.com/borscht/backend/internal/models"
-	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-	sessionMock "github.com/borscht/backend/internal/session/mocks"
-	userMock "github.com/borscht/backend/internal/user/mocks"
-	"github.com/borscht/backend/utils/errors"
-	"github.com/golang/mock/gomock"
-	"github.com/labstack/echo/v4"
+	authServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/models"
+	userMock "github.com/borscht/backend/internal/user/mocks"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo/v4"
 )
 
 func TestHandler_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	input := models.User{
 		Email:    "daria@mail.ru",
@@ -44,6 +43,8 @@ func TestHandler_CreateUser(t *testing.T) {
 		User: output,
 		Role: config.RoleUser,
 	}
+	address := models.Address{}
+	response.Address = address
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
@@ -57,8 +58,9 @@ func TestHandler_CreateUser(t *testing.T) {
 	c := e.NewContext(req, rec)
 	ctx := models.GetContext(c)
 
-	UserUsecaseMock.EXPECT().Create(ctx, input).Return(&response, nil)
-	SessionUseCaseMock.EXPECT().Create(ctx, sessionInfo)
+	AuthServiceMock.EXPECT().Create(ctx, input).Return(&response, nil)
+	UserUsecaseMock.EXPECT().AddAddress(ctx, output.Uid, address).Return(nil)
+	AuthServiceMock.EXPECT().CreateSession(ctx, sessionInfo).Return("session", nil)
 
 	err := userHandler.Create(c)
 	if err != nil {
@@ -71,9 +73,8 @@ func TestHandler_CreateUser_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"emailaria@mail.ru","number":"89161166000","name":"Daria","password":"111111"}`
 
@@ -94,8 +95,8 @@ func TestSignup_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{email:daria@mail.ru}`
 
@@ -104,7 +105,6 @@ func TestSignup_BindError(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
 
 	err := userHandler.Create(c)
 	if err != nil {
@@ -129,9 +129,8 @@ func TestHandler_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	input := models.UserAuth{
 		Login:    "daria@mail.ru",
@@ -162,8 +161,8 @@ func TestHandler_Login(t *testing.T) {
 	c := e.NewContext(req, rec)
 	ctx := models.GetContext(c)
 
-	UserUsecaseMock.EXPECT().CheckUserExists(ctx, input).Return(&response, nil)
-	SessionUseCaseMock.EXPECT().Create(ctx, sessionInfo)
+	AuthServiceMock.EXPECT().CheckUserExists(ctx, input).Return(&response, nil)
+	AuthServiceMock.EXPECT().CreateSession(ctx, sessionInfo)
 
 	err := userHandler.Login(c)
 
@@ -177,9 +176,8 @@ func TestHandler_Login_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"logindaria@mail.ru","password":"111111"}`
 
@@ -201,9 +199,8 @@ func TestHandler_LoginValidationFail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"login":"dariamail.ru","password":"111111"}`
 
@@ -236,9 +233,8 @@ func TestHandler_GetUserData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/user", nil)
@@ -268,9 +264,8 @@ func TestHandler_UpdateData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	input := models.UserData{
 		Email:       "daria@mail.ru",
@@ -320,9 +315,8 @@ func TestHandler_UpdateData_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"emaildaria@mail.ru","number":"89161166000","name":"Daria","password":"111111","password_current":"111111"}`
 
@@ -359,9 +353,8 @@ func TestHandler_UploadAvatar_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -388,9 +381,8 @@ func TestHandler_CheckAuth(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	output := models.User{
 		Email:    "daria@mail.ru",
@@ -422,8 +414,8 @@ func TestHandler_CheckAuth(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	ctx := models.GetContext(c)
-	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
-	UserUsecaseMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, nil)
+	AuthServiceMock.EXPECT().CheckSession(ctx, "session1").Return(sessionInfo, true, nil)
+	AuthServiceMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, nil)
 
 	err := userHandler.CheckAuth(c)
 	if err != nil {
@@ -436,9 +428,8 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	output := models.User{
 		Email:    "daria@mail.ru",
@@ -470,8 +461,8 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	ctx := models.GetContext(c)
-	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
-	UserUsecaseMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, errors.NewCustomError(400, "err"))
+	AuthServiceMock.EXPECT().CheckSession(ctx, "session1").Return(sessionInfo, true, nil)
+	AuthServiceMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, errors.BadRequestError("err"))
 
 	err := userHandler.CheckAuth(c)
 	b := errors.SendError{}
@@ -492,9 +483,8 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	responseRest := models.SuccessRestaurantResponse{
 		Role: config.RoleAdmin,
@@ -518,8 +508,8 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	ctx := models.GetContext(c)
-	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
-	AdminUsecaseMock.EXPECT().GetByRid(ctx, sessionInfo.Id).Return(&responseRest, errors.NewCustomError(400, "err"))
+	AuthServiceMock.EXPECT().CheckSession(ctx, "session1").Return(sessionInfo, true, nil)
+	AuthServiceMock.EXPECT().GetByRid(ctx, sessionInfo.Id).Return(&responseRest, errors.BadRequestError("err"))
 
 	err := userHandler.CheckAuth(c)
 	b := errors.SendError{}
@@ -540,9 +530,8 @@ func TestHandler_CheckAuth_WrongRole(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	sessionInfo := models.SessionInfo{
 		Id:   1,
@@ -562,7 +551,7 @@ func TestHandler_CheckAuth_WrongRole(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	ctx := models.GetContext(c)
-	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, true, nil)
+	AuthServiceMock.EXPECT().CheckSession(ctx, "session1").Return(sessionInfo, true, nil)
 
 	err := userHandler.CheckAuth(c)
 	b := errors.SendError{}
@@ -583,9 +572,8 @@ func TestHandler_CheckAuth_CookieNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -612,9 +600,8 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	output := models.User{
 		Email:    "daria@mail.ru",
@@ -643,7 +630,7 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	ctx := models.GetContext(c)
-	SessionUseCaseMock.EXPECT().Check(ctx, "session1").Return(sessionInfo, false, nil)
+	AuthServiceMock.EXPECT().CheckSession(ctx, "session1").Return(sessionInfo, false, nil)
 
 	err := userHandler.CheckAuth(c)
 	b := errors.SendError{}
@@ -664,9 +651,8 @@ func TestHandler_Logout(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -681,7 +667,7 @@ func TestHandler_Logout(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	ctx := models.GetContext(c)
-	SessionUseCaseMock.EXPECT().Delete(ctx, "session1").Return(nil)
+	AuthServiceMock.EXPECT().DeleteSession(ctx, "session1").Return(nil)
 
 	err := userHandler.Logout(c)
 	if err != nil {
@@ -694,9 +680,8 @@ func TestHandler_Logout_CookieNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
-	AdminUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
-	SessionUseCaseMock := sessionMock.NewMockSessionUsecase(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AdminUsecaseMock, SessionUseCaseMock)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -718,6 +703,114 @@ func TestHandler_Logout_CookieNotFound(t *testing.T) {
 		return
 	}
 	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_UpdateMainAddress(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+
+	inputJSON := `{"name":"address1","longitude":"1234","latitude":"4321","radius":1000}`
+	address := models.Address{
+		Name:      "address1",
+		Longitude: "1234",
+		Latitude:  "4321",
+		Radius:    1000,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/address", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	sessionCookie := http.Cookie{
+		Expires: time.Now().Add(24 * time.Hour),
+		Name:    config.SessionCookie,
+		Value:   "session1",
+	}
+	req.AddCookie(&sessionCookie)
+	c := e.NewContext(req, rec)
+
+	ctx := models.GetContext(c)
+	UserUsecaseMock.EXPECT().UpdateMainAddress(ctx, address).Return(nil)
+
+	err := userHandler.UpdateMainAddress(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_UpdateMainAddress_BindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+
+	inputJSON := `{"nameaddress1","longitude":"1234","latitude":"4321","radius":1000}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPut, "/address", strings.NewReader(inputJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	sessionCookie := http.Cookie{
+		Expires: time.Now().Add(24 * time.Hour),
+		Name:    config.SessionCookie,
+		Value:   "session1",
+	}
+	req.AddCookie(&sessionCookie)
+	c := e.NewContext(req, rec)
+
+	err := userHandler.UpdateMainAddress(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestHandler_GetMainAddress(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+
+	address := models.Address{
+		Name:      "address1",
+		Longitude: "1234",
+		Latitude:  "4321",
+		Radius:    1000,
+	}
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/address", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	sessionCookie := http.Cookie{
+		Expires: time.Now().Add(24 * time.Hour),
+		Name:    config.SessionCookie,
+		Value:   "session1",
+	}
+	req.AddCookie(&sessionCookie)
+	c := e.NewContext(req, rec)
+
+	ctx := models.GetContext(c)
+	UserUsecaseMock.EXPECT().GetMainAddress(ctx).Return(&address, nil)
+
+	err := userHandler.GetMainAddress(c)
+	if err != nil {
 		t.Errorf("incorrect result")
 		return
 	}

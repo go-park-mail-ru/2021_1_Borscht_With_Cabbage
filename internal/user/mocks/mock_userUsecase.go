@@ -35,49 +35,33 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 	return m.recorder
 }
 
-// CheckUserExists mocks base method
-func (m *MockUserUsecase) CheckUserExists(arg0 context.Context, arg1 models.UserAuth) (*models.SuccessUserResponse, error) {
+// AddAddress mocks base method
+func (m *MockUserUsecase) AddAddress(arg0 context.Context, arg1 int, arg2 models.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckUserExists", arg0, arg1)
-	ret0, _ := ret[0].(*models.SuccessUserResponse)
+	ret := m.ctrl.Call(m, "AddAddress", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddAddress indicates an expected call of AddAddress
+func (mr *MockUserUsecaseMockRecorder) AddAddress(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockUserUsecase)(nil).AddAddress), arg0, arg1, arg2)
+}
+
+// GetMainAddress mocks base method
+func (m *MockUserUsecase) GetMainAddress(arg0 context.Context) (*models.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMainAddress", arg0)
+	ret0, _ := ret[0].(*models.Address)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CheckUserExists indicates an expected call of CheckUserExists
-func (mr *MockUserUsecaseMockRecorder) CheckUserExists(arg0, arg1 interface{}) *gomock.Call {
+// GetMainAddress indicates an expected call of GetMainAddress
+func (mr *MockUserUsecaseMockRecorder) GetMainAddress(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUserExists", reflect.TypeOf((*MockUserUsecase)(nil).CheckUserExists), arg0, arg1)
-}
-
-// Create mocks base method
-func (m *MockUserUsecase) Create(arg0 context.Context, arg1 models.User) (*models.SuccessUserResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(*models.SuccessUserResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Create indicates an expected call of Create
-func (mr *MockUserUsecaseMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserUsecase)(nil).Create), arg0, arg1)
-}
-
-// GetByUid mocks base method
-func (m *MockUserUsecase) GetByUid(arg0 context.Context, arg1 int) (*models.SuccessUserResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUid", arg0, arg1)
-	ret0, _ := ret[0].(*models.SuccessUserResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByUid indicates an expected call of GetByUid
-func (mr *MockUserUsecaseMockRecorder) GetByUid(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUid", reflect.TypeOf((*MockUserUsecase)(nil).GetByUid), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMainAddress", reflect.TypeOf((*MockUserUsecase)(nil).GetMainAddress), arg0)
 }
 
 // GetUserData mocks base method
@@ -108,6 +92,20 @@ func (m *MockUserUsecase) UpdateData(arg0 context.Context, arg1 models.UserData)
 func (mr *MockUserUsecaseMockRecorder) UpdateData(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateData", reflect.TypeOf((*MockUserUsecase)(nil).UpdateData), arg0, arg1)
+}
+
+// UpdateMainAddress mocks base method
+func (m *MockUserUsecase) UpdateMainAddress(arg0 context.Context, arg1 models.Address) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMainAddress", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMainAddress indicates an expected call of UpdateMainAddress
+func (mr *MockUserUsecaseMockRecorder) UpdateMainAddress(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMainAddress", reflect.TypeOf((*MockUserUsecase)(nil).UpdateMainAddress), arg0, arg1)
 }
 
 // UploadAvatar mocks base method

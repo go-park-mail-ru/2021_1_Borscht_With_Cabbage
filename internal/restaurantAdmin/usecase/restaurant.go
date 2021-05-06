@@ -12,7 +12,6 @@ import (
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
-	"github.com/borscht/backend/utils/secure"
 	"github.com/borscht/backend/utils/uniq"
 )
 
@@ -34,6 +33,55 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	}
 }
 
+func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.Categories) error {
+	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
+	if !ok {
+		failError := errors.FailServerError("failed to convert to models.Restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+	err := a.restaurantRepository.DeleteAllCategories(ctx, restaurantAdmin.ID)
+	if err != nil {
+		return err
+	}
+
+	return a.restaurantRepository.AddCategories(ctx, restaurantAdmin.ID, categories.CategoriesID)
+}
+
+func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.RestaurantUpdateData,
+	oldRestaurant *models.RestaurantInfo) {
+
+	newRestaurant.ID = oldRestaurant.ID
+	if newRestaurant.Title == "" {
+		newRestaurant.Title = oldRestaurant.Title
+	}
+	if newRestaurant.AdminEmail == "" {
+		newRestaurant.AdminEmail = oldRestaurant.AdminEmail
+	}
+	if newRestaurant.AdminPhone == "" {
+		newRestaurant.AdminPhone = oldRestaurant.AdminPhone
+	}
+	if newRestaurant.Address.Name == "" {
+		newRestaurant.Address.Name = oldRestaurant.Address.Name
+		newRestaurant.Address.Latitude = oldRestaurant.Address.Latitude
+		newRestaurant.Address.Longitude = oldRestaurant.Address.Longitude
+		newRestaurant.Address.Radius = oldRestaurant.Address.Radius
+	}
+	if newRestaurant.DeliveryCost == 0 {
+		newRestaurant.DeliveryCost = oldRestaurant.DeliveryCost
+	}
+	if newRestaurant.Description == "" {
+		newRestaurant.Description = oldRestaurant.Description
+	}
+	if newRestaurant.Address.Radius == 0 {
+		newRestaurant.Address.Radius = oldRestaurant.Address.Radius
+	}
+}
+
+func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address models.Address) error {
+	return a.restaurantRepository.AddAddress(ctx, rid, address)
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 
@@ -44,8 +92,13 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, failError
 	}
 
-	restaurant.ID = restaurantAdmin.ID
+	a.correcRestaurantData(&restaurant, &restaurantAdmin)
 	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.restaurantRepository.UpdateAddress(ctx, restaurant.ID, restaurant.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -61,61 +114,12 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		AvgCheck:     restaurantAdmin.AvgCheck,
 		DeliveryCost: restaurant.DeliveryCost,
 		Avatar:       restaurantAdmin.Avatar,
+		Address:      restaurant.Address,
 	}
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: *restaurantResponse,
-		Role:           config.RoleAdmin,
-	}, nil
-}
-
-func (a restaurantUsecase) CreateRestaurant(ctx context.Context, restaurant models.RestaurantInfo) (*models.SuccessRestaurantResponse, error) {
-	restaurant.Avatar = config.DefaultRestaurantImage
-
-	restaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), restaurant.AdminPassword)
-
-	id, err := a.restaurantRepository.CreateRestaurant(ctx, restaurant)
-	if err != nil {
-		return nil, err
-	}
-	restaurant.ID = id
-	restaurant.AdminPassword = ""
-	restaurant.AdminHashPassword = nil
-
-	return &models.SuccessRestaurantResponse{
-		RestaurantInfo: restaurant,
-		Role:           config.RoleAdmin,
-	}, nil
-}
-
-func (a restaurantUsecase) CheckRestaurantExists(ctx context.Context, restaurantAuth models.RestaurantAuth) (*models.SuccessRestaurantResponse, error) {
-	restaurant, err := a.restaurantRepository.GetByLogin(ctx, restaurantAuth.Login)
-	if err != nil {
-		return nil, err
-	}
-
-	if !secure.CheckPassword(ctx, restaurant.AdminHashPassword, restaurantAuth.Password) {
-		err = errors.AuthorizationError("bad password")
-		logger.UsecaseLevel().ErrorLog(ctx, err)
-		return nil, err
-	}
-
-	restaurant.AdminHashPassword = nil
-	return &models.SuccessRestaurantResponse{
-		RestaurantInfo: *restaurant,
-		Role:           config.RoleAdmin,
-	}, nil
-}
-
-func (a restaurantUsecase) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaurantResponse, error) {
-	response, err := a.restaurantRepository.GetByRid(ctx, rid)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.SuccessRestaurantResponse{
-		RestaurantInfo: *response,
 		Role:           config.RoleAdmin,
 	}, nil
 }

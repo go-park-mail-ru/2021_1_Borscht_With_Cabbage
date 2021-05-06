@@ -5,7 +5,15 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/borscht/backend/internal/services/auth"
+	"github.com/borscht/backend/internal/services/basket"
+	protoAuth "github.com/borscht/backend/services/proto/auth"
+	protoBasket "github.com/borscht/backend/services/proto/basket"
+
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/internal/chat"
+	chatDelivery "github.com/borscht/backend/internal/chat/delivery/http"
+	chatUsecase "github.com/borscht/backend/internal/chat/usecase"
 	imageRepo "github.com/borscht/backend/internal/image/repository"
 	"github.com/borscht/backend/internal/order"
 	"github.com/borscht/backend/internal/order/delivery/http"
@@ -19,8 +27,6 @@ import (
 	restaurantAdminDelivery "github.com/borscht/backend/internal/restaurantAdmin/delivery/http"
 	restaurantAdminRepo "github.com/borscht/backend/internal/restaurantAdmin/repository"
 	restaurantAdminUsecase "github.com/borscht/backend/internal/restaurantAdmin/usecase"
-	sessionRepo "github.com/borscht/backend/internal/session/repository"
-	sessionUcase "github.com/borscht/backend/internal/session/usecase"
 	"github.com/borscht/backend/internal/user"
 	userDelivery "github.com/borscht/backend/internal/user/delivery/http"
 	userRepo "github.com/borscht/backend/internal/user/repository"
@@ -30,8 +36,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
 
-	"github.com/gomodule/redigo/redis"
+	serviceChat "github.com/borscht/backend/internal/services/chat"
+	protoChat "github.com/borscht/backend/services/proto/chat"
 )
 
 type initRoute struct {
@@ -42,9 +50,11 @@ type initRoute struct {
 	dishAdmin       restaurantAdmin.AdminDishHandler
 	sectionAdmin    restaurantAdmin.AdminSectionHandler
 	order           order.OrderHandler
+	chat            chat.ChatHandler
 	authMiddleware  custMiddleware.AuthMiddleware
 	userMiddleware  custMiddleware.UserAuthMiddleware
 	adminMiddleware custMiddleware.AdminAuthMiddleware
+	wsMiddleware    custMiddleware.WsAuthMiddleware
 }
 
 func route(data initRoute) {
@@ -53,9 +63,18 @@ func route(data initRoute) {
 	userGroup.GET("", data.user.GetUserData)
 	userGroup.PUT("", data.user.UpdateData)
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
+	userGroup.POST("/address", data.user.UpdateMainAddress)
+	userGroup.GET("/address", data.user.GetMainAddress)
 	auth.GET("/auth", data.user.CheckAuth)
+	auth.GET("/connect/ws", data.chat.GetKey)
+	auth.GET("/chats", data.chat.GetAllChats)
+	auth.GET("/chat/:id", data.chat.GetAllMessages)
+	data.e.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.POST("/categories", data.restaurantAdmin.AddCategories)
+	restaurantGroup.GET("/orders", data.order.GetRestaurantOrders)
+	restaurantGroup.PUT("/order/status", data.order.SetNewStatus)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)
 	restaurantGroup.DELETE("/dish", data.dishAdmin.DeleteDish)
 	restaurantGroup.PUT("/dish", data.dishAdmin.UpdateDishData)
@@ -73,12 +92,15 @@ func route(data initRoute) {
 	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
 	userGroup.GET("/orders", data.order.GetUserOrders)
 	userGroup.POST("/order", data.order.Create)
+	userGroup.POST("/order/review", data.order.CreateReview)
 	userGroup.PUT("/basket", data.order.AddToBasket)
 	userGroup.GET("/basket", data.order.GetBasket)
+	userGroup.POST("/basket", data.order.AddBasket)
 	data.e.GET("/logout", data.user.Logout)
 	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
 	data.e.GET("/", data.restaurant.GetVendor)
 	data.e.GET("/restaurants", data.restaurant.GetVendor)
+	data.e.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
 }
 
 func initServer(e *echo.Echo) {
@@ -100,6 +122,41 @@ func initServer(e *echo.Echo) {
 func main() {
 	e := echo.New()
 	initServer(e)
+	grpcConnAuth, errr := grpc.Dial(
+		config.AuthServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnAuth.Close()
+
+	authClient := protoAuth.NewAuthClient(grpcConnAuth)
+	authService := auth.NewService(authClient)
+
+	grpcConnBasket, errr := grpc.Dial(
+		config.BasketServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnBasket.Close()
+
+	basketClient := protoBasket.NewBasketClient(grpcConnBasket)
+	basketService := basket.NewService(basketClient)
+
+	grpcConnChat, errr := grpc.Dial(
+		config.ChatServiceAddress,
+		grpc.WithInsecure(),
+	)
+	if errr != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	defer grpcConnChat.Close()
+
+	chatClient := protoChat.NewChatClient(grpcConnChat)
+	chatService := serviceChat.NewService(chatClient)
 
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
@@ -116,15 +173,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// подключение redis
-	redisConn, err := redis.Dial("tcp", config.RedisHost)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer redisConn.Close()
-
 	userRepo := userRepo.NewUserRepo(db)
-	sessionRepo := sessionRepo.NewSessionRepo(redisConn)
 	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
 	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
@@ -133,23 +182,25 @@ func main() {
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	orderRepo := repository.NewOrderRepo(db)
-	sessionUcase := sessionUcase.NewSessionUsecase(sessionRepo)
 	adminRestaurantUsecase := restaurantAdminUsecase.NewRestaurantUsecase(adminRestaurantRepo, imageRepo)
 	adminDishUsecase := restaurantAdminUsecase.NewDishUsecase(adminDishRepo, adminSectionRepo, imageRepo)
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
-	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo)
-	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
+	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, sessionUcase)
-	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, sessionUcase)
+	userHandler := userDelivery.NewUserHandler(userUcase, authService)
+	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
-	orderHandler := http.NewOrderHandler(orderUsecase)
+	orderHandler := http.NewOrderHandler(orderUsecase, basketService)
+	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
-	initUserMiddleware := custMiddleware.InitUserMiddleware(userUcase, sessionUcase)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(adminRestaurantUsecase, sessionUcase)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(userUcase, adminRestaurantUsecase, sessionUcase)
+	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService)
+	initWsMiddleware := custMiddleware.InitWsMiddleware(authService)
 
 	route(initRoute{
 		e:               e,
@@ -159,9 +210,11 @@ func main() {
 		sectionAdmin:    adminSectionHandler,
 		restaurant:      restaurantHandler,
 		order:           orderHandler,
+		chat:            chatHandler,
 		userMiddleware:  *initUserMiddleware,
 		adminMiddleware: *initAdminMiddleware,
 		authMiddleware:  *initAuthMiddleware,
+		wsMiddleware:    *initWsMiddleware,
 	})
 
 	e.Logger.Fatal(e.Start(":5000"))

@@ -3,15 +3,13 @@ package middleware
 import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
-	sessionModel "github.com/borscht/backend/internal/session"
-	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
 type UserAuthMiddleware struct {
-	SessionUcase sessionModel.SessionUsecase
-	UserUcase    userModel.UserUsecase
+	AuthService auth.ServiceAuth
 }
 
 func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -24,7 +22,7 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 
 		sessionData := new(models.SessionInfo)
 		var exists bool
-		*sessionData, exists, err = m.SessionUcase.Check(ctx, session.Value)
+		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -36,10 +34,11 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 
-		user, err := m.UserUcase.GetByUid(ctx, sessionData.Id)
+		user, err := m.AuthService.GetByUid(ctx, sessionData.Id)
 		if err != nil {
 			return models.SendRedirectLogin(c)
 		}
+
 		user.Uid = sessionData.Id
 		c.Set("User", user.User)
 		logger.MiddleLevel().DataLog(ctx, "user auth", c.Get("User"))
@@ -48,9 +47,8 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitUserMiddleware(userUcase userModel.UserUsecase, sessionUcase sessionModel.SessionUsecase) *UserAuthMiddleware {
+func InitUserMiddleware(authService auth.ServiceAuth) *UserAuthMiddleware {
 	return &UserAuthMiddleware{
-		SessionUcase: sessionUcase,
-		UserUcase:    userUcase,
+		AuthService: authService,
 	}
 }

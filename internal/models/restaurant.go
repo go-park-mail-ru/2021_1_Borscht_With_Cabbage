@@ -16,16 +16,25 @@ type SuccessRestaurantResponse struct {
 	Role string `json:"role"`
 }
 
+type RestaurantReview struct {
+	Review   string `json:"review"`
+	Stars    int    `json:"stars"`
+	Time     string `json:"deliveryTime"`
+	UserName string `json:"user"`
+}
+
 type RestaurantInfo struct {
-	ID                int    `json:"id"`
-	AdminEmail        string `json:"email"`
-	AdminPhone        string `json:"number"`
-	AdminPassword     string `json:"password"`
+	Address           Address `json:"address"`
+	ID                int     `json:"id"`
+	AdminEmail        string  `json:"email"`
+	AdminPhone        string  `json:"number"`
+	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
 	AvgCheck          int     `json:"cost"`
 	Title             string  `json:"title"`
 	Description       string  `json:"description"`
 	DeliveryCost      int     `json:"deliveryCost"`
+	DeliveryTime      int     `json:"deliveryTime"`
 	Rating            float64 `json:"rating"`
 	Avatar            string  `json:"avatar"`
 }
@@ -35,10 +44,11 @@ type RestaurantImageResponse struct {
 }
 
 type RestaurantUpdateData struct {
-	ID                int    `json:"id"`
-	AdminEmail        string `json:"email"`
-	AdminPhone        string `json:"number"`
-	AdminPassword     string `json:"password"`
+	Address           Address `json:"address"`
+	ID                int     `json:"id"`
+	AdminEmail        string  `json:"email"`
+	AdminPhone        string  `json:"number"`
+	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
 	Title             string `json:"title"`
 	Description       string `json:"description"`
@@ -54,4 +64,20 @@ type CheckRestaurantExists struct {
 
 type DeleteSuccess struct {
 	ID int `json:"id"`
+}
+
+type RestaurantRequest struct {
+	Limit         int      `json:"limit"`
+	Offset        int      `json:"offset"`
+	Categories    []string `json:"categories"`
+	Time          int      `json:"time"`
+	Receipt       int      `json:"receipt"`
+	Rating        float64  `json:"rating"`
+	LatitudeUser  string   `json:"latitude"`
+	LongitudeUser string   `json:"longitude"`
+	Address       bool     `json:"address"`
+}
+
+type Categories struct {
+	CategoriesID []string `json:"categories"`
 }

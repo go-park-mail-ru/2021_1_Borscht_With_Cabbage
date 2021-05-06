@@ -2,9 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	restaurantMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
-	sessionMock "github.com/borscht/backend/internal/session/mocks"
-	userMock "github.com/borscht/backend/internal/user/mocks"
+	authServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -14,11 +12,9 @@ import (
 func TestInitAuthMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	userUcase := userMock.NewMockUserUsecase(ctrl)
-	restaurantUcase := restaurantMock.NewMockAdminRestaurantUsecase(ctrl)
-	sessionUsecase := sessionMock.NewMockSessionUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
 
-	authMiddleware := InitAuthMiddleware(userUcase, restaurantUcase, sessionUsecase)
+	authMiddleware := InitAuthMiddleware(AuthServiceMock)
 	if authMiddleware == nil {
 		t.Errorf("incorrect result")
 		return
@@ -67,10 +63,9 @@ func TestAuthMiddleware_Auth(t *testing.T) {
 func TestInitUserMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	userUcase := userMock.NewMockUserUsecase(ctrl)
-	sessionUsecase := sessionMock.NewMockSessionUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
 
-	userMiddleware := InitUserMiddleware(userUcase, sessionUsecase)
+	userMiddleware := InitUserMiddleware(AuthServiceMock)
 	if userMiddleware == nil {
 		t.Errorf("incorrect result")
 		return
@@ -84,10 +79,9 @@ func TestUserAuthMiddleware_Auth(t *testing.T) {
 func TestInitAdminMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	restaurantUcase := restaurantMock.NewMockAdminRestaurantUsecase(ctrl)
-	sessionUsecase := sessionMock.NewMockSessionUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
 
-	adminMiddleware := InitAdminMiddleware(restaurantUcase, sessionUsecase)
+	adminMiddleware := InitAdminMiddleware(AuthServiceMock)
 	if adminMiddleware == nil {
 		t.Errorf("incorrect result")
 		return
