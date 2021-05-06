@@ -1,5 +1,22 @@
 package models
 
+type ChatUser struct {
+	Id   int
+	Role string
+}
+
+type ChatMessage struct {
+	Mid  int
+	Date string
+	Text string
+}
+
+type InfoChatMessage struct {
+	Message   ChatMessage
+	Sender    ChatUser
+	Recipient ChatUser
+}
+
 type BriefInfoChat struct {
 	InfoOpponent
 	LastMessage string `json:"last message"`

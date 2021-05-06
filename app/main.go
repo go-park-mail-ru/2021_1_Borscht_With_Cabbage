@@ -189,7 +189,7 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
-	chatUsecase := chatUsecase.NewChatUsecase(chatRepo, chatService)
+	chatUsecase := chatUsecase.NewChatUsecase(chatRepo, chatService, authService)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)

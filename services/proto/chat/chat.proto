@@ -7,39 +7,34 @@ option go_package = "github.com/borscht/backend/internal/services/proto";
 
 package protoChat;
 
-message Id {
-    int32 Uid = 1;
-    int32 Rid = 2;
+message InfoUser {
+    int32 id = 1;
+    string Role = 2;
+}
+
+message Participants {
+	InfoUser Sender = 1;
+	InfoUser Recipient = 2;
+}
+
+message Speakers {
+	InfoUser speaker1 = 1;
+	InfoUser speaker2 = 2;
 }
 
 message InfoMessage {
 	int32 Id = 1;
 	string Date = 2;
 	string Text = 3;
-	bool FromMe = 4;
-}
-
-message InfoOpponent {
-	int32 Uid = 1;
-	string Name = 2;
-	string Avatar = 3;
-}
-
-message BriefInfoChat {
-	InfoOpponent Info = 1;
-	string LastMessage = 2;
+	Participants Participants = 4;
 }
 
 message MoreInfoMessage {
     repeated InfoMessage More = 1;
 }
 
-message MoreBriefInfoChat {
-    repeated BriefInfoChat More = 1;
-}
-
 service Chat {
-    rpc GetAllChats(Id) returns (MoreBriefInfoChat);
-	rpc GetAllMessagesUser(Id) returns (MoreInfoMessage);
-	rpc GetAllMessagesRestaurant(Id) returns (MoreInfoMessage);
+    rpc GetAllChats(InfoUser) returns (MoreInfoMessage);
+	rpc GetAllMessages(Speakers) returns (MoreInfoMessage);
+	rpc SendMessage(InfoMessage) returns (InfoMessage);
 }

@@ -4,18 +4,16 @@ import (
 	"context"
 	"database/sql"
 
-	protoChat "github.com/borscht/backend/services/proto/chat"
+	"github.com/borscht/backend/services/chat/models"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 )
 
 type ChatRepo interface {
-	// SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
-	// SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
-	GetAllChatsUser(ctx context.Context, uid int) ([]*protoChat.BriefInfoChat, error)
-	GetAllChatsRestaurant(ctx context.Context, rid int) ([]*protoChat.BriefInfoChat, error)
-	GetAllMessagesFromUser(ctx context.Context, uid, rid int) ([]*protoChat.InfoMessage, error)
-	GetAllMessagesFromRestaurant(ctx context.Context, rid, uid int) ([]*protoChat.InfoMessage, error)
+	GetAllChatsFromUser(ctx context.Context, user models.User) ([]models.ChatInfo, error)
+	GetAllChatsToUser(ctx context.Context, user models.User) ([]models.ChatInfo, error)
+	GetAllMessages(ctx context.Context, user1, user2 models.User) ([]models.Chat, error)
+	SaveMessage(ctx context.Context, messageInfo models.Chat) (int32, error)
 }
 
 type chatRepo struct {
@@ -28,86 +26,44 @@ func NewChatRepository(db *sql.DB) ChatRepo {
 	}
 }
 
-// func (c chatRepository) SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (
-// 	mid int, err error) {
+func (ch chatRepo) GetAllChatsFromUser(ctx context.Context, user models.User) (
+	[]models.ChatInfo, error) {
 
-// 	query :=
-// 		`
-// 		INSERT INTO messages (sentFromUser, sentToRestaurant, content, sentWhen)
-// 		VALUES ($1, $2, $3, $4)
-// 		RETURNING mid
-// 	`
-
-// 	err = c.DB.QueryRow(query, info.SentFromId, info.SentToId,
-// 		info.Content, info.Date).Scan(&mid)
-
-// 	if err != nil {
-// 		insertError := errors.FailServerError(err.Error())
-// 		logger.RepoLevel().ErrorLog(ctx, insertError)
-// 		return 0, insertError
-// 	}
-
-// 	return mid, nil
-// }
-
-// func (c chatRepository) SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (
-// 	mid int, err error) {
-
-// 	query :=
-// 		`
-// 		INSERT INTO messages (sentFromRestaurant, sentToUser, content, sentWhen)
-// 		VALUES ($1, $2, $3, $4)
-// 		RETURNING mid
-// 	`
-
-// 	err = c.DB.QueryRow(query, info.SentFromId, info.SentToId,
-// 		info.Content, info.Date).Scan(&mid)
-
-// 	if err != nil {
-// 		insertError := errors.FailServerError(err.Error())
-// 		logger.RepoLevel().ErrorLog(ctx, insertError)
-// 		return 0, insertError
-// 	}
-
-// 	return mid, nil
-// }
-
-func (ch chatRepo) GetAllChatsUser(ctx context.Context, uid int) ([]*protoChat.BriefInfoChat, error) {
 	query :=
 		`
-		SELECT r.rid, r.name, r.avatar, m1.content
-		FROM messages m1 LEFT 
-		JOIN messages m2
-		ON (m1.sentToRestaurant = m2.sentToRestaurant AND m1.mid < m2.mid) 
-		JOIN restaurants r 
-		ON (m1.sentToRestaurant = r.rid)
-		WHERE m2.mid IS NULL AND m1.sentFromUser = $1 order by m1.mid DESC;
+		SELECT m1.mid, m1.recipientId, m1.recipientRole, m1.content, m1.sentWhen
+		FROM messages m1
+		LEFT JOIN messages m2
+		ON (m1.recipientId = m2.recipientId AND m1.recipientRole = m2.recipientRole AND m1.mid < m2.mid)
+		WHERE m2.mid IS NULL AND m1.senderId = $1 AND m1.senderRole = $2
+		ORDER BY m1.mid DESC;
 	`
 
-	return ch.getAllChats(ctx, query, uid)
+	return ch.getAllChats(ctx, query, user)
 }
 
-func (ch chatRepo) GetAllChatsRestaurant(ctx context.Context, rid int) ([]*protoChat.BriefInfoChat, error) {
+func (ch chatRepo) GetAllChatsToUser(ctx context.Context, user models.User) (
+	[]models.ChatInfo, error) {
+
 	query :=
 		`
-		SELECT u.uid, u.name, u.photo, m1.content
-		FROM messages m1 LEFT 
-		JOIN messages m2
-		ON (m1.sentToUser = m2.sentToUser AND m1.mid < m2.mid) 
-		JOIN users u 
-		ON (m1.sentToUser = u.uid)
-		WHERE m2.mid IS NULL AND m1.sentFromRestaurant = $1 order by m1.mid DESC;
+		SELECT m1.mid, m1.senderId, m1.senderRole, m1.content, m1.sentWhen
+		FROM messages m1
+		LEFT JOIN messages m2
+		ON (m1.senderId = m2.senderId AND m1.senderRole = m2.senderRole AND m1.mid < m2.mid)
+		WHERE m2.mid IS NULL AND m1.recipientId = $1 AND m1.recipientRole = $2
+		ORDER BY m1.mid DESC;
 	`
 
-	return ch.getAllChats(ctx, query, rid)
+	return ch.getAllChats(ctx, query, user)
 }
 
-func (ch chatRepo) getAllChats(ctx context.Context, query string, id int) (
-	[]*protoChat.BriefInfoChat, error) {
+func (ch chatRepo) getAllChats(ctx context.Context, query string, user models.User) (
+	[]models.ChatInfo, error) {
 
-	messagesDB, err := ch.DB.Query(query, id)
+	messagesDB, err := ch.DB.Query(query, user.Id, user.Role)
 	if err == sql.ErrNoRows {
-		return []*protoChat.BriefInfoChat{}, nil
+		return []models.ChatInfo{}, nil
 	}
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
@@ -115,76 +71,99 @@ func (ch chatRepo) getAllChats(ctx context.Context, query string, id int) (
 		return nil, failError
 	}
 
-	messages := make([]*protoChat.BriefInfoChat, 0)
+	chats := make([]models.ChatInfo, 0)
 	for messagesDB.Next() {
-		message := new(protoChat.BriefInfoChat)
-		Info := new(protoChat.InfoOpponent)
-		message.Info = Info
+		chat := new(models.ChatInfo)
+		user := new(models.User)
+		message := new(models.Message)
+		chat.User = *user
+		chat.Message = *message
+
 		messagesDB.Scan(
-			&Info.Uid,
-			&Info.Name,
-			&Info.Avatar,
-			&message.LastMessage,
-		)
-
-		logger.RepoLevel().InlineDebugLog(ctx, message)
-		messages = append(messages, message)
-	}
-
-	return messages, nil
-}
-
-func (ch chatRepo) GetAllMessagesFromUser(ctx context.Context, uid, rid int) (
-	[]*protoChat.InfoMessage, error) {
-
-	query :=
-		`
-		SELECT mid, sentWhen, content FROM messages
-		where (sentFromUser = $1 AND sentToRestaurant = $2)                                                
-		order by mid DESC;
-	`
-
-	return ch.getAllMessages(ctx, query, uid, rid)
-}
-
-func (ch chatRepo) GetAllMessagesFromRestaurant(ctx context.Context, rid, uid int) (
-	[]*protoChat.InfoMessage, error) {
-
-	query :=
-		`
-		SELECT mid, sentWhen, content FROM messages
-		where (sentFromRestaurant = $1 AND sentToUser = $2)                                                
-		order by mid DESC;
-	`
-
-	return ch.getAllMessages(ctx, query, rid, uid)
-}
-
-func (ch chatRepo) getAllMessages(ctx context.Context, query string, id1, id2 int) (
-	[]*protoChat.InfoMessage, error) {
-
-	messagesDB, err := ch.DB.Query(query, id1, id2)
-	if err == sql.ErrNoRows {
-		return []*protoChat.InfoMessage{}, nil
-	}
-	if err != nil {
-		failError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, failError)
-		return nil, failError
-	}
-
-	messages := make([]*protoChat.InfoMessage, 0)
-	for messagesDB.Next() {
-		message := new(protoChat.InfoMessage)
-		messagesDB.Scan(
-			&message.Id,
-			&message.Date,
+			&message.Mid,
+			&user.Id,
+			&user.Role,
 			&message.Text,
+			&message.Date,
+		)
+
+		logger.RepoLevel().InlineDebugLog(ctx, chat)
+		chats = append(chats, *chat)
+	}
+
+	return chats, nil
+}
+
+func (ch chatRepo) GetAllMessages(ctx context.Context, user1, user2 models.User) (
+	[]models.Chat, error) {
+
+	query :=
+		`
+		SELECT mid, senderId, senderRole, recipientId, recipientRole, content, sentWhen
+		FROM messages
+		WHERE (senderId = $1 AND senderRole = $2 AND recipientId = $3 AND recipientRole = $4)
+			OR (senderId = $3 AND senderRole = $4 AND recipientId = $1 AND recipientRole = $2)                             
+		ORDER BY mid DESC;
+	`
+
+	messagesDB, err := ch.DB.Query(query, user1.Id, user1.Role, user2.Id, user2.Role)
+	if err == sql.ErrNoRows {
+		return []models.Chat{}, nil
+	}
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	chats := make([]models.Chat, 0)
+	for messagesDB.Next() {
+		chat := new(models.Chat)
+		message := new(models.Message)
+		sender := new(models.User)
+		recipient := new(models.User)
+
+		chat.Message = *message
+		chat.Recipient = *recipient
+		chat.Sender = *sender
+
+		messagesDB.Scan(
+			&message.Mid,
+			&sender.Id,
+			&sender.Role,
+			&recipient.Id,
+			&recipient.Role,
+			&message.Text,
+			&message.Date,
 		)
 
 		logger.RepoLevel().InlineDebugLog(ctx, message)
-		messages = append(messages, message)
+		chats = append(chats, *chat)
 	}
 
-	return messages, nil
+	return chats, nil
+}
+
+func (ch chatRepo) SaveMessage(ctx context.Context, messageInfo models.Chat) (
+	int32, error) {
+
+	query :=
+		`
+		INSERT INTO messages (senderId, senderRole, recipientId, recipientRole, content, sentWhen) 
+		VALUES ($1, $2, $3, $4, $5, $6) 
+		RETURNING mid
+	`
+
+	var mid int32
+	err := ch.DB.QueryRow(query, messageInfo.Sender.Id, messageInfo.Sender.Role,
+		messageInfo.Recipient.Id, messageInfo.Recipient.Role,
+		messageInfo.Message.Text, messageInfo.Message.Date).Scan(&mid)
+
+	if err != nil {
+		insertError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, insertError)
+		return 0, insertError
+	}
+
+	return mid, nil
 }

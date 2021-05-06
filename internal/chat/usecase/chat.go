@@ -3,8 +3,10 @@ package usecase
 import (
 	"context"
 
+	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
+	serviceAuth "github.com/borscht/backend/internal/services/auth"
 	serviceChat "github.com/borscht/backend/internal/services/chat"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -16,14 +18,17 @@ type chatUsecase struct {
 	poolRestaurant models.ConnectionPool
 	ChatRepo       chat.ChatRepo
 	ChatService    serviceChat.ServiceChat
+	AuthService    serviceAuth.ServiceAuth
 }
 
-func NewChatUsecase(chatRepo chat.ChatRepo, chatService serviceChat.ServiceChat) chat.ChatUsecase {
+func NewChatUsecase(chatRepo chat.ChatRepo, chatService serviceChat.ServiceChat,
+	authService serviceAuth.ServiceAuth) chat.ChatUsecase {
 	return &chatUsecase{
 		ChatRepo:       chatRepo,
 		ChatService:    chatService,
 		poolUsers:      models.NewConnectionPool(),
 		poolRestaurant: models.NewConnectionPool(),
+		AuthService:    authService,
 	}
 }
 
@@ -92,127 +97,176 @@ func (ch *chatUsecase) UnConnect(ctx context.Context, ws *websocket.Conn) error 
 func (ch *chatUsecase) MessageCame(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error {
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"message": msg})
 
-	saveInfo := models.WsMessageForRepo{
-		Date:     msg.Payload.Message.Date,
-		Content:  msg.Payload.Message.Text,
-		SentToId: msg.Payload.To.Id,
+	message := models.ChatMessage{
+		Text: msg.Payload.Message.Text,
+		Date: msg.Payload.Message.Date,
 	}
+	me := new(models.ChatUser)
+	opponent := new(models.ChatUser)
+	opponent.Id = msg.Payload.To.Id
+	wsOpponent := new(models.WsOpponent)
+	var wsSent *websocket.Conn
+
 	if user, ok := checkUser(ctx); ok {
-		// сохранение в бд
-		saveInfo.SentFromId = user.Uid
-		mid, err := ch.ChatRepo.SaveMessageFromUser(ctx, saveInfo)
-		if err != nil {
-			return err
-		}
+		me.Id = user.Uid
+		me.Role = config.RoleUser
+		opponent.Role = config.RoleAdmin
 
-		// отправить пользователю
-		msg.Payload.Message.Id = mid
-		return ch.MessageFromUser(ctx, *user, ws, msg)
-	}
-	if restaurant, ok := checkRestaurant(ctx); ok {
-		// сохранение в бд
-		saveInfo.SentFromId = restaurant.ID
-		mid, err := ch.ChatRepo.SaveMessageFromRestaurant(ctx, saveInfo)
-		if err != nil {
-			return err
-		}
+		wsOpponent.Avatar = user.Avatar
+		wsOpponent.Name = user.Name
+		wsOpponent.Id = user.Uid
+		wsSent = ch.poolRestaurant.Get(opponent.Id)
 
-		// отпавить пользователю
-		msg.Payload.Message.Id = mid
-		return ch.MessageFromRestaurant(ctx, *restaurant, ws, msg)
+	} else if restaurant, ok := checkRestaurant(ctx); ok {
+		me.Id = restaurant.ID
+		me.Role = config.RoleAdmin
+		opponent.Role = config.RoleUser
+
+		wsOpponent.Avatar = restaurant.Avatar
+		wsOpponent.Name = restaurant.Title
+		wsOpponent.Id = restaurant.ID
+		wsSent = ch.poolUsers.Get(opponent.Id)
 	}
 
-	foundError := errors.AuthorizationError("not user and restaurant")
-	logger.UsecaseLevel().ErrorLog(ctx, foundError)
-	return foundError
-}
+	messageSent, err := ch.ChatService.ProcessMessage(ctx, models.InfoChatMessage{
+		Message:   message,
+		Sender:    *me,
+		Recipient: *opponent,
+	})
 
-func (ch *chatUsecase) MessageFromUser(ctx context.Context,
-	user models.User, ws *websocket.Conn, msg models.FromClient) error {
-
-	toOpponent := msg.Payload.To.Id
 	msgSend := models.ToClient{
 		Action: "message",
 	}
 	msgSend.Payload.Message = msg.Payload.Message
-	msgSend.Payload.From = models.WsOpponent{
-		Id:     user.Uid,
-		Avatar: user.Avatar,
-		Name:   user.Name,
-	}
+	msgSend.Payload.Message.Id = messageSent.Message.Mid
+	msgSend.Payload.From = *wsOpponent
 
-	sendConnect := ch.poolRestaurant.Get(toOpponent)
-	if sendConnect != nil {
-		return sendConnect.WriteJSON(msgSend)
+	if wsSent != nil {
+		return wsSent.WriteJSON(msgSend)
 	}
 	logger.UsecaseLevel().InlineInfoLog(ctx, "not id in connection pool")
-	return nil
-}
 
-func (ch *chatUsecase) MessageFromRestaurant(ctx context.Context,
-	restaurant models.RestaurantInfo, ws *websocket.Conn, msg models.FromClient) error {
-
-	toOpponent := msg.Payload.To.Id
-	msgSend := models.ToClient{
-		Action: "message",
-	}
-	msgSend.Payload.Message = msg.Payload.Message
-	msgSend.Payload.From = models.WsOpponent{
-		Id:     restaurant.ID,
-		Avatar: restaurant.Avatar,
-		Name:   restaurant.Title,
-	}
-
-	sendConnect := ch.poolUsers.Get(toOpponent)
-	if sendConnect != nil {
-		return sendConnect.WriteJSON(msgSend)
-	}
-	logger.UsecaseLevel().InlineInfoLog(ctx, "not id in connection pool")
-	return nil
+	return err
 }
 
 func (ch *chatUsecase) GetAllChats(ctx context.Context) ([]models.BriefInfoChat, error) {
+	var me models.ChatUser
 	if user, ok := checkUser(ctx); ok {
-		return ch.ChatService.GetAllChats(ctx, user.Uid, 0)
+		me.Id = user.Uid
+		me.Role = config.RoleUser
 
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
-		return ch.ChatService.GetAllChats(ctx, 0, restaurant.ID)
+		me.Id = restaurant.ID
+		me.Role = config.RoleAdmin
+
+	} else {
+		foundError := errors.AuthorizationError("not user and restaurant")
+		logger.UsecaseLevel().ErrorLog(ctx, foundError)
+		return nil, foundError
 	}
 
-	foundError := errors.AuthorizationError("not user and restaurant")
-	logger.UsecaseLevel().ErrorLog(ctx, foundError)
-	return nil, foundError
+	messages, err := ch.ChatService.GetAllChats(ctx, me)
+	if err != nil {
+		return nil, err
+	}
+
+	return ch.convertChats(ctx, me, messages)
+}
+
+func (ch *chatUsecase) convertChats(ctx context.Context, me models.ChatUser,
+	messages []models.InfoChatMessage) ([]models.BriefInfoChat, error) {
+	breifChats := make([]models.BriefInfoChat, 0)
+	for _, value := range messages {
+		breifChat := new(models.BriefInfoChat)
+		breifChat.LastMessage = value.Message.Text
+
+		if me == value.Sender {
+			restaurant, err := ch.AuthService.GetByRid(ctx, value.Recipient.Id)
+			if err != nil {
+				return nil, err
+			}
+			breifChat.Avatar = restaurant.Avatar
+			breifChat.Name = restaurant.Title
+			breifChat.Uid = restaurant.ID
+		} else {
+			user, err := ch.AuthService.GetByUid(ctx, value.Recipient.Id)
+			if err != nil {
+				return nil, err
+			}
+			breifChat.Avatar = user.Avatar
+			breifChat.Name = user.Name
+			breifChat.Uid = user.Uid
+		}
+
+		breifChats = append(breifChats, *breifChat)
+	}
+
+	return breifChats, nil
 }
 
 func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.InfoChat, error) {
 
-	result := new(models.InfoChat)
+	me := new(models.ChatUser)
+	opponent := new(models.ChatUser)
+	chat := new(models.InfoChat)
 	if user, ok := checkUser(ctx); ok {
-		messages, err := ch.ChatService.GetAllMessagesUser(ctx, user.Uid, id)
-		if err != nil {
-			return nil, err
-		}
+		me.Id = user.Uid
+		me.Role = config.RoleUser
+		opponent.Id = id
+		opponent.Role = config.RoleAdmin
 
-		infoOpponent, err := ch.ChatRepo.GetRestaurant(ctx, id)
+		restaurant, err := ch.AuthService.GetByRid(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		result.Messages = messages
-		result.InfoOpponent = *infoOpponent
+		chat.Avatar = restaurant.Avatar
+		chat.Name = restaurant.Title
+		chat.Uid = restaurant.ID
 
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
-		messages, err := ch.ChatService.GetAllMessagesRestaurant(ctx, id, restaurant.ID)
-		if err != nil {
-			return nil, err
-		}
+		me.Id = restaurant.ID
+		me.Role = config.RoleAdmin
+		opponent.Id = id
+		opponent.Role = config.RoleUser
 
-		infoOpponent, err := ch.ChatRepo.GetUser(ctx, id)
+		user, err := ch.AuthService.GetByUid(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		result.Messages = messages
-		result.InfoOpponent = *infoOpponent
+		chat.Avatar = user.Avatar
+		chat.Name = user.Name
+		chat.Uid = user.Uid
 	}
 
-	return result, nil
+	messages, err := ch.ChatService.GetAllMessages(ctx, *me, *opponent)
+	if err != nil {
+		return nil, err
+	}
+
+	msgs, err := ch.convertMessages(ctx, *me, messages)
+	if err != nil {
+		return nil, err
+	}
+	chat.Messages = msgs
+
+	return chat, nil
+}
+
+func (ch *chatUsecase) convertMessages(ctx context.Context, me models.ChatUser,
+	messages []models.InfoChatMessage) ([]models.InfoMessage, error) {
+
+	msgs := make([]models.InfoMessage, 0)
+	for _, value := range messages {
+		msg := models.InfoMessage{
+			Id:   value.Message.Mid,
+			Date: value.Message.Date,
+			Text: value.Message.Text,
+		}
+
+		msg.FromMe = (me == value.Sender)
+
+		msgs = append(msgs, msg)
+	}
+
+	return msgs, nil
 }
