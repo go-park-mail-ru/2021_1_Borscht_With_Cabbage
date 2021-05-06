@@ -49,6 +49,20 @@ func (mr *MockAdminRestaurantUsecaseMockRecorder) AddAddress(arg0, arg1, arg2 in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).AddAddress), arg0, arg1, arg2)
 }
 
+// AddCategories mocks base method
+func (m *MockAdminRestaurantUsecase) AddCategories(arg0 context.Context, arg1 models.Categories) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCategories", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddCategories indicates an expected call of AddCategories
+func (mr *MockAdminRestaurantUsecaseMockRecorder) AddCategories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCategories", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).AddCategories), arg0, arg1)
+}
+
 // UpdateRestaurantData mocks base method
 func (m *MockAdminRestaurantUsecase) UpdateRestaurantData(arg0 context.Context, arg1 models.RestaurantUpdateData) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()

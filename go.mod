@@ -9,6 +9,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v1.8.4
 	github.com/google/uuid v1.2.0
+	github.com/gorilla/websocket v1.4.2
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.2.0
 	github.com/lib/pq v1.10.0

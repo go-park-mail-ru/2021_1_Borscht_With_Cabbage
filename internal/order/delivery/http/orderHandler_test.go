@@ -36,6 +36,7 @@ func TestHandler_AddBasket(t *testing.T) {
 	basket := models.BasketForUser{
 		Restaurant: "rest1",
 		RID:        1,
+		UID:        1,
 	}
 	inputJSON := `{"restaurantName":"rest1","restaurantID":1}`
 

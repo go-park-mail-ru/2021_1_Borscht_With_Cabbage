@@ -31,6 +31,7 @@ message BasketInfo {
     int32 Summary = 6;
     repeated DishFromBasket Dishes = 7;
     Address Address = 8;
+    int32 Uid = 9;
 }
 
 message UserRestaurantBasket {

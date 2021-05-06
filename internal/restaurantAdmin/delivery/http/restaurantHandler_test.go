@@ -110,7 +110,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	createdRestaurant := newRestaurant
 	createdRestaurant.ID = 1
 	response := models.SuccessRestaurantResponse{
-		createdRestaurant, config.RoleAdmin,
+		RestaurantInfo: createdRestaurant, Role: config.RoleAdmin,
 	}
 	response.ID = 1
 	requestJSON := `{"Title":"newName","password":"111111","number":"89111111111","email":"dasha@mail.ru"}`
@@ -272,6 +272,33 @@ func TestRestaurantHandler_UploadRestaurantImage_Error(t *testing.T) {
 	}
 
 	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestRestaurantHandler_AddCategories(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, AuthServiceMock)
+
+	requestJSON := `{"categories":["burgers", "pizza"]}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/restaurant/", strings.NewReader(requestJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	ctx := models.GetContext(c)
+
+	categories := models.Categories{}
+	categories.CategoriesID = append(categories.CategoriesID, "burgers", "pizza")
+
+	RestaurantUsecaseMock.EXPECT().AddCategories(ctx, categories).Return(nil)
+	err := restaurantHandler.AddCategories(c)
+	if err != nil {
 		t.Errorf("incorrect result")
 		return
 	}

@@ -3,17 +3,20 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"net"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/services/basket/internal"
 	basketServiceRepo "github.com/borscht/backend/services/basket/repository"
 	protoBasket "github.com/borscht/backend/services/proto/basket"
+	"github.com/borscht/backend/utils/logger"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 func main() {
+	logger.InitLogger()
 	// подключение postgres
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
 	db, err := sql.Open(config.PostgresDB, dsn)

@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+// PATH="${PATH}:${HOME}/go/bin" protoc --go_out=plugins=grpc:. *.proto
+
+option go_package = "github.com/borscht/backend/internal/services/proto";
+
+package protoChat;
+
+message InfoUser {
+    int32 id = 1;
+    string Role = 2;
+}
+
+message Participants {
+	InfoUser Sender = 1;
+	InfoUser Recipient = 2;
+}
+
+message Speakers {
+	InfoUser speaker1 = 1;
+	InfoUser speaker2 = 2;
+}
+
+message InfoMessage {
+	int32 Id = 1;
+	string Date = 2;
+	string Text = 3;
+	Participants Participants = 4;
+}
+
+message MoreInfoMessage {
+    repeated InfoMessage More = 1;
+}
+
+service Chat {
+    rpc GetAllChats(InfoUser) returns (MoreInfoMessage);
+	rpc GetAllMessages(Speakers) returns (MoreInfoMessage);
+	rpc ProcessMessage(InfoMessage) returns (InfoMessage);
+}

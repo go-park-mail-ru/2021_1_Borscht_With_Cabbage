@@ -1,9 +1,10 @@
 package http
 
 import (
-	"github.com/borscht/backend/internal/services/auth"
 	"net/http"
 	"time"
+
+	"github.com/borscht/backend/internal/services/auth"
 
 	"github.com/borscht/backend/utils/validation"
 
@@ -25,6 +26,25 @@ func NewRestaurantHandler(adminUCase adminModel.AdminRestaurantUsecase, authServ
 		RestaurantUsecase: adminUCase,
 		AuthService:       authService,
 	}
+}
+
+func (a RestaurantHandler) AddCategories(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	nameCategories := new(models.Categories)
+	if err := c.Bind(nameCategories); err != nil {
+		sendErr := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err := a.RestaurantUsecase.AddCategories(ctx, *nameCategories)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	// TODO: подумать что должен вернуть бэк
+	return models.SendResponse(c, nil)
 }
 
 func (a RestaurantHandler) UpdateRestaurantData(c echo.Context) error {
@@ -70,10 +90,10 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	}
 
 	responseRestaurant, err := a.AuthService.CreateRestaurant(ctx, *newRestaurant)
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"restaurant auth": responseRestaurant})
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
 	err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, newRestaurant.Address)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -89,7 +109,6 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
 	setResponseCookie(c, session)
 
 	return models.SendResponse(c, responseRestaurant)

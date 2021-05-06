@@ -78,6 +78,8 @@ message Error {
 }
 
 service Auth {
+    rpc CheckKey(SessionValue) returns (SessionInfo) {}
+    rpc CreateKey(SessionInfo) returns (SessionValue) {}
     rpc CreateUser(User) returns (SuccessUserResponse) {}
     rpc CheckUserExists(UserAuth) returns (SuccessUserResponse) {}
     rpc	GetByUid(UID) returns (SuccessUserResponse) {}

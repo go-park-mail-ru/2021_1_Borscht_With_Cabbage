@@ -3,6 +3,7 @@ package authRepo
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	"github.com/borscht/backend/utils/errors"
@@ -23,17 +24,23 @@ func (a authRestaurantRepo) checkExistingRestaurant(ctx context.Context, restaur
 	var userInDB int
 	err := a.DB.QueryRow("select rid from restaurants where adminemail = $1", restaurantData.Email).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewErrorWithMessage("Restaurant with this email already exists")
+		custErr := errors.NewErrorWithMessage("Restaurant with this email already exists")
+		logger.RepoLevel().ErrorLog(ctx, custErr)
+		return custErr
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where adminphone = $1", restaurantData.Number).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewErrorWithMessage("Restaurant with this number already exists")
+		custErr := errors.NewErrorWithMessage("Restaurant with this number already exists")
+		logger.RepoLevel().ErrorLog(ctx, custErr)
+		return custErr
 	}
 
 	err = a.DB.QueryRow("select rid from restaurants where name = $1", restaurantData.Name).Scan(&userInDB)
 	if err != sql.ErrNoRows && userInDB != restaurantData.CurrentRestId {
-		return errors.NewErrorWithMessage("Restaurant with this name already exists")
+		custErr := errors.NewErrorWithMessage("Restaurant with this name already exists")
+		logger.RepoLevel().ErrorLog(ctx, custErr)
+		return custErr
 	}
 
 	return nil
@@ -60,6 +67,16 @@ func (a authRestaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant 
 		newRestaurant.AdminHashPassword, newRestaurant.Avatar, newRestaurant.DeliveryCost,
 		newRestaurant.AvgCheck, newRestaurant.Description).Scan(&rid)
 
+	if err != nil {
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return 0, custError
+	}
+
+	//TODO: временное, пока на фронте нет возможности добавить категории
+	_, err = a.DB.Exec(`insert into categories_restaurants (categoryID, restaurantID)
+		values('sushi', $1), ('pizza', $1), ('burgers', $1),
+			  ('meat', $1), ('fast_food', $1), ('zosh', $1)`, rid)
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, custError)

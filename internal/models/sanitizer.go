@@ -140,9 +140,34 @@ func (u *BasketForUser) Sanitize() {
 	}
 }
 
+func (u *Key) Sanitize() {}
+
 func (u *Address) Sanitize() {
 	sanitizer := bluemonday.UGCPolicy()
 	u.Name = sanitizer.Sanitize(u.Name)
 	u.Latitude = sanitizer.Sanitize(u.Latitude)
 	u.Longitude = sanitizer.Sanitize(u.Longitude)
+}
+
+func (u *BriefInfoChat) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Avatar = sanitizer.Sanitize(u.Avatar)
+	u.LastMessage = sanitizer.Sanitize(u.LastMessage)
+}
+
+func (u *InfoMessage) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Date = sanitizer.Sanitize(u.Date)
+	u.Text = sanitizer.Sanitize(u.Text)
+}
+
+func (u *InfoChat) Sanitize() {
+	sanitizer := bluemonday.UGCPolicy()
+	u.Name = sanitizer.Sanitize(u.Name)
+	u.Avatar = sanitizer.Sanitize(u.Avatar)
+
+	for i := range u.Messages {
+		u.Messages[i].Sanitize()
+	}
 }

@@ -7,7 +7,6 @@ package mocks
 import (
 	context "context"
 	models "github.com/borscht/backend/internal/models"
-	restaurant "github.com/borscht/backend/internal/restaurant"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -36,18 +35,18 @@ func (m *MockRestaurantUsecase) EXPECT() *MockRestaurantUsecaseMockRecorder {
 }
 
 // GetById mocks base method
-func (m *MockRestaurantUsecase) GetById(arg0 context.Context, arg1 int) (*models.RestaurantWithDishes, error) {
+func (m *MockRestaurantUsecase) GetById(arg0 context.Context, arg1 models.Coordinates, arg2 int) (*models.RestaurantWithDishes, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetById", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.RestaurantWithDishes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetById indicates an expected call of GetById
-func (mr *MockRestaurantUsecaseMockRecorder) GetById(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRestaurantUsecaseMockRecorder) GetById(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetById), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRestaurantUsecase)(nil).GetById), arg0, arg1, arg2)
 }
 
 // GetReviews mocks base method
@@ -66,7 +65,7 @@ func (mr *MockRestaurantUsecaseMockRecorder) GetReviews(arg0, arg1 interface{}) 
 }
 
 // GetVendor mocks base method
-func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1 restaurant.GetVendorParams) ([]models.RestaurantInfo, error) {
+func (m *MockRestaurantUsecase) GetVendor(arg0 context.Context, arg1 models.RestaurantRequest) ([]models.RestaurantInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetVendor", arg0, arg1)
 	ret0, _ := ret[0].([]models.RestaurantInfo)

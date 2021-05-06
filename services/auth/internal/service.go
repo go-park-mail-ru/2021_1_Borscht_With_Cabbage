@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+	"github.com/borscht/backend/utils/secure"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
@@ -9,6 +11,9 @@ import (
 	"github.com/borscht/backend/utils/logger"
 	"github.com/google/uuid"
 )
+
+const headSession = "sessions:"
+const headKey = "key:"
 
 type service struct {
 	userAuthRepo       auth.UserAuthRepo
@@ -61,8 +66,10 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 		Phone:    user.Phone,
 		Name:     user.Name,
 		Password: user.Password,
+		Avatar:   config.DefaultUserImage,
 	}
 
+	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
 	uid, err := s.userAuthRepo.Create(ctx, newUser)
 	if err != nil {
 		return &protoAuth.SuccessUserResponse{}, err
@@ -116,8 +123,10 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		AdminEmail:    restaurant.Email,
 		AdminPhone:    restaurant.Phone,
 		AdminPassword: restaurant.Password,
+		Avatar:        config.DefaultRestaurantImage,
 	}
 
+	newRestaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), newRestaurant.AdminPassword)
 	rid, err := s.restaurantAuthRepo.CreateRestaurant(ctx, newRestaurant)
 	if err != nil {
 		return &protoAuth.SuccessRestaurantResponse{}, err
@@ -162,9 +171,53 @@ func (s *service) GetByRid(ctx context.Context, rid *protoAuth.RID) (*protoAuth.
 	return &response, nil
 }
 
+func (s *service) CheckKey(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.SessionInfo, error) {
+	sessionInfo, exists, err := s.sessionRepo.Check(ctx, headKey+session.Session)
+	if err != nil {
+		return &protoAuth.SessionInfo{}, err
+	}
+
+	sessionOutput := protoAuth.SessionInfo{
+		Id:     int32(sessionInfo.Id),
+		Role:   sessionInfo.Role,
+		Exists: exists,
+	}
+	return &sessionOutput, nil
+}
+
+// создание уникальной сессии
+func (s *service) CreateKey(ctx context.Context, sessionInfo *protoAuth.SessionInfo) (*protoAuth.SessionValue, error) {
+	session := ""
+	for {
+		session = uuid.New().String()
+
+		_, isItExists, _ := s.sessionRepo.Check(ctx, headKey+session) // далее в цикле - проверка на уникальность
+		if !isItExists {                                              // не получили привязанного к сессии пользователя, следовательно, не существует
+			break
+		}
+	}
+
+	sessionData := models.SessionData{
+		Session:         headKey + session,
+		Id:              int(sessionInfo.Id),
+		Role:            sessionInfo.Role,
+		LifeTimeSeconds: 60,
+	}
+	err := s.sessionRepo.Create(ctx, sessionData)
+	if err != nil {
+		return &protoAuth.SessionValue{}, err
+	}
+
+	sessionOutput := protoAuth.SessionValue{
+		Session: session,
+	}
+
+	return &sessionOutput, nil
+}
+
 // будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
 func (s *service) CheckSession(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.SessionInfo, error) {
-	sessionInfo, exists, err := s.sessionRepo.Check(ctx, session.Session)
+	sessionInfo, exists, err := s.sessionRepo.Check(ctx, headSession+session.Session)
 	if err != nil {
 		return &protoAuth.SessionInfo{}, err
 	}
@@ -183,16 +236,17 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.Sess
 	for {
 		session = uuid.New().String()
 
-		_, isItExists, _ := s.sessionRepo.Check(ctx, session) // далее в цикле - проверка на уникальность
-		if isItExists == false {                              // не получили привязанного к сессии пользователя, следовательно, не существует
+		_, isItExists, _ := s.sessionRepo.Check(ctx, headSession+session) // далее в цикле - проверка на уникальность
+		if !isItExists {                                                  // не получили привязанного к сессии пользователя, следовательно, не существует
 			break
 		}
 	}
 
 	sessionData := models.SessionData{
-		Session: session,
-		Id:      int(sessionInfo.Id),
-		Role:    sessionInfo.Role,
+		Session:         headSession + session,
+		Id:              int(sessionInfo.Id),
+		Role:            sessionInfo.Role,
+		LifeTimeSeconds: config.LifetimeSecond,
 	}
 	err := s.sessionRepo.Create(ctx, sessionData)
 	if err != nil {
@@ -207,6 +261,6 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.Sess
 }
 
 func (s *service) DeleteSession(ctx context.Context, session *protoAuth.SessionValue) (*protoAuth.Error, error) {
-	err := s.sessionRepo.Delete(ctx, session.Session)
+	err := s.sessionRepo.Delete(ctx, headSession+session.Session)
 	return &protoAuth.Error{}, err
 }

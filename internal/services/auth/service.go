@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
@@ -19,6 +20,8 @@ type ServiceAuth interface {
 	CheckSession(ctx context.Context, value string) (models.SessionInfo, bool, error)
 	CreateSession(ctx context.Context, sessionInfo models.SessionInfo) (string, error)
 	DeleteSession(ctx context.Context, session string) error
+	CreateKey(ctx context.Context, sessionInfo models.SessionInfo) (string, error)
+	CheckKey(ctx context.Context, sessionToCheck string) (models.SessionInfo, bool, error)
 }
 
 type service struct {
@@ -29,6 +32,38 @@ func NewService(authService protoAuth.AuthClient) ServiceAuth {
 	return &service{
 		authService: authService,
 	}
+}
+
+func (s service) CheckKey(ctx context.Context, value string) (models.SessionInfo, bool, error) {
+	session := protoAuth.SessionValue{
+		Session: value,
+	}
+
+	sessionInfo, err := s.authService.CheckKey(ctx, &session)
+	if err != nil {
+		return models.SessionInfo{}, false, err
+	}
+
+	sessionOutput := models.SessionInfo{
+		Id:   int(sessionInfo.Id),
+		Role: sessionInfo.Role,
+	}
+
+	return sessionOutput, true, nil
+}
+
+func (s service) CreateKey(ctx context.Context, sessionInfo models.SessionInfo) (string, error) {
+	session := protoAuth.SessionInfo{
+		Id:   int32(sessionInfo.Id),
+		Role: sessionInfo.Role,
+	}
+
+	sessionValue, err := s.authService.CreateKey(ctx, &session)
+	if err != nil {
+		return "", err
+	}
+
+	return sessionValue.Session, nil
 }
 
 // users
@@ -134,9 +169,12 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{
-		ID:     int(restaurantResult.RID),
-		Title:  restaurantResult.Title,
-		Avatar: config.DefaultRestaurantImage,
+		ID:         int(restaurantResult.RID),
+		Title:      restaurantResult.Title,
+		Avatar:     config.DefaultRestaurantImage,
+		AdminEmail: restaurant.AdminEmail,
+		AdminPhone: restaurant.AdminPhone,
+		Address:    restaurant.Address,
 	}
 
 	return &models.SuccessRestaurantResponse{

@@ -3,19 +3,12 @@ package authRepo
 import (
 	"context"
 	"encoding/json"
-	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/gomodule/redigo/redis"
 )
-
-const headKey = "sessions:"
-
-type sessionID struct {
-	ID string
-}
 
 type sessionRepo struct {
 	redisConn redis.Conn
@@ -27,8 +20,25 @@ func NewSessionRepo(conn redis.Conn) auth.SessionRepo {
 	}
 }
 
-func (s sessionRepo) Create(ctx context.Context, sessionData models.SessionData) error {
-	id := sessionID{sessionData.Session}
+// будет использоваться для проверки уникальности сессии при создании и для проверки авторизации на сайте в целом
+func (repo *sessionRepo) Check(ctx context.Context, sessionToCheck string) (models.SessionInfo, bool, error) {
+	mkey := sessionToCheck
+	data, err := redis.Bytes(repo.redisConn.Do("GET", mkey))
+	if err != nil {
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return models.SessionInfo{}, false, custError
+	}
+	sess := &models.SessionInfo{}
+	err = json.Unmarshal(data, sess)
+	if err != nil {
+		return models.SessionInfo{}, false, err
+	}
+	return *sess, true, nil
+}
+
+// создание уникальной сессии
+func (repo *sessionRepo) Create(ctx context.Context, sessionData models.SessionData) error {
 	dataSerialized, err := json.Marshal(models.SessionInfo{
 		Id:   sessionData.Id,
 		Role: sessionData.Role,
@@ -39,9 +49,9 @@ func (s sessionRepo) Create(ctx context.Context, sessionData models.SessionData)
 		return custError
 	}
 
-	mkey := headKey + id.ID
+	mkey := sessionData.Session
 
-	result, err := redis.String(s.redisConn.Do("SET", mkey, dataSerialized, "EX", config.LifetimeSecond))
+	result, err := redis.String(repo.redisConn.Do("SET", mkey, dataSerialized, "EX", sessionData.LifeTimeSeconds))
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, custError)
@@ -55,24 +65,9 @@ func (s sessionRepo) Create(ctx context.Context, sessionData models.SessionData)
 	return nil
 }
 
-func (s sessionRepo) Check(ctx context.Context, sessionToCheck string) (models.SessionInfo, bool, error) {
-	mkey := headKey + sessionToCheck
-	data, err := redis.Bytes(s.redisConn.Do("GET", mkey))
-	if err != nil {
-		return models.SessionInfo{}, false, err
-	}
-	sess := &models.SessionInfo{}
-	err = json.Unmarshal(data, sess)
-	if err != nil {
-		return models.SessionInfo{}, false, err
-	}
-
-	return *sess, true, nil
-}
-
-func (s sessionRepo) Delete(ctx context.Context, session string) error {
-	mkey := headKey + session
-	_, err := redis.Int(s.redisConn.Do("DEL", mkey))
+func (repo *sessionRepo) Delete(ctx context.Context, session string) error {
+	mkey := session
+	_, err := redis.Int(repo.redisConn.Do("DEL", mkey))
 	if err != nil {
 		custError := errors.FailServerError("redis error:" + err.Error())
 		logger.RepoLevel().ErrorLog(ctx, custError)
