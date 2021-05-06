@@ -22,10 +22,3 @@ type ChatUsecase interface {
 	UnConnect(ctx context.Context, ws *websocket.Conn) error
 	MessageCame(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error
 }
-
-type ChatRepo interface {
-	GetUser(ctx context.Context, uid int) (*models.InfoOpponent, error)
-	GetRestaurant(ctx context.Context, rid int) (*models.InfoOpponent, error)
-	SaveMessageFromUser(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
-	SaveMessageFromRestaurant(ctx context.Context, info models.WsMessageForRepo) (mid int, err error)
-}

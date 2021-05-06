@@ -13,7 +13,6 @@ import (
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat"
 	chatDelivery "github.com/borscht/backend/internal/chat/delivery/http"
-	chatRepo "github.com/borscht/backend/internal/chat/repository"
 	chatUsecase "github.com/borscht/backend/internal/chat/usecase"
 	imageRepo "github.com/borscht/backend/internal/image/repository"
 	"github.com/borscht/backend/internal/order"
@@ -180,7 +179,6 @@ func main() {
 	adminSectionRepo := restaurantAdminRepo.NewSectionRepo(db)
 	restaurantRepo := restaurantRepo.NewRestaurantRepo(db)
 	imageRepo := imageRepo.NewImageRepo()
-	chatRepo := chatRepo.NewChattRepo(db)
 
 	userUcase := userUcase.NewUserUsecase(userRepo, imageRepo)
 	orderRepo := repository.NewOrderRepo(db)
@@ -189,7 +187,7 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
-	chatUsecase := chatUsecase.NewChatUsecase(chatRepo, chatService, authService)
+	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)

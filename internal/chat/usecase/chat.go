@@ -16,15 +16,13 @@ import (
 type chatUsecase struct {
 	poolUsers      models.ConnectionPool
 	poolRestaurant models.ConnectionPool
-	ChatRepo       chat.ChatRepo
 	ChatService    serviceChat.ServiceChat
 	AuthService    serviceAuth.ServiceAuth
 }
 
-func NewChatUsecase(chatRepo chat.ChatRepo, chatService serviceChat.ServiceChat,
+func NewChatUsecase(chatService serviceChat.ServiceChat,
 	authService serviceAuth.ServiceAuth) chat.ChatUsecase {
 	return &chatUsecase{
-		ChatRepo:       chatRepo,
 		ChatService:    chatService,
 		poolUsers:      models.NewConnectionPool(),
 		poolRestaurant: models.NewConnectionPool(),
