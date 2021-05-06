@@ -73,6 +73,7 @@ func route(data initRoute) {
 	data.e.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup.POST("/categories", data.restaurantAdmin.AddCategories)
 	restaurantGroup.GET("/orders", data.order.GetRestaurantOrders)
 	restaurantGroup.PUT("/order/status", data.order.SetNewStatus)
 	restaurantGroup.POST("/dish", data.dishAdmin.AddDish)

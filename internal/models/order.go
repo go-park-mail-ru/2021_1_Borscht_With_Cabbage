@@ -8,6 +8,7 @@ var StatusOrderDone = "done"
 type Order struct {
 	OID             int           `json:"orderID"`
 	UID             int           `json:"user"`
+	RID             int           `json:"restaurant"`
 	UserName        string        `json:"userName"`
 	UserPhone       string        `json:"userPhone"`
 	Restaurant      string        `json:"store"`

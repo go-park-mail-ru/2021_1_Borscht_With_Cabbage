@@ -48,9 +48,11 @@ func TestExistingRestaurant_Email(t *testing.T) {
 		WithArgs("dasha@mail.ru").
 		WillReturnError(nil).WillReturnRows(ridInDB)
 
-	ctx := new(context.Context)
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
 
-	err = restaurantRepo.checkExistingRestaurant(*ctx, restaurant)
+	err = restaurantRepo.checkExistingRestaurant(ctx, restaurant)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -91,9 +93,11 @@ func TestExistingRestaurant_Phone(t *testing.T) {
 		WithArgs("89111111111").
 		WillReturnError(nil).WillReturnRows(ridInDB)
 
-	ctx := new(context.Context)
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
 
-	err = restaurantRepo.checkExistingRestaurant(*ctx, restaurant)
+	err = restaurantRepo.checkExistingRestaurant(ctx, restaurant)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -138,9 +142,11 @@ func TestExistingRestaurant_Number(t *testing.T) {
 		WithArgs("rest1").
 		WillReturnError(nil).WillReturnRows(ridInDB)
 
-	ctx := new(context.Context)
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
 
-	err = restaurantRepo.checkExistingRestaurant(*ctx, restaurant)
+	err = restaurantRepo.checkExistingRestaurant(ctx, restaurant)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return

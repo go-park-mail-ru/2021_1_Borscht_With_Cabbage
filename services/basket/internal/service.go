@@ -5,7 +5,6 @@ import (
 	"github.com/borscht/backend/internal/models"
 	basketServiceRepo "github.com/borscht/backend/services/basket/repository"
 	protoBasket "github.com/borscht/backend/services/proto/basket"
-	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 )
 
@@ -104,28 +103,22 @@ func (s service) GetBasket(ctx context.Context, uid *protoBasket.UID) (*protoBas
 }
 
 func (s service) AddBasket(ctx context.Context, info *protoBasket.BasketInfo) (*protoBasket.BasketInfo, error) {
-	user, ok := ctx.Value("User").(models.User)
-	if !ok {
-		failError := errors.FailServerError("failed to convert to models.Restaurant")
-		logger.UsecaseLevel().ErrorLog(ctx, failError)
-		return &protoBasket.BasketInfo{}, failError
-	}
-
+	uid := int(info.Uid)
 	// пока что удаляем предыдущую корзину, в будущем надо будет изменить логику
-	basketOld, err := s.basketRepo.GetBasket(ctx, user.Uid)
+	basketOld, err := s.basketRepo.GetBasket(ctx, uid)
 	if err != nil {
 		return &protoBasket.BasketInfo{}, err
 	}
 
 	// у пользователя уже есть корзина, удаляем ее
 	if basketOld != nil {
-		err = s.basketRepo.DeleteBasket(ctx, user.Uid, basketOld.BID)
+		err = s.basketRepo.DeleteBasket(ctx, uid, basketOld.BID)
 		if err != nil {
 			return &protoBasket.BasketInfo{}, err
 		}
 	}
 
-	newBasketId, err := s.basketRepo.AddBasket(ctx, user.Uid, int(info.Rid))
+	newBasketId, err := s.basketRepo.AddBasket(ctx, uid, int(info.Rid))
 	if err != nil {
 		return &protoBasket.BasketInfo{}, err
 	}
@@ -145,7 +138,7 @@ func (s service) AddBasket(ctx context.Context, info *protoBasket.BasketInfo) (*
 		}
 	}
 
-	basketResult, err := s.basketRepo.GetBasket(ctx, user.Uid)
+	basketResult, err := s.basketRepo.GetBasket(ctx, uid)
 	if err != nil {
 		return &protoBasket.BasketInfo{}, err
 	}

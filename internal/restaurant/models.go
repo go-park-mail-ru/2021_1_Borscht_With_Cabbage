@@ -7,15 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GetVendorParams struct {
-	Limit     int
-	Offset    int
-	Address   bool
-	Name      string
-	Longitude string
-	Latitude  string
-}
-
 const (
 	MinutesInHour = 60
 	CourierSpeed  = 5
@@ -29,13 +20,14 @@ type RestaurantHandler interface {
 }
 
 type RestaurantUsecase interface {
-	GetVendor(ctx context.Context, params GetVendorParams) ([]models.RestaurantInfo, error)
-	GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error)
+	GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error)
+	GetById(ctx context.Context, coordinates models.Coordinates, id int) (*models.RestaurantWithDishes, error)
 	GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error)
 }
 
 type RestaurantRepo interface {
-	GetVendor(ctx context.Context, params GetVendorParams) ([]models.RestaurantInfo, error)
-	GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error)
+	GetVendorWithCategory(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error)
+	GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error)
+	GetById(ctx context.Context, id int, userCoordinates models.Coordinates) (*models.RestaurantWithDishes, error)
 	GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error)
 }

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"github.com/borscht/backend/utils/secure"
 
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
@@ -68,6 +69,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 		Avatar:   config.DefaultUserImage,
 	}
 
+	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
 	uid, err := s.userAuthRepo.Create(ctx, newUser)
 	if err != nil {
 		return &protoAuth.SuccessUserResponse{}, err
@@ -124,6 +126,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		Avatar:        config.DefaultRestaurantImage,
 	}
 
+	newRestaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), newRestaurant.AdminPassword)
 	rid, err := s.restaurantAuthRepo.CreateRestaurant(ctx, newRestaurant)
 	if err != nil {
 		return &protoAuth.SuccessRestaurantResponse{}, err

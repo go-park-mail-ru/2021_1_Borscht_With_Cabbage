@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const headKey = "key:"
-
 func TestNewSessionRepo(t *testing.T) {
 	redisConn, err := redis.Dial("tcp", config.RedisHost)
 	if err != nil {
@@ -40,9 +38,10 @@ func TestSessionRepo_Create(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	sessionData := models.SessionData{
-		Session: "session",
-		Id:      1,
-		Role:    config.RoleUser,
+		Session:         "session",
+		Id:              1,
+		Role:            config.RoleUser,
+		LifeTimeSeconds: config.LifetimeSecond,
 	}
 	expected, err := json.Marshal(models.SessionInfo{
 		Id:   sessionData.Id,
@@ -55,7 +54,7 @@ func TestSessionRepo_Create(t *testing.T) {
 		return
 	}
 
-	got, err := serverRedis.Get(headKey + sessionData.Session)
+	got, err := serverRedis.Get(sessionData.Session)
 	if err != nil {
 		require.NoError(t, err)
 	}
@@ -83,7 +82,7 @@ func TestSessionRepo_CheckTrue(t *testing.T) {
 	redisConn, err := redis.Dial("tcp", serverRedis.Addr())
 	sessionRepo := NewSessionRepo(redisConn)
 
-	redisConn.Do("SET", headKey+sessionData.Session, jsonData)
+	redisConn.Do("SET", sessionData.Session, jsonData)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
@@ -137,7 +136,7 @@ func TestSessionRepo_DeleteTrue(t *testing.T) {
 	redisConn, err := redis.Dial("tcp", serverRedis.Addr())
 	sessionRepo := NewSessionRepo(redisConn)
 
-	redisConn.Do("SET", headKey+sessionData.Session, jsonData)
+	redisConn.Do("SET", sessionData.Session, jsonData)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)

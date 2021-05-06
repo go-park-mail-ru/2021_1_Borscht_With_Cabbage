@@ -3,12 +3,15 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"github.com/borscht/backend/internal/models"
-	restModel "github.com/borscht/backend/internal/restaurant"
-	"github.com/borscht/backend/utils/errors"
-	"github.com/borscht/backend/utils/logger"
 	"math"
 	"strconv"
+
+	"github.com/borscht/backend/internal/models"
+	restModel "github.com/borscht/backend/internal/restaurant"
+	"github.com/borscht/backend/utils/calcDistance"
+	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/logger"
+	"github.com/lib/pq"
 )
 
 type restaurantRepo struct {
@@ -45,39 +48,65 @@ func getDistanceFromLatLonInKm(coordinates twoAddresses) float64 {
 	return d
 }
 
-func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string) int {
+func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string, radius int) int {
 	latitudeU, latitudeErrU := strconv.ParseFloat(latitudeUser, 64)
 	longitudeU, longitudeErrU := strconv.ParseFloat(longitudeUser, 64)
 	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
 	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
 	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
-		distanse := getDistanceFromLatLonInKm(twoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
-		return int(restModel.MinutesInHour*distanse/restModel.CourierSpeed + restModel.CookingTime)
+		distance := getDistanceFromLatLonInKm(twoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
+		// временно пока не сделаем проверку через бд нормально
+		if distance*1000 <= float64(radius) {
+			return int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
+		}
 	}
 	return 0
 }
 
-func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVendorParams) ([]models.RestaurantInfo, error) {
+func (r *restaurantRepo) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount, a.latitude, a.longitude
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount, a.latitude, a.longitude, a.radius
 	FROM restaurants as r
 	JOIN addresses a on r.rid = a.rid
-	WHERE r.rid >= $1 and r.rid <= $2 
+	WHERE avgCheck <= $1
 	`
-	// TODO как сделать ровное количество записей, которые подходят по адресу?
 
 	var queryParametres []interface{}
-	queryParametres = append(queryParametres, params.Offset, params.Limit+params.Offset)
+	queryParametres = append(queryParametres, request.Receipt)
 
 	// если запрос с фильтрацией по адресу
-	if params.Address {
+	if request.Address {
 		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		query += ` and ST_DWithin(
-					   Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
-					   ST_GeogFromText($3), a.radius)`
-		userAddress := "SRID=4326; POINT(" + params.Latitude + " " + params.Longitude + ")"
-		queryParametres = append(queryParametres, userAddress)
+		//	Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
+		//Geography(ST_SetSRID(ST_GeogFromText('SRID=4326; POINT(a.latitude a.longitude)'), 4326)),
+		//ST_GeogFromText('SRID=4326; POINT(a.latitude a.longitude)'),
+
+		//query += ` and ST_DWithin(
+		//			   	ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326),
+		//				ST_GeogFromText($2), a.radius)`
+		//userAddress := "'SRID=4326; POINT(" + request.LatitudeUser + " " + request.LongitudeUser + "')"
+
+		// РАБОТАЮЩАЯ ШТУКА, ПОЧЕМУ?????????????????
+		//		query += ` and ST_Distance(
+		//ST_GeomFromText('POINT(-71.064544 42.28787)'),
+		//ST_GeomFromText('POINT(-71.064544 42.28787)')
+		// 				 ) <= a.radius*1000;
+		//`
+
+		//		query += ` and ST_Distance(
+		//                   ST_GeomFromText(POINT(a.latitude a.longitude)'),
+		//                   ST_GeomFromText($2)
+		// 				 ) <= a.radius*1000;
+		//`
+
+		// господи помоги
+
+		//userAddress := "'POINT(" + request.LatitudeUser + " " + request.LongitudeUser + ")'"
+		//queryParametres = append(queryParametres, userAddress)
+	} else {
+		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
+		queryParametres = append(queryParametres, request.Offset, request.Limit)
 	}
 
 	restaurantsDB, err := r.DB.Query(query, queryParametres...)
@@ -91,7 +120,85 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 	for restaurantsDB.Next() {
 		var ratingsSum, reviewsCount int
 		restaurant := new(models.RestaurantInfo)
-		logger.RepoLevel().InlineInfoLog(ctx, "start scan")
+
+		var restaurantLongitude, restaurantLatitude string
+		var radius int
+		err = restaurantsDB.Scan(
+			&restaurant.ID,
+			&restaurant.Title,
+			&restaurant.DeliveryCost,
+			&restaurant.AvgCheck,
+			&restaurant.Description,
+			&restaurant.Avatar,
+			&ratingsSum,
+			&reviewsCount,
+			&restaurantLatitude,
+			&restaurantLongitude,
+			&radius,
+		)
+
+		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
+			restaurantLatitude, restaurantLongitude, radius)
+
+		if reviewsCount != 0 {
+			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+		}
+
+		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
+		// временно пока не сделаем проверку через бд нормально
+		if restaurant.DeliveryTime != 0 {
+			restaurants = append(restaurants, *restaurant)
+		}
+		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
+	}
+
+	return restaurants, nil
+}
+
+func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
+	query :=
+		`
+		SELECT DISTINCT r.rid, r.name, r.deliveryCost, r.avgCheck, r.description, r.avatar, 
+			r.ratingssum, r.reviewscount, a.latitude, a.longitude
+		FROM restaurants AS r
+		JOIN categories_restaurants AS cr
+		ON r.rid = cr.restaurantID
+		JOIN categories AS c
+		ON cr.categoryID = c.cid
+		JOIN addresses a on r.rid = a.rid
+		WHERE c.cid = ANY ($1)
+		AND r.avgCheck <= $2
+  	`
+
+	var queryParametres []interface{}
+	queryParametres = append(queryParametres, pq.Array(request.Categories), request.Receipt)
+
+	// если запрос с фильтрацией по адресу
+	if request.Address {
+		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		query += ` and ST_DWithin(
+						Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
+						ST_GeogFromText($3), a.radius)
+						ORDER BY r.rid OFFSET $4 LIMIT $5;`
+		userAddress := "SRID=4326; POINT(" + request.LatitudeUser + " " + request.LongitudeUser + ")"
+		queryParametres = append(queryParametres, userAddress)
+
+	} else {
+		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
+	}
+
+	queryParametres = append(queryParametres, request.Offset, request.Limit)
+
+	restaurantsDB, err := r.DB.Query(query, queryParametres...)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return []models.RestaurantInfo{}, failError
+	}
+	var restaurants []models.RestaurantInfo
+	for restaurantsDB.Next() {
+		var ratingsSum, reviewsCount int
+		restaurant := new(models.RestaurantInfo)
 
 		var restaurantLongitude, restaurantLatitude string
 		err = restaurantsDB.Scan(
@@ -106,7 +213,8 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 			&restaurantLatitude,
 			&restaurantLongitude,
 		)
-		restaurant.DeliveryTime = getDeliveryTime(params.Latitude, params.Longitude, restaurantLatitude, restaurantLongitude)
+		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
+			restaurantLatitude, restaurantLongitude, 0)
 
 		if reviewsCount != 0 {
 			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
@@ -120,19 +228,21 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, params restModel.GetVend
 	return restaurants, nil
 }
 
-func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.RestaurantWithDishes, error) {
+func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models.Coordinates) (*models.RestaurantWithDishes, error) {
 	restaurant := new(models.RestaurantWithDishes)
 	var ratingsSum, reviewsCount int
 	query :=
 		`
-	SELECT rid, name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount
-	FROM restaurants 
-	WHERE rid=$1
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount, a.latitude, a.longitude
+	FROM restaurants as r
+	JOIN addresses a on r.rid = a.rid
+	WHERE r.rid=$1
 	`
 
+	var restaurantLongitude, restaurantLatitude string
 	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount)
+			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount, &restaurantLatitude, &restaurantLongitude)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -140,6 +250,10 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int) (*models.Restauran
 	}
 	if reviewsCount != 0 {
 		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+	}
+
+	if coordinates.Latitude != "" && coordinates.Longitude != "" {
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, restaurantLatitude, restaurantLongitude)
 	}
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)

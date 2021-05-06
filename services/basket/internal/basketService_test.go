@@ -127,6 +127,7 @@ func TestService_AddBasket(t *testing.T) {
 	ctx := context.WithValue(c, "User", user)
 
 	basketProto := protoBasket.BasketInfo{
+		Uid: 1,
 		Rid: 1,
 	}
 	basketOld := models.BasketForUser{
