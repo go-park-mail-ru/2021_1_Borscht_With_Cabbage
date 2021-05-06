@@ -15,15 +15,13 @@ import (
 type chatUsecase struct {
 	poolUsers      models.ConnectionPool
 	poolRestaurant models.ConnectionPool
-	ChatRepo       chat.ChatRepo
 	ChatService    serviceChat.ServiceChat
 	AuthService    serviceAuth.ServiceAuth
 }
 
-func NewChatUsecase(chatRepo chat.ChatRepo, chatService serviceChat.ServiceChat,
+func NewChatUsecase(chatService serviceChat.ServiceChat,
 	authService serviceAuth.ServiceAuth) chat.ChatUsecase {
 	return &chatUsecase{
-		ChatRepo:       chatRepo,
 		ChatService:    chatService,
 		poolUsers:      models.NewConnectionPool(),
 		poolRestaurant: models.NewConnectionPool(),
@@ -32,13 +30,13 @@ func NewChatUsecase(chatRepo chat.ChatRepo, chatService serviceChat.ServiceChat,
 }
 
 func checkUser(ctx context.Context) (*models.User, bool) {
-	userInterfece := ctx.Value("User")
-	if userInterfece == nil {
+	userInContext := ctx.Value("User")
+	if userInContext == nil {
 		logger.UsecaseLevel().InlineDebugLog(ctx, "not user in context")
 		return nil, false
 	}
 
-	user, ok := userInterfece.(models.User)
+	user, ok := userInContext.(models.User)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.User")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
@@ -49,13 +47,13 @@ func checkUser(ctx context.Context) (*models.User, bool) {
 }
 
 func checkRestaurant(ctx context.Context) (*models.RestaurantInfo, bool) {
-	restaurantInterfece := ctx.Value("Restaurant")
-	if restaurantInterfece == nil {
+	restaurantInContext := ctx.Value("Restaurant")
+	if restaurantInContext == nil {
 		logger.UsecaseLevel().InlineDebugLog(ctx, "not restaurant in context")
 		return nil, false
 	}
 
-	restaurant, ok := restaurantInterfece.(models.RestaurantInfo)
+	restaurant, ok := restaurantInContext.(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
@@ -75,7 +73,7 @@ func (ch *chatUsecase) Connect(ctx context.Context, ws *websocket.Conn) error {
 		return nil
 	}
 
-	foundError := errors.AuthorizationError("not user and restaurant")
+	foundError := errors.BadRequestError("not user and restaurant")
 	logger.UsecaseLevel().ErrorLog(ctx, foundError)
 	return foundError
 }
@@ -88,12 +86,12 @@ func (ch *chatUsecase) UnConnect(ctx context.Context, ws *websocket.Conn) error 
 		ch.poolRestaurant.Remove(restaurant.ID)
 	}
 
-	foundError := errors.AuthorizationError("not user and restaurant")
+	foundError := errors.BadRequestError("not user and restaurant")
 	logger.UsecaseLevel().ErrorLog(ctx, foundError)
 	return foundError
 }
 
-func (ch *chatUsecase) MessageCame(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error {
+func (ch *chatUsecase) ProcessMessage(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error {
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"message": msg})
 
 	message := models.ChatMessage{

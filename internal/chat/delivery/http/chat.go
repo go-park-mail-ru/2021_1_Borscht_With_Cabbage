@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/borscht/backend/config"
@@ -23,7 +24,20 @@ type chatHandler struct {
 var (
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
-			return true
+			origin := r.Header["Origin"]
+			if len(origin) == 0 {
+				return false
+			}
+			u, err := url.Parse(origin[0])
+			if err != nil {
+				return false
+			}
+			client, err := url.Parse(config.Client)
+			if err != nil {
+				return false
+			}
+
+			return u.Host == client.Host
 		},
 	}
 )
@@ -109,6 +123,7 @@ func (ch chatHandler) Connect(c echo.Context) error {
 
 func (ch chatHandler) startRead(ctx context.Context, ws *websocket.Conn) error {
 	for {
+		// read message
 		logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"start read": ""})
 		msg := new(models.FromClient)
 		err := ws.ReadJSON(msg)
@@ -117,14 +132,20 @@ func (ch chatHandler) startRead(ctx context.Context, ws *websocket.Conn) error {
 			logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"error": failError.Error()})
 			return failError
 		}
+
+		// message processing
 		logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"new message": msg})
-		err = ch.ChatUsecase.MessageCame(ctx, ws, *msg)
+		err = ch.ChatUsecase.ProcessMessage(ctx, ws, *msg)
 		if err != nil {
 			failError := errors.FailServerError(err.Error())
 			logger.DeliveryLevel().ErrorLog(ctx, failError)
 			return failError
 		}
 	}
+
+	errFail := errors.FailServerError("breake read message in websocket")
+	logger.DeliveryLevel().ErrorLog(ctx, errFail)
+	return errFail
 }
 
 func (ch chatHandler) GetAllChats(c echo.Context) error {
@@ -136,8 +157,8 @@ func (ch chatHandler) GetAllChats(c echo.Context) error {
 	}
 
 	response := make([]models.Response, 0)
-	for i := range result {
-		response = append(response, &result[i])
+	for _, val := range result {
+		response = append(response, &val)
 	}
 	return models.SendMoreResponse(c, response...)
 }
