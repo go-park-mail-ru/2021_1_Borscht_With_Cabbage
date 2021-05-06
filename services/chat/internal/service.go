@@ -32,6 +32,7 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 		return nil, err
 	}
 
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"fromMe": fromMe})
 	for _, value := range fromMe {
 		recipient := protoChat.InfoUser{
 			Id:   value.User.Id,
@@ -42,8 +43,11 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 			Text: value.Message.Text,
 			Date: value.Message.Date,
 		}
-		proto.Participants.Sender = info
-		proto.Participants.Recipient = &recipient
+		pr := protoChat.Participants{
+			Sender:    info,
+			Recipient: &recipient,
+		}
+		proto.Participants = &pr
 		result.More = append(result.More, &proto)
 	}
 
@@ -55,7 +59,8 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 		return nil, err
 	}
 
-	for _, value := range fromMe {
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"toMe": toMe})
+	for _, value := range toMe {
 		sender := protoChat.InfoUser{
 			Id:   value.User.Id,
 			Role: value.User.Role,
@@ -65,18 +70,19 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 			Text: value.Message.Text,
 			Date: value.Message.Date,
 		}
-		proto.Participants.Sender = &sender
-		proto.Participants.Recipient = info
+		pr := protoChat.Participants{
+			Sender:    &sender,
+			Recipient: info,
+		}
+		proto.Participants = &pr
 		result.More = append(result.More, &proto)
 	}
 
-	var chats []models.ChatInfo
-	chats = append(fromMe, toMe...)
-
-	sort.SliceStable(chats, func(i, j int) bool {
-		return chats[i].Message.Mid > chats[j].Message.Mid
+	sort.SliceStable(result.More, func(i, j int) bool {
+		return result.More[i].Id > result.More[j].Id
 	})
 
+	logger.UsecaseLevel().InfoLog(ctx, logger.Fields{"result": result})
 	return result, nil
 }
 
@@ -87,9 +93,13 @@ func (ch service) GetAllMessages(ctx context.Context, users *protoChat.Speakers)
 		Id:   users.Speaker1.Id,
 		Role: users.Speaker1.Role,
 	}, models.User{
-		users.Speaker2.Id,
-		users.Speaker2.Role,
+		Id:   users.Speaker2.Id,
+		Role: users.Speaker2.Role,
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	result = new(protoChat.MoreInfoMessage)
 	for _, value := range chat {
@@ -101,13 +111,16 @@ func (ch service) GetAllMessages(ctx context.Context, users *protoChat.Speakers)
 			Id:   value.Recipient.Id,
 			Role: value.Recipient.Role,
 		}
-		proto := protoChat.InfoMessage{
-			Id:   value.Message.Mid,
-			Text: value.Message.Text,
-			Date: value.Message.Date,
+		pr := protoChat.Participants{
+			Sender:    &sender,
+			Recipient: &recipient,
 		}
-		proto.Participants.Sender = &sender
-		proto.Participants.Recipient = &recipient
+		proto := protoChat.InfoMessage{
+			Id:           value.Message.Mid,
+			Text:         value.Message.Text,
+			Date:         value.Message.Date,
+			Participants: &pr,
+		}
 		result.More = append(result.More, &proto)
 	}
 

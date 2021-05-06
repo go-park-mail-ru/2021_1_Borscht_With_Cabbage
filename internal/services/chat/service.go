@@ -5,6 +5,7 @@ import (
 
 	"github.com/borscht/backend/internal/models"
 	protoChat "github.com/borscht/backend/services/proto/chat"
+	"github.com/borscht/backend/utils/logger"
 )
 
 type ServiceChat interface {
@@ -88,6 +89,8 @@ func convertMessage(message *protoChat.InfoMessage) models.InfoChatMessage {
 
 func (s service) ProcessMessage(ctx context.Context, chat models.InfoChatMessage) (
 	models.InfoChatMessage, error) {
+
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"chat": chat})
 
 	sender := protoChat.InfoUser{Id: int32(chat.Sender.Id), Role: chat.Sender.Role}
 	recipient := protoChat.InfoUser{Id: int32(chat.Recipient.Id), Role: chat.Recipient.Role}

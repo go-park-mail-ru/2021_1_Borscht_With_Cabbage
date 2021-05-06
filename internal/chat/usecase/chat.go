@@ -170,32 +170,38 @@ func (ch *chatUsecase) GetAllChats(ctx context.Context) ([]models.BriefInfoChat,
 		return nil, err
 	}
 
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"all chats": messages})
 	return ch.convertChats(ctx, me, messages)
 }
 
 func (ch *chatUsecase) convertChats(ctx context.Context, me models.ChatUser,
 	messages []models.InfoChatMessage) ([]models.BriefInfoChat, error) {
+
 	breifChats := make([]models.BriefInfoChat, 0)
 	for _, value := range messages {
 		breifChat := new(models.BriefInfoChat)
 		breifChat.LastMessage = value.Message.Text
 
+		opponent := value.Sender
 		if me == value.Sender {
-			restaurant, err := ch.AuthService.GetByRid(ctx, value.Recipient.Id)
+			opponent = value.Recipient
+		}
+		breifChat.Uid = opponent.Id
+
+		if opponent.Role == config.RoleAdmin {
+			restaurant, err := ch.AuthService.GetByRid(ctx, opponent.Id)
 			if err != nil {
 				return nil, err
 			}
 			breifChat.Avatar = restaurant.Avatar
 			breifChat.Name = restaurant.Title
-			breifChat.Uid = restaurant.ID
 		} else {
-			user, err := ch.AuthService.GetByUid(ctx, value.Recipient.Id)
+			user, err := ch.AuthService.GetByUid(ctx, opponent.Id)
 			if err != nil {
 				return nil, err
 			}
 			breifChat.Avatar = user.Avatar
 			breifChat.Name = user.Name
-			breifChat.Uid = user.Uid
 		}
 
 		breifChats = append(breifChats, *breifChat)
@@ -221,7 +227,6 @@ func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.Info
 		}
 		chat.Avatar = restaurant.Avatar
 		chat.Name = restaurant.Title
-		chat.Uid = restaurant.ID
 
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
 		me.Id = restaurant.ID
@@ -235,8 +240,8 @@ func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.Info
 		}
 		chat.Avatar = user.Avatar
 		chat.Name = user.Name
-		chat.Uid = user.Uid
 	}
+	chat.Uid = opponent.Id
 
 	messages, err := ch.ChatService.GetAllMessages(ctx, *me, *opponent)
 	if err != nil {

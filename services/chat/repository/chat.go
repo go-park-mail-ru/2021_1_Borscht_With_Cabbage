@@ -73,11 +73,9 @@ func (ch chatRepo) getAllChats(ctx context.Context, query string, user models.Us
 
 	chats := make([]models.ChatInfo, 0)
 	for messagesDB.Next() {
-		chat := new(models.ChatInfo)
-		user := new(models.User)
-		message := new(models.Message)
-		chat.User = *user
-		chat.Message = *message
+		var chat models.ChatInfo
+		var user models.User
+		var message models.Message
 
 		messagesDB.Scan(
 			&message.Mid,
@@ -86,9 +84,11 @@ func (ch chatRepo) getAllChats(ctx context.Context, query string, user models.Us
 			&message.Text,
 			&message.Date,
 		)
+		chat.User = user
+		chat.Message = message
 
-		logger.RepoLevel().InlineDebugLog(ctx, chat)
-		chats = append(chats, *chat)
+		logger.RepoLevel().DebugLog(ctx, logger.Fields{"message": chat})
+		chats = append(chats, chat)
 	}
 
 	return chats, nil
@@ -97,6 +97,7 @@ func (ch chatRepo) getAllChats(ctx context.Context, query string, user models.Us
 func (ch chatRepo) GetAllMessages(ctx context.Context, user1, user2 models.User) (
 	[]models.Chat, error) {
 
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"user1": user1, "user2": user2})
 	query :=
 		`
 		SELECT mid, senderId, senderRole, recipientId, recipientRole, content, sentWhen
@@ -123,10 +124,6 @@ func (ch chatRepo) GetAllMessages(ctx context.Context, user1, user2 models.User)
 		sender := new(models.User)
 		recipient := new(models.User)
 
-		chat.Message = *message
-		chat.Recipient = *recipient
-		chat.Sender = *sender
-
 		messagesDB.Scan(
 			&message.Mid,
 			&sender.Id,
@@ -136,6 +133,10 @@ func (ch chatRepo) GetAllMessages(ctx context.Context, user1, user2 models.User)
 			&message.Text,
 			&message.Date,
 		)
+
+		chat.Message = *message
+		chat.Recipient = *recipient
+		chat.Sender = *sender
 
 		logger.RepoLevel().InlineDebugLog(ctx, message)
 		chats = append(chats, *chat)
@@ -147,6 +148,7 @@ func (ch chatRepo) GetAllMessages(ctx context.Context, user1, user2 models.User)
 func (ch chatRepo) SaveMessage(ctx context.Context, messageInfo models.Chat) (
 	int32, error) {
 
+	logger.RepoLevel().InfoLog(ctx, logger.Fields{"save message": messageInfo})
 	query :=
 		`
 		INSERT INTO messages (senderId, senderRole, recipientId, recipientRole, content, sentWhen) 
@@ -165,5 +167,6 @@ func (ch chatRepo) SaveMessage(ctx context.Context, messageInfo models.Chat) (
 		return 0, insertError
 	}
 
+	logger.RepoLevel().InfoLog(ctx, logger.Fields{"mid": mid})
 	return mid, nil
 }
