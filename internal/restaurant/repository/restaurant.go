@@ -48,14 +48,17 @@ func getDistanceFromLatLonInKm(coordinates twoAddresses) float64 {
 	return d
 }
 
-func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string) int {
+func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string, radius int) int {
 	latitudeU, latitudeErrU := strconv.ParseFloat(latitudeUser, 64)
 	longitudeU, longitudeErrU := strconv.ParseFloat(longitudeUser, 64)
 	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
 	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
 	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
-		distanse := getDistanceFromLatLonInKm(twoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
-		return int(restModel.MinutesInHour*distanse/restModel.CourierSpeed + restModel.CookingTime)
+		distance := getDistanceFromLatLonInKm(twoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
+		// временно пока не сделаем проверку через бд нормально
+		if distance*1000 <= float64(radius) {
+			return int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
+		}
 	}
 	return 0
 }
@@ -63,23 +66,43 @@ func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest st
 func (r *restaurantRepo) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount, a.latitude, a.longitude
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount, a.latitude, a.longitude, a.radius
 	FROM restaurants as r
 	JOIN addresses a on r.rid = a.rid
 	WHERE avgCheck <= $1
 	`
-	// TODO как сделать ровное количество записей, которые подходят по адресу?
 
 	var queryParametres []interface{}
 	queryParametres = append(queryParametres, request.Receipt)
 
 	// если запрос с фильтрацией по адресу
 	if request.Address {
-		//logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		//	Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
+		//Geography(ST_SetSRID(ST_GeogFromText('SRID=4326; POINT(a.latitude a.longitude)'), 4326)),
+		//ST_GeogFromText('SRID=4326; POINT(a.latitude a.longitude)'),
+
 		//query += ` and ST_DWithin(
-		//			   ST_GeogFromText('SRID=4326;POINT(a.latitude a.longitude)'),
-		//			   ST_GeogFromText($2), a.radius)`
-		//userAddress := "'SRID=4326;POINT(" + request.LatitudeUser + " " + request.LongitudeUser + "')"
+		//			   	ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326),
+		//				ST_GeogFromText($2), a.radius)`
+		//userAddress := "'SRID=4326; POINT(" + request.LatitudeUser + " " + request.LongitudeUser + "')"
+
+		// РАБОТАЮЩАЯ ШТУКА, ПОЧЕМУ?????????????????
+		//		query += ` and ST_Distance(
+		//ST_GeomFromText('POINT(-71.064544 42.28787)'),
+		//ST_GeomFromText('POINT(-71.064544 42.28787)')
+		// 				 ) <= a.radius*1000;
+		//`
+
+		//		query += ` and ST_Distance(
+		//                   ST_GeomFromText(POINT(a.latitude a.longitude)'),
+		//                   ST_GeomFromText($2)
+		// 				 ) <= a.radius*1000;
+		//`
+
+		// господи помоги
+
+		//userAddress := "'POINT(" + request.LatitudeUser + " " + request.LongitudeUser + ")'"
 		//queryParametres = append(queryParametres, userAddress)
 	} else {
 		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
@@ -99,6 +122,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 		restaurant := new(models.RestaurantInfo)
 
 		var restaurantLongitude, restaurantLatitude string
+		var radius int
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
 			&restaurant.Title,
@@ -110,16 +134,21 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 			&reviewsCount,
 			&restaurantLatitude,
 			&restaurantLongitude,
+			&radius,
 		)
+
 		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
-			restaurantLatitude, restaurantLongitude)
+			restaurantLatitude, restaurantLongitude, radius)
 
 		if reviewsCount != 0 {
 			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 		}
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
-		restaurants = append(restaurants, *restaurant)
+		// временно пока не сделаем проверку через бд нормально
+		if restaurant.DeliveryTime != 0 {
+			restaurants = append(restaurants, *restaurant)
+		}
 		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
@@ -185,7 +214,7 @@ func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request mode
 			&restaurantLongitude,
 		)
 		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
-			restaurantLatitude, restaurantLongitude)
+			restaurantLatitude, restaurantLongitude, 0)
 
 		if reviewsCount != 0 {
 			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))

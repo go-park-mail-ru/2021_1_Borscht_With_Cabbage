@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
-	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -20,6 +19,7 @@ type RestaurantInfo struct {
 	ReviewsCount float64
 	Latitude     string
 	Longitude    string
+	Radius       int
 }
 
 type Restaurant struct {
@@ -64,21 +64,21 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		DB: db,
 	}
 
-	rows := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "latitude", "longitude"})
+	rows := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "latitude", "longitude", "radius"})
 	expect := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2, "55.766516", "37.653424"},
-		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2, "55.735439", "37.584981"},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2, "55.766516", "37.653424", 1500},
+		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2, "55.735439", "37.584981", 1500},
 	}
 	for _, item := range expect {
-		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude)
+		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude, item.Radius)
 	}
 
-	params := restModel.GetVendorParams{
-		Limit:     1,
-		Offset:    2,
-		Address:   true,
-		Latitude:  "55.768096",
-		Longitude: "37.646839",
+	params := models.RestaurantRequest{
+		Limit:         1,
+		Offset:        2,
+		Address:       true,
+		LatitudeUser:  "55.768096",
+		LongitudeUser: "37.646839",
 	}
 
 	mock.
@@ -100,7 +100,6 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		return
 	}
 	require.EqualValues(t, restaurants[0].ID, 1)
-	require.EqualValues(t, restaurants[1].ID, 2)
 }
 
 func TestRestaurantRepo_GetById(t *testing.T) {
@@ -115,7 +114,7 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 
 	restaurant := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "lan", "lon"})
 	expectRestaurant := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5, "55.766516", "37.653424"},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5, "55.766516", "37.653424", 1000},
 	}
 	for _, item := range expectRestaurant {
 		restaurant = restaurant.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude)
