@@ -66,14 +66,20 @@ func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest st
 func (r *restaurantRepo) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
 	query :=
 		`
-	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingssum, reviewscount, a.latitude, a.longitude, a.radius
-	FROM restaurants as r
-	JOIN addresses a on r.rid = a.rid
-	WHERE avgCheck <= $1
+		SELECT DISTINCT r.rid, r.name, r.deliveryCost, r.avgCheck, r.description, r.avatar, 
+			r.ratingssum, r.reviewscount, a.latitude, a.longitude, a.radius
+		FROM restaurants AS r
+		JOIN categories_restaurants AS cr
+		ON r.rid = cr.restaurantID
+		JOIN categories AS c
+		ON cr.categoryID = c.cid
+		JOIN addresses a on r.rid = a.rid
+		WHERE c.cid = ANY ($1)
+		AND r.avgCheck <= $2
 	`
 
 	var queryParametres []interface{}
-	queryParametres = append(queryParametres, request.Receipt)
+	queryParametres = append(queryParametres, pq.Array(request.Categories), request.Receipt)
 
 	// если запрос с фильтрацией по адресу
 	if request.Address {
@@ -146,82 +152,12 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 		// временно пока не сделаем проверку через бд нормально
-		if restaurant.DeliveryTime != 0 {
+		if restaurant.DeliveryTime != 0 &&
+			restaurant.DeliveryTime < request.Time &&
+			restaurant.Rating >= request.Rating {
+
 			restaurants = append(restaurants, *restaurant)
 		}
-		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
-	}
-
-	return restaurants, nil
-}
-
-func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
-	query :=
-		`
-		SELECT DISTINCT r.rid, r.name, r.deliveryCost, r.avgCheck, r.description, r.avatar, 
-			r.ratingssum, r.reviewscount, a.latitude, a.longitude
-		FROM restaurants AS r
-		JOIN categories_restaurants AS cr
-		ON r.rid = cr.restaurantID
-		JOIN categories AS c
-		ON cr.categoryID = c.cid
-		JOIN addresses a on r.rid = a.rid
-		WHERE c.cid = ANY ($1)
-		AND r.avgCheck <= $2
-  	`
-
-	var queryParametres []interface{}
-	queryParametres = append(queryParametres, pq.Array(request.Categories), request.Receipt)
-
-	// если запрос с фильтрацией по адресу
-	if request.Address {
-		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		query += ` and ST_DWithin(
-						Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
-						ST_GeogFromText($3), a.radius)
-						ORDER BY r.rid OFFSET $4 LIMIT $5;`
-		userAddress := "SRID=4326; POINT(" + request.LatitudeUser + " " + request.LongitudeUser + ")"
-		queryParametres = append(queryParametres, userAddress)
-
-	} else {
-		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
-	}
-
-	queryParametres = append(queryParametres, request.Offset, request.Limit)
-
-	restaurantsDB, err := r.DB.Query(query, queryParametres...)
-	if err != nil {
-		failError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, failError)
-		return []models.RestaurantInfo{}, failError
-	}
-	var restaurants []models.RestaurantInfo
-	for restaurantsDB.Next() {
-		var ratingsSum, reviewsCount int
-		restaurant := new(models.RestaurantInfo)
-
-		var restaurantLongitude, restaurantLatitude string
-		err = restaurantsDB.Scan(
-			&restaurant.ID,
-			&restaurant.Title,
-			&restaurant.DeliveryCost,
-			&restaurant.AvgCheck,
-			&restaurant.Description,
-			&restaurant.Avatar,
-			&ratingsSum,
-			&reviewsCount,
-			&restaurantLatitude,
-			&restaurantLongitude,
-		)
-		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
-			restaurantLatitude, restaurantLongitude, 0)
-
-		if reviewsCount != 0 {
-			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
-		}
-
-		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
-		restaurants = append(restaurants, *restaurant)
 		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
@@ -367,11 +303,11 @@ func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.Resta
 }
 
 func (r *restaurantRepo) GetUserAddress(ctx context.Context, uid int) (*models.Address, error) {
-	queri := `SELECT name, latitude, longitude FROM addresses WHERE uid = $1`
+	query := `SELECT name, latitude, longitude FROM addresses WHERE uid = $1`
 
 	logger.RepoLevel().InlineDebugLog(ctx, uid)
 	var address models.Address
-	err := r.DB.QueryRow(queri, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
+	err := r.DB.QueryRow(query, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
 	if err == sql.ErrNoRows {
 		logger.RepoLevel().InlineDebugLog(ctx, "end get address not address")
 		return &models.Address{}, nil
@@ -384,4 +320,33 @@ func (r *restaurantRepo) GetUserAddress(ctx context.Context, uid int) (*models.A
 
 	logger.RepoLevel().InlineDebugLog(ctx, "end get address")
 	return &address, nil
+}
+
+func (r *restaurantRepo) GetAllCategories(ctx context.Context) ([]string, error) {
+	query :=
+		`
+		SELECT cid FROM categories;
+	`
+	categoriesDB, err := r.DB.Query(query)
+	categories := make([]string, 0)
+	for categoriesDB.Next() {
+		var category string
+		err = categoriesDB.Scan(
+			&category,
+		)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return nil, failError
+		}
+
+		categories = append(categories, category)
+	}
+	err = categoriesDB.Close()
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+	return categories, nil
 }

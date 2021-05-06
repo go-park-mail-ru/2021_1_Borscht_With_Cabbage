@@ -26,7 +26,7 @@ type RestaurantUsecase interface {
 }
 
 type RestaurantRepo interface {
-	GetVendorWithCategory(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error)
+	GetAllCategories(ctx context.Context) ([]string, error)
 	GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error)
 	GetById(ctx context.Context, id int, userCoordinates models.Coordinates) (*models.RestaurantWithDishes, error)
 	GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error)
