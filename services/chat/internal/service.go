@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"sort"
 
 	"github.com/borscht/backend/services/chat/models"
 	chatRepo "github.com/borscht/backend/services/chat/repository"
@@ -24,7 +23,7 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 	logger.UsecaseLevel().InfoLog(ctx, logger.Fields{"user": info})
 
 	result := new(protoChat.MoreInfoMessage)
-	fromMe, err := s.chatRepo.GetAllChatsFromUser(ctx, models.User{
+	chats, err := s.chatRepo.GetAllChats(ctx, models.User{
 		Id:   info.Id,
 		Role: info.Role,
 	})
@@ -32,8 +31,8 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 		return nil, err
 	}
 
-	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"fromMe": fromMe})
-	for _, value := range fromMe {
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"chats": chats})
+	for _, value := range chats {
 		recipient := protoChat.InfoUser{
 			Id:   value.User.Id,
 			Role: value.User.Role,
@@ -50,37 +49,6 @@ func (s service) GetAllChats(ctx context.Context, info *protoChat.InfoUser) (*pr
 		proto.Participants = &pr
 		result.More = append(result.More, &proto)
 	}
-
-	toMe, err := s.chatRepo.GetAllChatsToUser(ctx, models.User{
-		Id:   info.Id,
-		Role: info.Role,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"toMe": toMe})
-	for _, value := range toMe {
-		sender := protoChat.InfoUser{
-			Id:   value.User.Id,
-			Role: value.User.Role,
-		}
-		proto := protoChat.InfoMessage{
-			Id:   value.Message.Mid,
-			Text: value.Message.Text,
-			Date: value.Message.Date,
-		}
-		pr := protoChat.Participants{
-			Sender:    &sender,
-			Recipient: info,
-		}
-		proto.Participants = &pr
-		result.More = append(result.More, &proto)
-	}
-
-	sort.SliceStable(result.More, func(i, j int) bool {
-		return result.More[i].Id > result.More[j].Id
-	})
 
 	logger.UsecaseLevel().InfoLog(ctx, logger.Fields{"result": result})
 	return result, nil

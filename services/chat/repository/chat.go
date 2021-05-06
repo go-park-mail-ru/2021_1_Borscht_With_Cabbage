@@ -10,8 +10,7 @@ import (
 )
 
 type ChatRepo interface {
-	GetAllChatsFromUser(ctx context.Context, user models.User) ([]models.ChatInfo, error)
-	GetAllChatsToUser(ctx context.Context, user models.User) ([]models.ChatInfo, error)
+	GetAllChats(ctx context.Context, user models.User) ([]models.ChatInfo, error)
 	GetAllMessages(ctx context.Context, user1, user2 models.User) ([]models.Chat, error)
 	SaveMessage(ctx context.Context, messageInfo models.Chat) (int32, error)
 }
@@ -26,33 +25,26 @@ func NewChatRepository(db *sql.DB) ChatRepo {
 	}
 }
 
-func (ch chatRepo) GetAllChatsFromUser(ctx context.Context, user models.User) (
+func (ch chatRepo) GetAllChats(ctx context.Context, user models.User) (
 	[]models.ChatInfo, error) {
 
 	query :=
 		`
-		SELECT m1.mid, m1.recipientId, m1.recipientRole, m1.content, m1.sentWhen
-		FROM messages m1
-		LEFT JOIN messages m2
-		ON (m1.recipientId = m2.recipientId AND m1.recipientRole = m2.recipientRole AND m1.mid < m2.mid)
-		WHERE m2.mid IS NULL AND m1.senderId = $1 AND m1.senderRole = $2
-		ORDER BY m1.mid DESC;
-	`
-
-	return ch.getAllChats(ctx, query, user)
-}
-
-func (ch chatRepo) GetAllChatsToUser(ctx context.Context, user models.User) (
-	[]models.ChatInfo, error) {
-
-	query :=
-		`
-		SELECT m1.mid, m1.senderId, m1.senderRole, m1.content, m1.sentWhen
-		FROM messages m1
-		LEFT JOIN messages m2
-		ON (m1.senderId = m2.senderId AND m1.senderRole = m2.senderRole AND m1.mid < m2.mid)
-		WHERE m2.mid IS NULL AND m1.recipientId = $1 AND m1.recipientRole = $2
-		ORDER BY m1.mid DESC;
+		SELECT DISTINCT ON(res.recipientId, res.recipientRole) 
+		res.mid, res.recipientId, res.recipientRole, res.content, res.sentWhen
+			FROM ((SELECT m1.mid, m1.recipientId, m1.recipientRole, m1.content, m1.sentWhen
+			FROM messages m1
+			LEFT JOIN messages m2
+			ON (m1.recipientId = m2.recipientId AND m1.recipientRole = m2.recipientRole AND m1.mid < m2.mid)
+			WHERE m2.mid IS NULL AND m1.senderId = $1 AND m1.senderRole = $2)
+				UNION
+				(SELECT m3.mid, m3.senderId, m3.senderRole, m3.content, m3.sentWhen
+			FROM messages m3
+			LEFT JOIN messages m4
+			ON (m3.senderId = m4.senderId AND m3.senderRole = m4.senderRole AND m3.mid < m4.mid)
+			WHERE m4.mid IS NULL AND m3.recipientId = $1 AND m3.recipientRole = $2) 
+			ORDER BY mid DESC) 
+			AS res;
 	`
 
 	return ch.getAllChats(ctx, query, user)
