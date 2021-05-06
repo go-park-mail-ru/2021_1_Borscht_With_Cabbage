@@ -102,7 +102,7 @@ func (s service) ProcessMessage(ctx context.Context, chat models.InfoChatMessage
 		Participants: &participants,
 	}
 
-	message, err := s.chatService.SendMessage(ctx, &request)
+	message, err := s.chatService.ProcessMessage(ctx, &request)
 	if err != nil {
 		return models.InfoChatMessage{}, err
 	}

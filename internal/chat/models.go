@@ -20,5 +20,5 @@ type ChatUsecase interface {
 	GetAllMessages(ctx context.Context, id int) (*models.InfoChat, error)
 	Connect(ctx context.Context, ws *websocket.Conn) error
 	UnConnect(ctx context.Context, ws *websocket.Conn) error
-	MessageCame(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error
+	ProcessMessage(ctx context.Context, ws *websocket.Conn, msg models.FromClient) error
 }

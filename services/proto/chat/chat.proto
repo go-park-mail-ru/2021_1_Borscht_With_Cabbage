@@ -36,5 +36,5 @@ message MoreInfoMessage {
 service Chat {
     rpc GetAllChats(InfoUser) returns (MoreInfoMessage);
 	rpc GetAllMessages(Speakers) returns (MoreInfoMessage);
-	rpc SendMessage(InfoMessage) returns (InfoMessage);
+	rpc ProcessMessage(InfoMessage) returns (InfoMessage);
 }

@@ -95,7 +95,7 @@ func (ch service) GetAllMessages(ctx context.Context, users *protoChat.Speakers)
 	return result, nil
 }
 
-func (ch service) SendMessage(ctx context.Context, info *protoChat.InfoMessage) (*protoChat.InfoMessage, error) {
+func (ch service) ProcessMessage(ctx context.Context, info *protoChat.InfoMessage) (*protoChat.InfoMessage, error) {
 	message := models.Message{
 		Text: info.Text,
 		Date: info.Date,

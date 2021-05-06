@@ -104,7 +104,6 @@ func route(data initRoute) {
 
 func initServer(e *echo.Echo) {
 	e.Static("/static", config.Static)
-	e.Static("/", "../public")
 	e.Static("/default", config.DefaultStatic)
 
 	logger.InitLogger()
