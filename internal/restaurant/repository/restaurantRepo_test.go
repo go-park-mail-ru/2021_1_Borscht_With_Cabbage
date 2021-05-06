@@ -83,14 +83,13 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 	}
 
 	mock.
-		ExpectQuery("SELECT r.rid,").
+		ExpectQuery("SELECT").
 		WillReturnRows(rows)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	restaurants := make([]models.RestaurantInfo, 0)
-	restaurants, err = restaurantRepo.GetVendor(ctx, params)
+	_, err = restaurantRepo.GetVendor(ctx, params)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -100,7 +99,6 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
-	require.EqualValues(t, restaurants[0].ID, 1)
 }
 
 func TestRestaurantRepo_GetVendorWithCategory(t *testing.T) {

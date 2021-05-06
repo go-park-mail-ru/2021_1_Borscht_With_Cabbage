@@ -171,20 +171,20 @@ func TestRestaurantRepo_CreateRestaurant(t *testing.T) {
 	rid.AddRow(1)
 
 	mock.
-		ExpectQuery("select rid from restaurants where adminemail").
-		WithArgs("dasha@mail.ru").
-		WillReturnError(sql.ErrNoRows)
-	mock.
-		ExpectQuery("select rid from restaurants where adminphone").
-		WithArgs("89111111111").
-		WillReturnError(sql.ErrNoRows)
-	mock.
-		ExpectQuery("select rid from restaurants where name").
-		WithArgs("rest1").
-		WillReturnError(sql.ErrNoRows)
-	mock.
 		ExpectQuery("insert into restaurants").
 		WillReturnRows(rid)
+	//mock.
+	//	ExpectQuery("select rid from restaurants where adminemail").
+	//	WithArgs("dasha@mail.ru").
+	//	WillReturnError(sql.ErrNoRows)
+	//mock.
+	//	ExpectQuery("select rid from restaurants where adminphone").
+	//	WithArgs("89111111111").
+	//	WillReturnError(sql.ErrNoRows)
+	//mock.
+	//	ExpectQuery("select rid from restaurants where name").
+	//	WithArgs("rest1").
+	//	WillReturnError(sql.ErrNoRows)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)

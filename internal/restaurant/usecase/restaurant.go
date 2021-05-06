@@ -32,10 +32,14 @@ func (r *restaurantUsecase) GetVendor(ctx context.Context, request models.Restau
 		request.Time = 1000
 	}
 	if len(request.Categories) == 0 || request.Categories[0] == "" {
-		restaurants, err = r.restaurantRepo.GetVendor(ctx, request)
-	} else {
-		restaurants, err = r.restaurantRepo.GetVendorWithCategory(ctx, request)
+		allCategories, err := r.restaurantRepo.GetAllCategories(ctx)
+		if err != nil {
+			return nil, err
+		}
+		request.Categories = allCategories
 	}
+
+	restaurants, err = r.restaurantRepo.GetVendor(ctx, request)
 	if err != nil {
 		return nil, err
 	}
