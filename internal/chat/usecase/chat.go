@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
@@ -179,7 +180,7 @@ func (ch *chatUsecase) convertChats(ctx context.Context, me models.ChatUser,
 
 	breifChats := make([]models.BriefInfoChat, 0)
 	for _, value := range messages {
-		breifChat := new(models.BriefInfoChat)
+		var breifChat models.BriefInfoChat
 		breifChat.LastMessage = value.Message.Text
 
 		opponent := value.Sender
@@ -204,9 +205,11 @@ func (ch *chatUsecase) convertChats(ctx context.Context, me models.ChatUser,
 			breifChat.Name = user.Name
 		}
 
-		breifChats = append(breifChats, *breifChat)
+		logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"breifChat": breifChat})
+		breifChats = append(breifChats, breifChat)
 	}
 
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"breifChats": breifChats})
 	return breifChats, nil
 }
 

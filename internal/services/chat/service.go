@@ -39,6 +39,7 @@ func (s service) GetAllChats(ctx context.Context, user models.ChatUser) (
 		response = append(response, chatModel)
 	}
 
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"answer from microservice chat": response})
 	return response, nil
 }
 
