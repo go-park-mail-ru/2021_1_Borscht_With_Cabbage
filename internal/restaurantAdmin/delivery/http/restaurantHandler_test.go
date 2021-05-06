@@ -276,3 +276,30 @@ func TestRestaurantHandler_UploadRestaurantImage_Error(t *testing.T) {
 		return
 	}
 }
+
+func TestRestaurantHandler_AddCategories(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	RestaurantUsecaseMock := adminMock.NewMockAdminRestaurantUsecase(ctrl)
+	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock, AuthServiceMock)
+
+	requestJSON := `{"categories":["burgers", "pizza"]}`
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/restaurant/", strings.NewReader(requestJSON))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	ctx := models.GetContext(c)
+
+	categories := models.Categories{}
+	categories.CategoriesID = append(categories.CategoriesID, "burgers", "pizza")
+
+	RestaurantUsecaseMock.EXPECT().AddCategories(ctx, categories).Return(nil)
+	err := restaurantHandler.AddCategories(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}

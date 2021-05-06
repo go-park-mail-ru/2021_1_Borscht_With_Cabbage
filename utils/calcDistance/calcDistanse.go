@@ -13,15 +13,17 @@ type TwoAddresses struct {
 	Longitude2 float64
 }
 
-func GetDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string) int {
+func GetDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string, radius int) int {
 	latitudeU, latitudeErrU := strconv.ParseFloat(latitudeUser, 64)
 	longitudeU, longitudeErrU := strconv.ParseFloat(longitudeUser, 64)
 	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
 	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
 	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
-		distanse := GetDistanceFromLatLonInKm(TwoAddresses{
-			Latitude1: latitudeU, Longitude1: longitudeU, Latitude2: latitudeR, Longitude2: longitudeR})
-		return int(restModel.MinutesInHour*distanse/restModel.CourierSpeed + restModel.CookingTime)
+		distance := GetDistanceFromLatLonInKm(TwoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
+		// временно пока не сделаем проверку через бд нормально
+		if distance*1000 <= float64(radius) {
+			return int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
+		}
 	}
 	return 0
 }

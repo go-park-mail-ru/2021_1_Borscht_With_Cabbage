@@ -79,18 +79,18 @@ func (mr *MockChatUsecaseMockRecorder) GetAllMessages(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMessages", reflect.TypeOf((*MockChatUsecase)(nil).GetAllMessages), arg0, arg1)
 }
 
-// MessageCame mocks base method
-func (m *MockChatUsecase) MessageCame(arg0 context.Context, arg1 *websocket.Conn, arg2 models.FromClient) error {
+// ProcessMessage mocks base method
+func (m *MockChatUsecase) ProcessMessage(arg0 context.Context, arg1 *websocket.Conn, arg2 models.FromClient) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MessageCame", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "ProcessMessage", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// MessageCame indicates an expected call of MessageCame
-func (mr *MockChatUsecaseMockRecorder) MessageCame(arg0, arg1, arg2 interface{}) *gomock.Call {
+// ProcessMessage indicates an expected call of ProcessMessage
+func (mr *MockChatUsecaseMockRecorder) ProcessMessage(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageCame", reflect.TypeOf((*MockChatUsecase)(nil).MessageCame), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessMessage", reflect.TypeOf((*MockChatUsecase)(nil).ProcessMessage), arg0, arg1, arg2)
 }
 
 // UnConnect mocks base method

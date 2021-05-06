@@ -3,15 +3,13 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"math"
-	"strconv"
-
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/calcDistance"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/lib/pq"
+	"math"
 )
 
 type restaurantRepo struct {
@@ -29,38 +27,6 @@ type twoAddresses struct {
 	longitude1 float64
 	latitude2  float64
 	longitude2 float64
-}
-
-func deg2rad(deg float64) float64 {
-	return deg * (math.Pi / 180)
-}
-
-func getDistanceFromLatLonInKm(coordinates twoAddresses) float64 {
-	R := 6371.0 // Radius of the Earth in km
-	dLat := deg2rad(coordinates.latitude2 - coordinates.latitude1)
-	dLon := deg2rad(coordinates.longitude2 - coordinates.longitude1)
-	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
-		math.Cos(deg2rad(coordinates.latitude1))*math.Cos(deg2rad(coordinates.latitude2))*
-			math.Sin(dLon/2)*math.Sin(dLon/2)
-
-	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	d := R * c // Distance in km
-	return d
-}
-
-func getDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string, radius int) int {
-	latitudeU, latitudeErrU := strconv.ParseFloat(latitudeUser, 64)
-	longitudeU, longitudeErrU := strconv.ParseFloat(longitudeUser, 64)
-	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
-	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
-	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
-		distance := getDistanceFromLatLonInKm(twoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
-		// временно пока не сделаем проверку через бд нормально
-		if distance*1000 <= float64(radius) {
-			return int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
-		}
-	}
-	return 0
 }
 
 func (r *restaurantRepo) GetVendor(ctx context.Context, request models.RestaurantRequest) ([]models.RestaurantInfo, error) {
@@ -137,7 +103,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 			&radius,
 		)
 
-		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(request.LatitudeUser, request.LongitudeUser,
 			restaurantLatitude, restaurantLongitude, radius)
 
 		if reviewsCount != 0 {
@@ -213,7 +179,7 @@ func (r *restaurantRepo) GetVendorWithCategory(ctx context.Context, request mode
 			&restaurantLatitude,
 			&restaurantLongitude,
 		)
-		restaurant.DeliveryTime = getDeliveryTime(request.LatitudeUser, request.LongitudeUser,
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(request.LatitudeUser, request.LongitudeUser,
 			restaurantLatitude, restaurantLongitude, 0)
 
 		if reviewsCount != 0 {
@@ -233,16 +199,17 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 	var ratingsSum, reviewsCount int
 	query :=
 		`
-	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount, a.latitude, a.longitude
+	SELECT r.rid, r.name, deliveryCost, avgCheck, description, avatar, ratingsSum, reviewsCount, a.latitude, a.longitude, a.radius
 	FROM restaurants as r
 	JOIN addresses a on r.rid = a.rid
 	WHERE r.rid=$1
 	`
 
 	var restaurantLongitude, restaurantLatitude string
+	var radius int
 	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
-			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount, &restaurantLatitude, &restaurantLongitude)
+			&restaurant.Description, &restaurant.Avatar, &ratingsSum, &reviewsCount, &restaurantLatitude, &restaurantLongitude, &radius)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -253,7 +220,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 	}
 
 	if coordinates.Latitude != "" && coordinates.Longitude != "" {
-		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, restaurantLatitude, restaurantLongitude)
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, restaurantLatitude, restaurantLongitude, radius)
 	}
 
 	logger.RepoLevel().InlineDebugLog(ctx, restaurant)
@@ -367,11 +334,11 @@ func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.Resta
 }
 
 func (r *restaurantRepo) GetUserAddress(ctx context.Context, uid int) (*models.Address, error) {
-	queri := `SELECT name, latitude, longitude FROM addresses WHERE uid = $1`
+	query := `SELECT name, latitude, longitude FROM addresses WHERE uid = $1`
 
 	logger.RepoLevel().InlineDebugLog(ctx, uid)
 	var address models.Address
-	err := r.DB.QueryRow(queri, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
+	err := r.DB.QueryRow(query, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
 	if err == sql.ErrNoRows {
 		logger.RepoLevel().InlineDebugLog(ctx, "end get address not address")
 		return &models.Address{}, nil
