@@ -101,6 +101,7 @@ func route(data initRoute) {
 	data.e.GET("/", data.restaurant.GetVendor)
 	data.e.GET("/restaurants", data.restaurant.GetVendor)
 	data.e.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
+	data.e.GET("/restaurant/:id/recommendations", data.restaurant.GetRecommendations)
 }
 
 func initServer(e *echo.Echo) {
