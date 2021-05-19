@@ -81,3 +81,9 @@ type RestaurantRequest struct {
 type Categories struct {
 	CategoriesID []string `json:"categories"`
 }
+
+type RecommendationsParams struct {
+	Id            int    `json:"id"`
+	LatitudeUser  string `json:"latitude"`
+	LongitudeUser string `json:"longitude"`
+}

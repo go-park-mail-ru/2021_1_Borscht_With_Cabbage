@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/calcDistance"
@@ -316,4 +317,93 @@ func (r *restaurantRepo) GetAllCategories(ctx context.Context) ([]string, error)
 		return nil, failError
 	}
 	return categories, nil
+}
+
+func (r *restaurantRepo) getRestaurantCategories(ctx context.Context, id int) ([]string, error) {
+	query :=
+		`
+	SELECT categoryID FROM categories_restaurants
+	WHERE restaurantID = $1
+	`
+	categoriesDB, err := r.DB.Query(query, id)
+	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineDebugLog(ctx, "getting restaurant categories failed")
+		return nil, err
+	}
+
+	categories := make([]string, 0)
+	for categoriesDB.Next() {
+		var categoryID string
+		err = categoriesDB.Scan(&categoryID)
+		if err != nil {
+			logger.RepoLevel().InlineDebugLog(ctx, "getting restaurant categories failed")
+			return nil, err
+		}
+		categories = append(categories, categoryID)
+	}
+
+	return categories, nil
+}
+
+func (r *restaurantRepo) GetRecommendations(ctx context.Context, params models.RecommendationsParams) ([]models.RestaurantInfo, error) {
+	categories, err := r.getRestaurantCategories(ctx, params.Id)
+	if err != nil {
+		return nil, nil
+	}
+	logger.RepoLevel().InlineDebugLog(ctx, categories)
+
+	query :=
+		`
+		SELECT DISTINCT r.rid, r.name, r.deliveryCost, r.avgCheck, r.description, r.avatar, 
+			r.ratingssum, r.reviewscount, a.latitude, a.longitude, a.radius
+		FROM restaurants AS r
+		JOIN categories_restaurants AS cr
+		ON r.rid = cr.restaurantID
+		JOIN categories AS c
+		ON cr.categoryID = c.cid
+		JOIN addresses a on r.rid = a.rid
+		WHERE c.cid = ANY ($1) AND r.rid != $2
+		LIMIT 6;
+	`
+	restaurantsDB, err := r.DB.Query(query, pq.Array(categories), params.Id)
+	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineDebugLog(ctx, "getting restaurants for recommendations failed")
+		return nil, nil
+	}
+
+	restaurants := make([]models.RestaurantInfo, 0)
+	for restaurantsDB.Next() {
+		var ratingsSum, reviewsCount int
+		restaurant := new(models.RestaurantInfo)
+
+		var restaurantLongitude, restaurantLatitude string
+		var radius int
+		err = restaurantsDB.Scan(
+			&restaurant.ID,
+			&restaurant.Title,
+			&restaurant.DeliveryCost,
+			&restaurant.AvgCheck,
+			&restaurant.Description,
+			&restaurant.Avatar,
+			&ratingsSum,
+			&reviewsCount,
+			&restaurantLatitude,
+			&restaurantLongitude,
+			&radius,
+		)
+
+		fmt.Println(params)
+		fmt.Println(restaurantLatitude, restaurantLongitude)
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(params.LatitudeUser, params.LongitudeUser,
+			restaurantLatitude, restaurantLongitude, radius)
+
+		if reviewsCount != 0 {
+			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+		}
+
+		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
+		restaurants = append(restaurants, *restaurant)
+	}
+
+	return restaurants, nil
 }
