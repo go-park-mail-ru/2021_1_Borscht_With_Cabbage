@@ -5,3 +5,4 @@ cover
 static/*
 config/config_server.go
 config/config.go
+ansible/files/certs/*
