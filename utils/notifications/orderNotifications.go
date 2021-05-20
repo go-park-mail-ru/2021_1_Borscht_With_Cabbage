@@ -14,9 +14,10 @@ type orderNotificator struct {
 	RestaurantConnectionsPool *websocketPool.ConnectionPool
 }
 
-type StatusMessage struct {
-	Uid       int    `json:"uid"`
-	NewStatus string `json:"status"`
+type WebsocketNotification struct {
+	Action       string `json:"action"`
+	Notification string `json:"notification"`
+	NewStatus    string `json:"status"`
 }
 
 func NewOrderNotificator(userPool, restaurantPool *websocketPool.ConnectionPool) OrderNotificator {
@@ -28,9 +29,10 @@ func NewOrderNotificator(userPool, restaurantPool *websocketPool.ConnectionPool)
 
 func (N orderNotificator) OrderStatusChangedNotification(status string, uid int) error {
 	wsSent := N.UserConnectionsPool.Connections[uid]
-	notification := StatusMessage{
-		Uid:       uid,
-		NewStatus: status,
+	notification := WebsocketNotification{
+		Action:       "message",
+		Notification: "status",
+		NewStatus:    status,
 	}
 	if wsSent != nil {
 		return wsSent.WriteJSON(notification)
