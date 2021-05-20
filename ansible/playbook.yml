@@ -32,9 +32,24 @@
         dest: /etc/systemd/system/api.service
     - name: "Systemctl daemon reload"
       command: systemctl daemon-reload
-      
+
+- name: "Install rpm"
+  become: yes
+  hosts: web
+  tasks:
+    - name: Install package.
+      apt:
+        name: rpm
+        state: present
+
 - name: "Install docker"
   become: yes
-  hosts: all
+  hosts: web
   roles:
     - role: geerlingguy.docker
+
+- name: "Install redis"
+  become: yes
+  hosts: dbserver
+  roles:
+    - role: geerlingguy.redis
