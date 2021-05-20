@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -120,6 +121,8 @@ func initServer(e *echo.Echo) {
 }
 
 func main() {
+	ctx := context.Background()
+	logger.DeliveryLevel().InlineInfoLog(ctx, "VERSION 1")
 	if config.ReadConfig() != nil {
 		return
 	}
