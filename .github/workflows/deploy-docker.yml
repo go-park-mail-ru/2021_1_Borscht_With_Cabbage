@@ -5,20 +5,20 @@ on:
     branches: [ dev, master, deploy ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Run tests with coverage
-        run: 
-          go test -coverpkg=./... -coverprofile=cover ./... && cat cover | grep -v "mock" | grep -v  "easyjson" | grep -v "proto" > cover.out &&
-          go tool cover -func=cover.out
+  #     - name: Run tests with coverage
+  #       run: 
+  #         go test -coverpkg=./... -coverprofile=cover ./... && cat cover | grep -v "mock" | grep -v  "easyjson" | grep -v "proto" > cover.out &&
+  #         go tool cover -func=cover.out
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    # needs: test
     steps:
       - uses: actions/checkout@v2
 
