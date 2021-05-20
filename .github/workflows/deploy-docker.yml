@@ -44,7 +44,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
-          script: sudo docker pull borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
+          script: sudo docker pull borschtwithcabbage/delivery-borscht_main:latest
       # - name: Deploy docker image
       #   uses: appleboy/ssh-action@master
       #   with:
