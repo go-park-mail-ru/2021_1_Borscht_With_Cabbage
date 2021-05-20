@@ -23,7 +23,7 @@ var (
 func ReadConfig() error {
 	ctx := context.Background()
 
-	viper.AddConfigPath("/home/sergei/Projects/GoProjects/2021_1_Borscht_With_Cabbage")
+	viper.AddConfigPath("/etc/deliveryborscht/conf")
 	viper.SetConfigName("config")
 	if err := viper.ReadInConfig(); err != nil {
 		logger.UtilsLevel().ErrorLog(ctx, err)
