@@ -1,6 +1,6 @@
 FROM golang:alpine as build
 
-COPY ./project
+COPY . /project
 
 WORKDIR /project
 
