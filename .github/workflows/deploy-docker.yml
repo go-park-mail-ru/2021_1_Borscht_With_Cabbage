@@ -27,37 +27,23 @@ jobs:
 
       - name: Build Docker images
         run: 
-          sudo docker build -t borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} -f ./docker/main/Dockerfile . &&
-          sudo docker tag  borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_main:latest
+          docker build -t borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} .
 
       - name: Push Docker images
         run: docker push borschtwithcabbage/delivery-borscht_main
-
-      - name: Upload dependencies
-        uses: actions/upload-artifact@v2
-        with:
-          name: Backend
-          path: |
-            ./docker-compose.yml
-            ./init
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Download dependencies
-        uses: actions/download-artifact@v1
+      - name: Pull docker image
+        uses: appleboy/ssh-action@master
         with:
-          name: Backend
-
-      # - name: Pull docker image
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     envs: GITHUB_SHA
-      #     host: ${{ secrets.HOST }}
-      #     username: ${{ secrets.USERNAME }}
-      #     key: ${{ secrets.PRIVATE_KEY }}
-      #     script: sudo docker pull borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
+          envs: GITHUB_SHA
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: sudo docker pull borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
       - name: Deploy docker image
         uses: appleboy/ssh-action@master
         with:
