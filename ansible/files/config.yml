@@ -13,6 +13,8 @@ db:
   user: delivery
   password: password
   nameDb: delivery_psql
+  host: localhost
+  port: 5432
 
 redis:
   host: localhost:6379

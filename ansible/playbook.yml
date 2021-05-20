@@ -15,6 +15,15 @@
       copy:
         src: files/config.yml
         dest: /etc/deliveryborscht/conf/config.yml
+
+- name: "Provide docker-compose"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Copy docker-compose"
+      copy:
+        src: files/docker-compose.yml
+        dest: /home/ubuntu
         
 - name: "Install nginx"
   hosts: web

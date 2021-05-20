@@ -23,6 +23,8 @@ var (
 	DBUser     string
 	DBPass     string
 	DBName     string
+	DBHost     string
+	DBPort     string
 
 	ChatServiceAddress   string
 	AuthServiceAddress   string
@@ -68,6 +70,8 @@ func saveConfig(ctx context.Context, config Config) {
 	DBUser = config.Db.User
 	DBPass = config.Db.Password
 	DBName = config.Db.NameDb
+	DBHost = config.Db.Host
+	DBPort = config.Db.Port
 
 	ChatServiceAddress = config.Microservices["chat"].GetFullHost()
 	AuthServiceAddress = config.Microservices["auth"].GetFullHost()
@@ -89,6 +93,8 @@ func saveConfig(ctx context.Context, config Config) {
 		"DBUser":     DBUser,
 		"DBPass":     DBPass,
 		"DBName":     DBName,
+		"DBHost":     DBHost,
+		"DBPort":     DBPort,
 
 		"Static":                 Static,
 		"DefaultStatic":          DefaultStatic,
