@@ -22,18 +22,19 @@
     - name: "Reload nginx configuration"
       command: nginx -s reload
 
-# - name: "Update systemd unit"
-#   become: yes
-#   hosts: web
-#   tasks:
-#     - name: "Provide actual unit file"
-#       copy:
-#         src: files/api.service
-#         dest: /etc/systemd/system/api.service
-#     - name: "Systemctl daemon reload"
-#       command: systemctl daemon-reload
-# - name: "Install docker"
-#   become: yes
-#   hosts: all
-#   roles:
-#     - role: geerlingguy.docker
+- name: "Update systemd unit"
+  become: yes
+  hosts: web
+  tasks:
+    - name: "Provide actual unit file"
+      copy:
+        src: files/api.service
+        dest: /etc/systemd/system/api.service
+    - name: "Systemctl daemon reload"
+      command: systemctl daemon-reload
+      
+- name: "Install docker"
+  become: yes
+  hosts: all
+  roles:
+    - role: geerlingguy.docker
