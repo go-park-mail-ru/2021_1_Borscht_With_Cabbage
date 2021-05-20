@@ -36,6 +36,7 @@ var (
 func ReadConfig() error {
 	ctx := context.Background()
 
+	viper.SetConfigType("yml")
 	viper.AddConfigPath("/etc/deliveryborscht/conf")
 	viper.SetConfigName("config")
 	if err := viper.ReadInConfig(); err != nil {
