@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/services/auth/config"
 	"github.com/gomodule/redigo/redis"
 	"github.com/stretchr/testify/require"
 )
@@ -40,8 +41,8 @@ func TestSessionRepo_Create(t *testing.T) {
 	sessionData := models.SessionData{
 		Session:         "session",
 		Id:              1,
-		Role:            config.RoleUser,
-		LifeTimeSeconds: config.LifetimeSecond,
+		Role:            configProject.RoleUser,
+		LifeTimeSeconds: configProject.LifetimeSecond,
 	}
 	expected, err := json.Marshal(models.SessionInfo{
 		Id:   sessionData.Id,
@@ -71,7 +72,7 @@ func TestSessionRepo_CheckTrue(t *testing.T) {
 	sessionData := models.SessionData{
 		Session: "session",
 		Id:      1,
-		Role:    config.RoleUser,
+		Role:    configProject.RoleUser,
 	}
 	expected := models.SessionInfo{
 		Id:   sessionData.Id,
@@ -125,7 +126,7 @@ func TestSessionRepo_DeleteTrue(t *testing.T) {
 	sessionData := models.SessionData{
 		Session: "session",
 		Id:      1,
-		Role:    config.RoleUser,
+		Role:    configProject.RoleUser,
 	}
 	expected := models.SessionInfo{
 		Id:   sessionData.Id,

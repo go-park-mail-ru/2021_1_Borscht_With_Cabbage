@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
@@ -120,7 +121,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: *restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 

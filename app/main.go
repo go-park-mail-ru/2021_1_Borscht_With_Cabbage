@@ -120,6 +120,10 @@ func initServer(e *echo.Echo) {
 }
 
 func main() {
+	if config.ReadConfig() != nil {
+		return
+	}
+
 	e := echo.New()
 	initServer(e)
 	grpcConnAuth, errr := grpc.Dial(
@@ -217,5 +221,5 @@ func main() {
 		wsMiddleware:    *initWsMiddleware,
 	})
 
-	e.Logger.Fatal(e.Start(":5000"))
+	e.Logger.Fatal(e.Start(":" + config.ServerPort))
 }

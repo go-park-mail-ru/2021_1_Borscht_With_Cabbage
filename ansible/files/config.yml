@@ -1,0 +1,39 @@
+protocol: http://
+
+server:
+  host: 89.208.197.150
+  port: 5000
+
+client:
+  host: 89.208.197.150
+  port: 3000
+
+db:
+  nameSql: postgres
+  user: delivery
+  password: password
+  nameDb: delivery_psql
+
+redis:
+  host: localhost:6379
+
+static:
+  folder: static
+  default: default
+
+  defaultUserImage: "http://89.208.197.150:5000/default/user/avatar/avatar.png"
+  defaultRestaurantImage: "http://89.208.197.150:5000/default/restaurant/restaurant.png"
+  defaultDishImage: "http://89.208.197.150:5000/default/dish/dish.png"
+
+microservices:
+- auth:
+    host: 89.208.197.150
+    port: 8081
+
+- basket:
+    host: 89.208.197.150
+    port: 8082
+
+- chat:
+    host: 89.208.197.150
+    port: 8083

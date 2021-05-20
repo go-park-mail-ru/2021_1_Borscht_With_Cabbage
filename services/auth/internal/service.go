@@ -2,11 +2,13 @@ package internal
 
 import (
 	"context"
+
 	"github.com/borscht/backend/utils/secure"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
+	"github.com/borscht/backend/services/auth/config"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/google/uuid"
@@ -41,7 +43,7 @@ func convertToSuccessUserResponse(user models.User, address models.Address, id i
 		Latitude:    address.Latitude,
 		Longitude:   address.Longitude,
 		Radius:      int32(address.Radius),
-		Role:        config.RoleUser,
+		Role:        configProject.RoleUser,
 	}
 }
 
@@ -56,7 +58,7 @@ func convertToSuccessRestaurantResponse(restaurant models.RestaurantInfo, addres
 		Description:  restaurant.Description,
 		Rating:       float32(restaurant.Rating),
 		Avatar:       restaurant.Avatar,
-		Role:         config.RoleAdmin,
+		Role:         configProject.RoleAdmin,
 	}
 }
 
@@ -136,7 +138,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		Title: restaurant.Name,
 		Email: restaurant.Email,
 		Phone: restaurant.Phone,
-		Role:  config.RoleAdmin,
+		Role:  configProject.RoleAdmin,
 		RID:   int32(rid),
 	}
 
@@ -246,7 +248,7 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.Sess
 		Session:         headSession + session,
 		Id:              int(sessionInfo.Id),
 		Role:            sessionInfo.Role,
-		LifeTimeSeconds: config.LifetimeSecond,
+		LifeTimeSeconds: configProject.LifetimeSecond,
 	}
 	err := s.sessionRepo.Create(ctx, sessionData)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/services/auth"
@@ -62,7 +63,7 @@ func getSessionInfo(ctx context.Context) (*models.SessionInfo, error) {
 
 		return &models.SessionInfo{
 			Id:   user.Uid,
-			Role: config.RoleUser,
+			Role: configProject.RoleUser,
 		}, nil
 	}
 
@@ -76,7 +77,7 @@ func getSessionInfo(ctx context.Context) (*models.SessionInfo, error) {
 		}
 		return &models.SessionInfo{
 			Id:   restaurant.ID,
-			Role: config.RoleAdmin,
+			Role: configProject.RoleAdmin,
 		}, nil
 	}
 

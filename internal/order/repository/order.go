@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/order"
@@ -215,7 +215,7 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 }
 
 func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
-	timeToDB, err := time.Parse(config.TimeFormat, newStatus.DeliveryTime)
+	timeToDB, err := time.Parse(configProject.TimeFormat, newStatus.DeliveryTime)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error while converting time")
 		return errors.BadRequestError("Error while converting time")

@@ -2,14 +2,15 @@ package http
 
 import (
 	"encoding/json"
-	authServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/borscht/backend/config"
+	authServiceMock "github.com/borscht/backend/internal/services/mocks"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	userMock "github.com/borscht/backend/internal/user/mocks"
 	"github.com/borscht/backend/utils/errors"
@@ -41,14 +42,14 @@ func TestHandler_CreateUser(t *testing.T) {
 	}
 	response := models.SuccessUserResponse{
 		User: output,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 	address := models.Address{}
 	response.Address = address
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -146,12 +147,12 @@ func TestHandler_Login(t *testing.T) {
 		Uid:      1,
 	}
 	response := models.SuccessUserResponse{
-		output, config.RoleUser,
+		output, configProject.RoleUser,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -248,7 +249,7 @@ func TestHandler_GetUserData(t *testing.T) {
 		Name: "Daria",
 	}
 	response := models.SuccessUserResponse{
-		user, config.RoleUser,
+		user, configProject.RoleUser,
 	}
 
 	UserUsecaseMock.EXPECT().GetUserData(ctx).Return(&response, nil)
@@ -285,7 +286,7 @@ func TestHandler_UpdateData(t *testing.T) {
 	}
 	response := models.SuccessUserResponse{
 		User: output,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -393,12 +394,12 @@ func TestHandler_CheckAuth(t *testing.T) {
 		Uid:      1,
 	}
 	responseUser := models.SuccessUserResponse{
-		output, config.RoleUser,
+		output, configProject.RoleUser,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -407,7 +408,7 @@ func TestHandler_CheckAuth(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -440,12 +441,12 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 		Uid:      1,
 	}
 	responseUser := models.SuccessUserResponse{
-		output, config.RoleUser,
+		output, configProject.RoleUser,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -454,7 +455,7 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -487,12 +488,12 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
 
 	responseRest := models.SuccessRestaurantResponse{
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   1,
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	e := echo.New()
@@ -501,7 +502,7 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -544,7 +545,7 @@ func TestHandler_CheckAuth_WrongRole(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -614,7 +615,7 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -623,7 +624,7 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -660,7 +661,7 @@ func TestHandler_Logout(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -729,7 +730,7 @@ func TestHandler_UpdateMainAddress(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -760,7 +761,7 @@ func TestHandler_UpdateMainAddress_BindError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -800,7 +801,7 @@ func TestHandler_GetMainAddress(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)

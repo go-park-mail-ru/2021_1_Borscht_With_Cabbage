@@ -2,16 +2,17 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/borscht/backend/config"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/chat/mocks"
 	"github.com/borscht/backend/internal/models"
 	authServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestChatHandler_GetKey_User(t *testing.T) {
@@ -34,7 +35,7 @@ func TestChatHandler_GetKey_User(t *testing.T) {
 	ctx := models.GetContext(c)
 
 	AuthServiceMock.EXPECT().CreateKey(ctx, models.SessionInfo{
-		Id: 1, Role: config.RoleUser,
+		Id: 1, Role: configProject.RoleUser,
 	}).Return("key", nil)
 
 	err := ChatHandler.GetKey(c)
@@ -63,7 +64,7 @@ func TestChatHandler_GetKey_Restaurant(t *testing.T) {
 	ctx := models.GetContext(c)
 
 	AuthServiceMock.EXPECT().CreateKey(ctx, models.SessionInfo{
-		Id: 1, Role: config.RoleAdmin,
+		Id: 1, Role: configProject.RoleAdmin,
 	}).Return("key", nil)
 
 	err := ChatHandler.GetKey(c)

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -77,7 +78,7 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 
 	return &models.SuccessUserResponse{
 		User: responseUser,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}, nil
 }
 
@@ -134,7 +135,7 @@ func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (
 
 	response := &models.SuccessUserResponse{
 		User: responseUser,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	return response, err

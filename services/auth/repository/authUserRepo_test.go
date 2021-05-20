@@ -3,12 +3,13 @@ package authRepo
 import (
 	"context"
 	"database/sql"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
+	"github.com/borscht/backend/services/auth/config"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 type UserInfo struct {

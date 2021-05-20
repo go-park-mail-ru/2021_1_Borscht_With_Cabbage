@@ -3,14 +3,15 @@ package internal
 import (
 	"context"
 	"database/sql"
-	"github.com/borscht/backend/config"
+	"testing"
+
+	"github.com/borscht/backend/configProject"
 	mocks2 "github.com/borscht/backend/services/chat/mocks"
 	"github.com/borscht/backend/services/chat/models"
 	proto "github.com/borscht/backend/services/proto/chat"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewService(t *testing.T) {
@@ -27,7 +28,7 @@ func TestService_GetAllChatsUser(t *testing.T) {
 
 	logger.InitLogger()
 
-	infoUser := proto.InfoUser{Id: 1, Role: config.RoleUser}
+	infoUser := proto.InfoUser{Id: 1, Role: configProject.RoleUser}
 	chatsResult := []models.ChatInfo{{
 		Message: models.Message{
 			Mid:  1,
@@ -36,11 +37,11 @@ func TestService_GetAllChatsUser(t *testing.T) {
 		},
 		User: models.User{
 			Id:   1,
-			Role: config.RoleUser,
+			Role: configProject.RoleUser,
 		},
 	}}
 
-	user := models.User{Id: infoUser.Id, Role: config.RoleUser}
+	user := models.User{Id: infoUser.Id, Role: configProject.RoleUser}
 	chatRepoMock.EXPECT().GetAllChats(ctx, user).Return(chatsResult, nil)
 
 	infoMessage, err := chatService.GetAllChats(ctx, &infoUser)
@@ -63,7 +64,7 @@ func TestService_GetAllChatsRestaurant(t *testing.T) {
 
 	logger.InitLogger()
 
-	infoUser := proto.InfoUser{Id: 1, Role: config.RoleAdmin}
+	infoUser := proto.InfoUser{Id: 1, Role: configProject.RoleAdmin}
 	chatsResult := []models.ChatInfo{{
 		Message: models.Message{
 			Mid:  1,
@@ -72,11 +73,11 @@ func TestService_GetAllChatsRestaurant(t *testing.T) {
 		},
 		User: models.User{
 			Id:   1,
-			Role: config.RoleAdmin,
+			Role: configProject.RoleAdmin,
 		},
 	}}
 
-	user := models.User{Id: infoUser.Id, Role: config.RoleAdmin}
+	user := models.User{Id: infoUser.Id, Role: configProject.RoleAdmin}
 	chatRepoMock.EXPECT().GetAllChats(ctx, user).Return(chatsResult, nil)
 
 	infoMessage, err := chatService.GetAllChats(ctx, &infoUser)
@@ -122,20 +123,20 @@ func TestService_GetAllMessages(t *testing.T) {
 
 	users := proto.Speakers{
 		Speaker1: &proto.InfoUser{
-			Id: 1, Role: config.RoleUser,
+			Id: 1, Role: configProject.RoleUser,
 		},
 		Speaker2: &proto.InfoUser{
-			Id: 1, Role: config.RoleAdmin,
+			Id: 1, Role: configProject.RoleAdmin,
 		},
 	}
 	chat := []models.Chat{{
 		Sender: models.User{
 			Id:   1,
-			Role: config.RoleUser,
+			Role: configProject.RoleUser,
 		},
 		Recipient: models.User{
 			Id:   1,
-			Role: config.RoleAdmin,
+			Role: configProject.RoleAdmin,
 		},
 		Message: models.Message{
 			Mid:  12,
@@ -178,11 +179,11 @@ func TestService_ProcessMessage(t *testing.T) {
 		Participants: &proto.Participants{
 			Sender: &proto.InfoUser{
 				Id:   1,
-				Role: config.RoleUser,
+				Role: configProject.RoleUser,
 			},
 			Recipient: &proto.InfoUser{
 				Id:   1,
-				Role: config.RoleUser,
+				Role: configProject.RoleUser,
 			},
 		},
 	}

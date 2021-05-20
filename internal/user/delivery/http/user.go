@@ -1,13 +1,14 @@
 package http
 
 import (
-	"github.com/borscht/backend/internal/services/auth"
 	"net/http"
 	"time"
 
+	"github.com/borscht/backend/internal/services/auth"
+
 	"github.com/borscht/backend/utils/validation"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils/errors"
@@ -31,7 +32,7 @@ func NewUserHandler(userUcase userModel.UserUsecase, serviceAuth auth.ServiceAut
 func setResponseCookie(c echo.Context, session string) {
 	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     config.SessionCookie,
+		Name:     configProject.SessionCookie,
 		Value:    session,
 		HttpOnly: true,
 	}
@@ -41,7 +42,7 @@ func setResponseCookie(c echo.Context, session string) {
 func deleteResponseCookie(c echo.Context) {
 	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(-24 * time.Hour),
-		Name:     config.SessionCookie,
+		Name:     configProject.SessionCookie,
 		Value:    "session",
 		HttpOnly: true,
 	}
@@ -74,7 +75,7 @@ func (h Handler) Create(c echo.Context) error {
 
 	sessionInfo := models.SessionInfo{
 		Id:   responseUser.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
@@ -110,7 +111,7 @@ func (h Handler) Login(c echo.Context) error {
 
 	sessionInfo := models.SessionInfo{
 		Id:   oldUser.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 
@@ -172,7 +173,7 @@ func (h Handler) UploadAvatar(c echo.Context) error {
 // TODO: подумать как это можно изменить
 func (h Handler) CheckAuth(c echo.Context) error {
 	ctx := models.GetContext(c)
-	cookie, err := c.Cookie(config.SessionCookie)
+	cookie, err := c.Cookie(configProject.SessionCookie)
 	if err != nil {
 		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -192,7 +193,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 	}
 
 	switch sessionData.Role {
-	case config.RoleAdmin:
+	case configProject.RoleAdmin:
 		restaurant, err := h.AuthService.GetByRid(ctx, sessionData.Id)
 		if err != nil {
 			sendErr := errors.BadRequestError(err.Error())
@@ -201,7 +202,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 		}
 		return models.SendResponse(c, restaurant)
 
-	case config.RoleUser:
+	case configProject.RoleUser:
 		user, err := h.AuthService.GetByUid(ctx, sessionData.Id)
 		if err != nil {
 			sendErr := errors.BadRequestError(err.Error())
@@ -219,7 +220,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 func (h Handler) Logout(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	cook, err := c.Cookie(config.SessionCookie)
+	cook, err := c.Cookie(configProject.SessionCookie)
 	if err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
