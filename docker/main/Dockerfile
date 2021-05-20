@@ -1,13 +1,14 @@
 FROM golang:alpine as build
 
-COPY . /project
+WORKDIR /app
+COPY ./ /app
 
-WORKDIR /project
+RUN CGO_ENABLED=0 go build -o mainService app/main.go
 
-RUN apk add make && make build
 
 FROM alpine:latest
 
-COPY --from=build /project/app /bin/
-
-CMD ["app"]
+WORKDIR /app
+COPY --from=build /app/mainService /app/
+RUN chmod +x /app/mainService
+ENTRYPOINT /app/mainService
