@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/borscht/backend/utils/notifications"
+	"github.com/borscht/backend/utils/websocketPool"
 	"log"
 
 	"github.com/borscht/backend/internal/services/auth"
@@ -174,6 +176,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	orderNotificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+
 	userRepo := userRepo.NewUserRepo(db)
 	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
 	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
@@ -188,14 +194,14 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
-	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService)
+	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
-	orderHandler := http.NewOrderHandler(orderUsecase, basketService)
+	orderHandler := http.NewOrderHandler(orderUsecase, basketService, orderNotificator)
 	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)

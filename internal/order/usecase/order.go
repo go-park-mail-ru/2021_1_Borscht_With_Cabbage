@@ -35,12 +35,12 @@ func (o orderUsecase) GetRestaurantOrders(ctx context.Context, restaurantName st
 	return o.orderRepository.GetRestaurantOrders(ctx, restaurantName)
 }
 
-func (o orderUsecase) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
+func (o orderUsecase) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) (int, error) {
 	restaurant, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
 		failError := errors.FailServerError("failed to convert to models.Restaurant")
 		logger.UsecaseLevel().ErrorLog(ctx, failError)
-		return failError
+		return 0, failError
 	}
 
 	newStatus.Restaurant = restaurant.Title
