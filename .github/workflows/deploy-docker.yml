@@ -27,7 +27,8 @@ jobs:
 
       - name: Build Docker images
         run: 
-          sudo docker build -t borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} -f ./docker/main/Dockerfile .
+          sudo docker build -t borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} -f ./docker/main/Dockerfile . &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_main:latest
 
       - name: Push Docker images
         run: docker push borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
