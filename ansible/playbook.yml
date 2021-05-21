@@ -7,14 +7,14 @@
 #         src: files/certs
 #         dest: /home/ubuntu
 
-# - name: "Provide Project config"
-#   hosts: web
-#   become: yes
-#   tasks:
-#     - name: "Copy config"
-#       copy:
-#         src: files/config.yml
-#         dest: /etc/deliveryborscht/conf/config.yml
+- name: "Provide Project config"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Copy config"
+      copy:
+        src: files/config.yml
+        dest: /etc/deliveryborscht/conf/config.yml
 
 - name: "Provide docker-compose"
   hosts: web
