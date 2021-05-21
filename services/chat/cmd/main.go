@@ -24,7 +24,9 @@ func main() {
 		return
 	}
 	// подключение postgres
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.DBHost, config.DBPort, config.DBUser, config.DBPass, config.DBName)
+
 	db, err := sql.Open(config.PostgresDB, dsn)
 	if err != nil {
 		log.Fatal(err)

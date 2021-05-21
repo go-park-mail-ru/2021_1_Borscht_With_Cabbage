@@ -13,6 +13,8 @@ var (
 	DBUser     string
 	DBPass     string
 	DBName     string
+	DBHost     string
+	DBPort     string
 	Port       string
 )
 
@@ -48,6 +50,8 @@ func saveConfig(ctx context.Context, config Config) {
 		"DBUser":     DBUser,
 		"DBPass":     DBPass,
 		"DBName":     DBName,
+		"DBHost":     DBHost,
+		"DBPort":     DBPort,
 		"Port":       Port,
 	})
 }

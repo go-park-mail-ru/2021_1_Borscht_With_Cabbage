@@ -13,6 +13,8 @@ var (
 	DBUser                 string
 	DBPass                 string
 	DBName                 string
+	DBHost                 string
+	DBPort                 string
 	RedisHost              string
 	Port                   string
 	DefaultUserImage       string
@@ -58,6 +60,8 @@ func saveConfig(ctx context.Context, config Config) {
 		"DBUser":                 DBUser,
 		"DBPass":                 DBPass,
 		"DBName":                 DBName,
+		"DBHost":                 DBHost,
+		"DBPort":                 DBPort,
 		"RedisHost":              RedisHost,
 		"DefaultUserImage":       DefaultUserImage,
 		"DefaultRestaurantImage": DefaultRestaurantImage,

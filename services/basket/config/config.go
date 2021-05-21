@@ -14,6 +14,8 @@ var (
 	DBPass     string
 	DBName     string
 	Port       string
+	DBHost     string
+	DBPort     string
 )
 
 func ReadConfig() error {
@@ -48,6 +50,8 @@ func saveConfig(ctx context.Context, config Config) {
 		"DBUser":     DBUser,
 		"DBPass":     DBPass,
 		"DBName":     DBName,
+		"DBHost":     DBHost,
+		"DBPort":     DBPort,
 		"Port":       Port,
 	})
 }

@@ -25,31 +25,43 @@ jobs:
       - name: Login to DockerHub Registry
         run: echo '${{ secrets.DOCKERHUB_PASSWORD }}' | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-      - name: Build Docker images
+      - name: Build Main Docker images
         run: 
           sudo docker build -t borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} -f ./docker/main/Dockerfile . &&
-          sudo docker tag borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_main:latest &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_main:latest
 
+      - name: Build Auth Docker images
+        run: 
           sudo docker build -t borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} -f ./docker/auth/Dockerfile . &&
-          sudo docker tag borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_auth:latest &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_auth:latest
 
+      - name: Build Basket Docker images
+        run: 
           sudo docker build -t borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} -f ./docker/basket/Dockerfile . &&
-          sudo docker tag borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_basket:latest &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_basket:latest
 
+      - name: Build Chat Docker images
+        run: 
           sudo docker build -t borschtwithcabbage/delivery-borscht_chat:${GITHUB_SHA::8} -f ./docker/chat/Dockerfile . &&
           sudo docker tag borschtwithcabbage/delivery-borscht_chat:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_chat:latest
 
-      - name: Push Docker images
+      - name: Push Main Docker images
         run: 
           docker push borschtwithcabbage/delivery-borscht_main:latest &&
-          docker push borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} &&
+          docker push borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
 
+      - name: Push Auth Docker images
+        run: 
           docker push borschtwithcabbage/delivery-borscht_auth:latest &&
-          docker push borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} &&
+          docker push borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8}
 
+      - name: Push Basket Docker images
+        run: 
           docker push borschtwithcabbage/delivery-borscht_basket:latest &&
-          docker push borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} &&
+          docker push borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8}
 
+      - name: Push Chat Docker images
+        run: 
           docker push borschtwithcabbage/delivery-borscht_chat:latest &&
           docker push borschtwithcabbage/delivery-borscht_chat:${GITHUB_SHA::8}
 
@@ -57,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Pull docker image
+      - name: Pull All docker image
         uses: appleboy/ssh-action@master
         with:
           envs: GITHUB_SHA

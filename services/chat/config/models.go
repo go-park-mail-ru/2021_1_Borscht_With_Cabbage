@@ -5,6 +5,8 @@ type Db struct {
 	User     string
 	Password string
 	NameDb   string
+	Host     string
+	Port     string
 }
 
 type Microservice struct {
