@@ -16,19 +16,20 @@ import (
 	"github.com/borscht/backend/utils/uniq"
 )
 
-// TODO: хранить статику в /var/...
-
 const (
 	HeadAvatar = "static/user/avatar/"
 )
 
 type userUsecase struct {
-	userRepository  user.UserRepo
-	imageRepository image.ImageRepo
+	FolderSaveImages string
+	userRepository   user.UserRepo
+	imageRepository  image.ImageRepo
 }
 
 func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase {
 	return &userUsecase{
+		FolderSaveImages: config.Static,
+
 		userRepository:  repo,
 		imageRepository: image,
 	}
@@ -159,14 +160,14 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 	}
 
 	if user.Avatar != config.DefaultUserImage {
-		removeFile := strings.Replace(user.Avatar, config.Repository, "", -1)
+		removeFile := u.FolderSaveImages + strings.Replace(user.Avatar, config.Repository, "", -1)
 		err := u.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	filename := HeadAvatar + uid + expansion
+	filename := u.FolderSaveImages + HeadAvatar + uid + expansion
 	err := u.imageRepository.UploadImage(ctx, filename, image)
 	if err != nil {
 		return nil, err

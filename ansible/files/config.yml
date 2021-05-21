@@ -20,12 +20,13 @@ redis:
   host: delivery-borscht_redis:6379
 
 static:
-  folder: static
+  # путь до дирректории куда будут сохранятся загруженные фотки
+  folder: /data/images
   default: default
 
-  defaultUserImage: "http://89.208.197.150:5000/default/user/avatar/avatar.png"
-  defaultRestaurantImage: "http://89.208.197.150:5000/default/restaurant/restaurant.png"
-  defaultDishImage: "http://89.208.197.150:5000/default/dish/dish.png"
+  defaultUserImage: "https://delivery-borscht.ru/default/user/avatar/avatar.png"
+  defaultRestaurantImage: "http://delivery-borscht.ru/default/restaurant/restaurant.png"
+  defaultDishImage: "http://delivery-borscht.ru/default/dish/dish.png"
 
 microservices:
 - auth:

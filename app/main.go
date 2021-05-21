@@ -106,7 +106,7 @@ func route(data initRoute) {
 }
 
 func initServer(e *echo.Echo) {
-	e.Static("/static", config.Static)
+	e.Static("/static", config.Static+"/static")
 	e.Static("/default", config.DefaultStatic)
 
 	logger.InitLogger()
@@ -114,7 +114,7 @@ func initServer(e *echo.Echo) {
 	e.Use(custMiddleware.CORS)
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup: "header:X-XSRF-TOKEN",
-		CookiePath:  "",
+		CookiePath:  "/",
 	}))
 
 	e.Use(middleware.Secure())

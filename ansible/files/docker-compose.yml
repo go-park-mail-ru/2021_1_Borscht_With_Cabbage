@@ -1,0 +1,84 @@
+version: "3.7"
+
+volumes:
+  pg_project:
+
+services:
+  postgres:
+    image: postgres
+    container_name: delivery-borscht_postgres
+    restart: always
+    environment:
+        - POSTGRES_USER=delivery
+        - POSTGRES_PASSWORD=password
+        - POSTGRES_DB=delivery_psql
+    volumes:
+        - pg_project:/var/lib/postgresql/data
+    ports:
+        - ${POSTGRES_PORT:-5432}:5432
+    # expose:
+    #   - 5432
+    # env_file:
+    #   - init/database.env
+    volumes:
+      - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      # - /var/lib/postgresql/data:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:4.0-alpine
+    container_name: delivery-borscht_redis
+    restart: always
+    # volumes:
+    #     - redis:/data
+    expose:
+      - 6379
+
+  main:
+    image: borschtwithcabbage/delivery-borscht_main:latest
+    container_name: delivery-borscht_main
+    restart: always
+    ports:
+      - 5000:5000
+    volumes:
+        - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+    #   - ./avatars:/avatars
+    #   - ./default:/default
+    #   - ./attachments:/attachments
+    # env_file:
+    #   - config.env
+    depends_on:
+      - postgres
+
+  auth:
+    image: borschtwithcabbage/delivery-borscht_auth:latest
+    container_name: delivery-borscht_auth
+    restart: always
+    expose:
+      - 8081
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+
+  basket:
+    image: borschtwithcabbage/delivery-borscht_basket:latest
+    container_name: delivery-borscht_basket
+    restart: always
+    expose:
+      - 8082
+    depends_on:
+      - postgres
+    volumes:
+      - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+
+  chat:
+    image: borschtwithcabbage/delivery-borscht_chat:latest
+    container_name: delivery-borscht_chat
+    restart: always
+    expose:
+      - 8083
+    depends_on:
+      - postgres
+    volumes:
+      - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
