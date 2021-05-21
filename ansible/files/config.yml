@@ -1,11 +1,11 @@
 protocol: http://
 
 server:
-  host: 89.208.197.150
+  host: delivery-borscht.ru
   port: 5000
 
 client:
-  host: 89.208.197.150
+  host: delivery-borscht.ru
   port: 3000
 
 db:
