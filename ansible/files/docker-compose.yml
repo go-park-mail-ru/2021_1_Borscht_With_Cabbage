@@ -1,8 +1,5 @@
 version: "3.7"
 
-volumes:
-  pg_project:
-
 services:
   postgres:
     image: postgres
@@ -12,8 +9,6 @@ services:
         - POSTGRES_USER=delivery
         - POSTGRES_PASSWORD=password
         - POSTGRES_DB=delivery_psql
-    volumes:
-        - pg_project:/var/lib/postgresql/data
     ports:
         - ${POSTGRES_PORT:-5432}:5432
     # expose:
@@ -22,6 +17,7 @@ services:
     #   - init/database.env
     volumes:
       - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - /home/ubuntu/var/lib/postgresql/data:/var/lib/postgresql/data/
       # - /var/lib/postgresql/data:/var/lib/postgresql/data/
 
   redis:
@@ -41,6 +37,7 @@ services:
       - 5000:5000
     volumes:
         - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+        - /data:/data
     #   - ./avatars:/avatars
     #   - ./default:/default
     #   - ./attachments:/attachments
@@ -60,6 +57,7 @@ services:
       - redis
     volumes:
       - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+      - /data:/data
 
   basket:
     image: borschtwithcabbage/delivery-borscht_basket:latest
@@ -71,6 +69,7 @@ services:
       - postgres
     volumes:
       - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+      - /data/data
 
   chat:
     image: borschtwithcabbage/delivery-borscht_chat:latest
@@ -82,3 +81,4 @@ services:
       - postgres
     volumes:
       - /etc/deliveryborscht/conf:/etc/deliveryborscht/conf
+      - /data:/data

@@ -1,4 +1,4 @@
-protocol: http://
+protocol: https://
 
 server:
   host: delivery-borscht.ru
@@ -21,9 +21,10 @@ redis:
 
 static:
   # путь до дирректории куда будут сохранятся загруженные фотки
-  folder: /data/images
+  folder: /data/images/
   default: default
 
+  repository: "https://delivery-borscht.ru/"
   defaultUserImage: "https://delivery-borscht.ru/default/user/avatar/avatar.png"
   defaultRestaurantImage: "http://delivery-borscht.ru/default/restaurant/restaurant.png"
   defaultDishImage: "http://delivery-borscht.ru/default/dish/dish.png"

@@ -34,40 +34,40 @@
 #         src: files/tables.sql
 #         dest: /home/ubuntu
 
-- name: "Provide Project static backend"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Create directory"
-      command: 
-        mkdir -p /data/images/static/dish &&
-        mkdir -p /data/images/static/restaurant &&
-        mkdir -p /data/images/static/user/avatar
+# - name: "Provide Project static backend"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Create directory"
+#       command: 
+#         mkdir -p /data/images/static/dish &&
+#         mkdir -p /data/images/static/restaurant &&
+#         mkdir -p /data/images/static/user/avatar
 
 
-- name: "Provide Project static frontend"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Create directory"
-      command: mkdir -p /data/images
+# - name: "Provide Project static frontend"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Create directory"
+#       command: mkdir -p /data/images
 
-    - name: "Copy static"
-      copy:
-        src: files/static/static
-        dest: /data/images
+#     - name: "Copy static"
+#       copy:
+#         src: files/static/static
+#         dest: /data/images
 
-- name: "Provide Project default static backend"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Create directory"
-      command: mkdir -p /data/images
+# - name: "Provide Project default static backend"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Create directory"
+#       command: mkdir -p /data/images
 
-    - name: "Copy default static"
-      copy:
-        src: files/static/default
-        dest: /data/images
+#     - name: "Copy default static"
+#       copy:
+#         src: files/static/default
+#         dest: /data/images
         
 - name: "Install nginx"
   hosts: web

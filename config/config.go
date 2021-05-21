@@ -60,7 +60,7 @@ func saveConfig(ctx context.Context, config Config) {
 	HostAddress = config.Server.Host
 	Host = Protocol + HostAddress
 	ServerPort = config.Server.Port
-	Repository = Host + ":" + ServerPort + "/"
+	Repository = config.Static.Repository
 	Client = config.Client.Host + ":" + config.Client.Port + "/"
 
 	Static = config.Static.Folder

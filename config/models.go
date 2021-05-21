@@ -31,6 +31,7 @@ func (s Microservice) GetFullHost() string {
 type StaticProject struct {
 	Folder                 string
 	Default                string
+	Repository             string
 	DefaultUserImage       string
 	DefaultRestaurantImage string
 	DefaultDishImage       string
