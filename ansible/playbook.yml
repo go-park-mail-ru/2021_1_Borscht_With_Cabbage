@@ -1,20 +1,20 @@
 ---   
-- name: "Provide certs"
-  hosts: web
-  tasks:
-    - name: "Copy certs"
-      copy:
-        src: files/certs
-        dest: /home/ubuntu
+# - name: "Provide certs"
+#   hosts: web
+#   tasks:
+#     - name: "Copy certs"
+#       copy:
+#         src: files/certs
+#         dest: /home/ubuntu
 
-- name: "Provide Project config"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Copy config"
-      copy:
-        src: files/config.yml
-        dest: /etc/deliveryborscht/conf/config.yml
+# - name: "Provide Project config"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Copy config"
+#       copy:
+#         src: files/config.yml
+#         dest: /etc/deliveryborscht/conf/config.yml
 
 - name: "Provide docker-compose"
   hosts: web
@@ -25,58 +25,58 @@
         src: files/docker-compose.yml
         dest: /home/ubuntu
 
-- name: "Provide tables.sql"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Copy tables.sql"
-      copy:
-        src: files/tables.sql
-        dest: /home/ubuntu
+# - name: "Provide tables.sql"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Copy tables.sql"
+#       copy:
+#         src: files/tables.sql
+#         dest: /home/ubuntu
         
-- name: "Install nginx"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Install nginx from apt"
-      apt:
-        name: nginx
-        state: present
-    - name: "Copy nginx config"
-      copy:
-        src: files/delivery-borscht.ru.conf
-        dest: /etc/nginx/conf.d
-    - name: "Reload nginx configuration"
-      command: nginx -s reload
+# - name: "Install nginx"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Install nginx from apt"
+#       apt:
+#         name: nginx
+#         state: present
+#     - name: "Copy nginx config"
+#       copy:
+#         src: files/delivery-borscht.ru.conf
+#         dest: /etc/nginx/conf.d
+#     - name: "Reload nginx configuration"
+#       command: nginx -s reload
 
-- name: "Update systemd unit"
-  become: yes
-  hosts: web
-  tasks:
-    - name: "Provide actual unit file"
-      copy:
-        src: files/api.service
-        dest: /etc/systemd/system/api.service
-    - name: "Systemctl daemon reload"
-      command: systemctl daemon-reload
+# - name: "Update systemd unit"
+#   become: yes
+#   hosts: web
+#   tasks:
+#     - name: "Provide actual unit file"
+#       copy:
+#         src: files/api.service
+#         dest: /etc/systemd/system/api.service
+#     - name: "Systemctl daemon reload"
+#       command: systemctl daemon-reload
 
-- name: "Install rpm"
-  become: yes
-  hosts: web
-  tasks:
-    - name: Install package.
-      apt:
-        name: rpm
-        state: present
+# - name: "Install rpm"
+#   become: yes
+#   hosts: web
+#   tasks:
+#     - name: Install package.
+#       apt:
+#         name: rpm
+#         state: present
 
-- name: "Install docker"
-  become: yes
-  hosts: web
-  roles:
-    - role: geerlingguy.docker
+# - name: "Install docker"
+#   become: yes
+#   hosts: web
+#   roles:
+#     - role: geerlingguy.docker
 
-- name: "Install redis"
-  become: yes
-  hosts: dbserver
-  roles:
-    - role: geerlingguy.redis
+# - name: "Install redis"
+#   become: yes
+#   hosts: dbserver
+#   roles:
+#     - role: geerlingguy.redis

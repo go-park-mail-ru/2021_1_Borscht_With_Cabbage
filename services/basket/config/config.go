@@ -42,6 +42,8 @@ func saveConfig(ctx context.Context, config Config) {
 	DBUser = config.Db.User
 	DBPass = config.Db.Password
 	DBName = config.Db.NameDb
+	DBHost = config.Db.Host
+	DBPort = config.Db.Port
 
 	Port = config.Microservices["basket"].Port
 

@@ -17,7 +17,7 @@ db:
   port: 5432
 
 redis:
-  host: localhost:6379
+  host: delivery-borscht_redis:6379
 
 static:
   folder: static
@@ -29,13 +29,13 @@ static:
 
 microservices:
 - auth:
-    host: 89.208.197.150
+    host: delivery-borscht_auth
     port: 8081
 
 - basket:
-    host: 89.208.197.150
+    host: delivery-borscht_basket
     port: 8082
 
 - chat:
-    host: 89.208.197.150
+    host: delivery-borscht_chat
     port: 8083
