@@ -81,16 +81,6 @@ jobs:
             sudo docker pull borschtwithcabbage/delivery-borscht_auth:latest &&
             sudo docker pull borschtwithcabbage/delivery-borscht_basket:latest &&
             sudo docker pull borschtwithcabbage/delivery-borscht_chat:latest
-      - name: Deploy docker image
-        uses: appleboy/ssh-action@master
-        with:
-          envs: GITHUB_SHA
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          script: |
-            sudo docker rm -f $(sudo docker ps -aq)
-            sudo docker run -e VERSION=${GITHUB_SHA::8} -d -p 8080:8080 borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
 
       - name: Run backend
         uses: appleboy/ssh-action@master
@@ -99,7 +89,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
-            export PATH=/snap/bin:$PATH
             cd /home/ubuntu
-            docker-compose stop
-            docker-compose up -d
+            sudo docker-compose stop
+            sudo docker-compose up -d
