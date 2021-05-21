@@ -24,6 +24,15 @@
       copy:
         src: files/docker-compose.yml
         dest: /home/ubuntu
+
+- name: "Provide tables.sql"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Copy tables.sql"
+      copy:
+        src: files/tables.sql
+        dest: /home/ubuntu
         
 - name: "Install nginx"
   hosts: web

@@ -13,7 +13,7 @@ db:
   user: delivery
   password: password
   nameDb: delivery_psql
-  host: localhost
+  host: delivery-borscht_postgres
   port: 5432
 
 redis:
