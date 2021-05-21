@@ -30,7 +30,7 @@ func NewOrderNotificator(userPool, restaurantPool *websocketPool.ConnectionPool)
 func (N orderNotificator) OrderStatusChangedNotification(status string, uid int) error {
 	wsSent := N.UserConnectionsPool.Connections[uid]
 	notification := WebsocketNotification{
-		Action:       "message",
+		Action:       "notification",
 		Notification: "status",
 		NewStatus:    status,
 	}
