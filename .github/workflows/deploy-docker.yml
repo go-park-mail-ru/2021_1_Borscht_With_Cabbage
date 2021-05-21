@@ -28,12 +28,30 @@ jobs:
       - name: Build Docker images
         run: 
           sudo docker build -t borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} -f ./docker/main/Dockerfile . &&
-          sudo docker tag borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_main:latest
+          sudo docker tag borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_main:latest &&
+
+          sudo docker build -t borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} -f ./docker/auth/Dockerfile . &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_auth:latest &&
+
+          sudo docker build -t borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} -f ./docker/basket/Dockerfile . &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_basket:latest &&
+
+          sudo docker build -t borschtwithcabbage/delivery-borscht_chat:${GITHUB_SHA::8} -f ./docker/chat/Dockerfile . &&
+          sudo docker tag borschtwithcabbage/delivery-borscht_chat:${GITHUB_SHA::8} borschtwithcabbage/delivery-borscht_chat:latest
 
       - name: Push Docker images
         run: 
           docker push borschtwithcabbage/delivery-borscht_main:latest &&
-          docker push borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8}
+          docker push borschtwithcabbage/delivery-borscht_main:${GITHUB_SHA::8} &&
+
+          docker push borschtwithcabbage/delivery-borscht_auth:latest &&
+          docker push borschtwithcabbage/delivery-borscht_auth:${GITHUB_SHA::8} &&
+
+          docker push borschtwithcabbage/delivery-borscht_basket:latest &&
+          docker push borschtwithcabbage/delivery-borscht_basket:${GITHUB_SHA::8} &&
+
+          docker push borschtwithcabbage/delivery-borscht_chat:latest &&
+          docker push borschtwithcabbage/delivery-borscht_chat:${GITHUB_SHA::8}
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,7 +64,11 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
-          script: sudo docker pull borschtwithcabbage/delivery-borscht_main:latest
+          script: 
+            sudo docker pull borschtwithcabbage/delivery-borscht_main:latest &&
+            sudo docker pull borschtwithcabbage/delivery-borscht_auth:latest &&
+            sudo docker pull borschtwithcabbage/delivery-borscht_basket:latest &&
+            sudo docker pull borschtwithcabbage/delivery-borscht_chat:latest
       # - name: Deploy docker image
       #   uses: appleboy/ssh-action@master
       #   with:
