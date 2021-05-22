@@ -1,11 +1,11 @@
 ---   
-- name: "Provide certs"
-  hosts: web
-  tasks:
-    - name: "Copy certs"
-      copy:
-        src: files/certs
-        dest: /home/ubuntu
+# - name: "Provide certs"
+#   hosts: web
+#   tasks:
+#     - name: "Copy certs"
+#       copy:
+#         src: files/certs
+#         dest: /home/ubuntu
 
 - name: "Create file for log"
   hosts: all
