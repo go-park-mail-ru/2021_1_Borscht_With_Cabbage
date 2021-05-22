@@ -36,7 +36,7 @@ func ReadConfig() error {
 func saveConfig(ctx context.Context, config Config) {
 	ConfigDb = config.Db
 
-	Port = config.Microservices["basket"].Port
+	Port = config.Microservices["chat"].Port
 
 	logger.UtilsLevel().InfoLog(ctx, logger.Fields{
 		"PostgresDB": ConfigDb.NameSql,

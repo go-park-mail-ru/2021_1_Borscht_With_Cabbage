@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/borscht/backend/utils/notifications"
+	"github.com/borscht/backend/utils/websocketPool"
+
 	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/internal/services/basket"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
@@ -102,6 +105,7 @@ func route(data initRoute) {
 	apiGroup.GET("/", data.restaurant.GetVendor)
 	apiGroup.GET("/restaurants", data.restaurant.GetVendor)
 	apiGroup.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
+	apiGroup.GET("/restaurant/:id/recommendations", data.restaurant.GetRecommendations)
 }
 
 func initServer(e *echo.Echo) {
@@ -182,6 +186,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	orderNotificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+
 	userRepo := userRepo.NewUserRepo(db)
 	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
 	adminDishRepo := restaurantAdminRepo.NewDishRepo(db)
@@ -196,14 +204,14 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
-	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService)
+	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	userHandler := userDelivery.NewUserHandler(userUcase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
-	orderHandler := http.NewOrderHandler(orderUsecase, basketService)
+	orderHandler := http.NewOrderHandler(orderUsecase, basketService, orderNotificator)
 	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)

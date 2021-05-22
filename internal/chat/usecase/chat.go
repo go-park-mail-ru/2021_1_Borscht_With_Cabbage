@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"github.com/borscht/backend/utils/websocketPool"
 
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/chat"
@@ -14,18 +15,18 @@ import (
 )
 
 type chatUsecase struct {
-	poolUsers      models.ConnectionPool
-	poolRestaurant models.ConnectionPool
+	poolUsers      *websocketPool.ConnectionPool
+	poolRestaurant *websocketPool.ConnectionPool
 	ChatService    serviceChat.ServiceChat
 	AuthService    serviceAuth.ServiceAuth
 }
 
-func NewChatUsecase(chatService serviceChat.ServiceChat,
-	authService serviceAuth.ServiceAuth) chat.ChatUsecase {
+func NewChatUsecase(chatService serviceChat.ServiceChat, authService serviceAuth.ServiceAuth,
+	connectionsUser, connectionsRest *websocketPool.ConnectionPool) chat.ChatUsecase {
 	return &chatUsecase{
 		ChatService:    chatService,
-		poolUsers:      models.NewConnectionPool(),
-		poolRestaurant: models.NewConnectionPool(),
+		poolUsers:      connectionsUser,
+		poolRestaurant: connectionsRest,
 		AuthService:    authService,
 	}
 }

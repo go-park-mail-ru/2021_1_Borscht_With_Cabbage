@@ -137,3 +137,35 @@ func AtoiParams(ctx context.Context, params ...string) ([]int, error) {
 	}
 	return result, nil
 }
+
+func (h *RestaurantHandler) GetRecommendations(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	latitude := c.QueryParam("latitude")
+	longitude := c.QueryParam("longitude")
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		badRequest := errors.BadRequestError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, badRequest)
+		return models.SendResponseWithError(c, badRequest)
+	}
+
+	recommendationParams := models.RecommendationsParams{
+		Id:            id,
+		LatitudeUser:  latitude,
+		LongitudeUser: longitude,
+	}
+
+	recommendations, err := h.restaurantUsecase.GetRecommendations(ctx, recommendationParams)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"recommendations": recommendations})
+
+	response := make([]models.Response, 0)
+	for i := range recommendations {
+		response = append(response, &recommendations[i])
+	}
+	return models.SendMoreResponse(c, response...)
+}

@@ -75,3 +75,7 @@ func (r *restaurantUsecase) GetById(ctx context.Context, coordinates models.Coor
 func (r *restaurantUsecase) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
 	return r.restaurantRepo.GetReviews(ctx, id)
 }
+
+func (r *restaurantUsecase) GetRecommendations(ctx context.Context, params models.RecommendationsParams) ([]models.RestaurantInfo, error) {
+	return r.restaurantRepo.GetRecommendations(ctx, params)
+}

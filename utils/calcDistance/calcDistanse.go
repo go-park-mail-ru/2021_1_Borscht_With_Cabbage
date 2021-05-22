@@ -22,7 +22,12 @@ func GetDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest st
 		distance := GetDistanceFromLatLonInKm(TwoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
 		// временно пока не сделаем проверку через бд нормально
 		if distance*1000 <= float64(radius) {
-			return int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
+			time := int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
+			// ограничение сверху
+			if time > 180 {
+				time = 180
+			}
+			return time
 		}
 	}
 	return 0
