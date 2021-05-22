@@ -1,11 +1,11 @@
 ---   
-# - name: "Provide certs"
-#   hosts: web
-#   tasks:
-#     - name: "Copy certs"
-#       copy:
-#         src: files/certs
-#         dest: /home/ubuntu
+- name: "Provide certs"
+  hosts: web
+  tasks:
+    - name: "Copy certs"
+      copy:
+        src: files/certs
+        dest: /home/ubuntu
 
 - name: "Create file for log"
   hosts: all
@@ -32,49 +32,49 @@
         src: files/docker-compose.yml
         dest: /home/ubuntu
 
-# - name: "Provide tables.sql"
-#   hosts: web
-#   become: yes
-#   tasks:
-#     - name: "Copy tables.sql"
-#       copy:
-#         src: files/tables.sql
-#         dest: /home/ubuntu
+- name: "Provide tables.sql"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Copy tables.sql"
+      copy:
+        src: files/tables.sql
+        dest: /home/ubuntu
 
-# - name: "Provide Project static backend"
-#   hosts: web
-#   become: yes
-#   tasks:
-#     - name: "Create directory"
-#       command: 
-#         mkdir -p /data/images/static/dish &&
-#         mkdir -p /data/images/static/restaurant &&
-#         mkdir -p /data/images/static/user/avatar
+- name: "Provide Project static backend"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Create directory"
+      command: 
+        mkdir -p /data/images/static/dish &&
+        mkdir -p /data/images/static/restaurant &&
+        mkdir -p /data/images/static/user/avatar
 
 
-# - name: "Provide Project static frontend"
-#   hosts: web
-#   become: yes
-#   tasks:
-#     - name: "Create directory"
-#       command: mkdir -p /data/images
+- name: "Provide Project static frontend"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Create directory"
+      command: mkdir -p /data/images
 
-#     - name: "Copy static"
-#       copy:
-#         src: files/static/static
-#         dest: /data/images
+    - name: "Copy static"
+      copy:
+        src: files/static/static
+        dest: /data/images
 
-# - name: "Provide Project default static backend"
-#   hosts: web
-#   become: yes
-#   tasks:
-#     - name: "Create directory"
-#       command: mkdir -p /data/images
+- name: "Provide Project default static backend"
+  hosts: web
+  become: yes
+  tasks:
+    - name: "Create directory"
+      command: mkdir -p /data/images
 
-#     - name: "Copy default static"
-#       copy:
-#         src: files/static/default
-#         dest: /data/images
+    - name: "Copy default static"
+      copy:
+        src: files/static/default
+        dest: /data/images
         
 - name: "Install nginx"
   hosts: web
@@ -91,34 +91,34 @@
     - name: "Reload nginx configuration"
       command: nginx -s reload
 
-# - name: "Update systemd unit"
-#   become: yes
-#   hosts: web
-#   tasks:
-#     - name: "Provide actual unit file"
-#       copy:
-#         src: files/api.service
-#         dest: /etc/systemd/system/api.service
-#     - name: "Systemctl daemon reload"
-#       command: systemctl daemon-reload
+- name: "Update systemd unit"
+  become: yes
+  hosts: web
+  tasks:
+    - name: "Provide actual unit file"
+      copy:
+        src: files/api.service
+        dest: /etc/systemd/system/api.service
+    - name: "Systemctl daemon reload"
+      command: systemctl daemon-reload
 
-# - name: "Install rpm"
-#   become: yes
-#   hosts: web
-#   tasks:
-#     - name: Install package.
-#       apt:
-#         name: rpm
-#         state: present
+- name: "Install rpm"
+  become: yes
+  hosts: web
+  tasks:
+    - name: Install package.
+      apt:
+        name: rpm
+        state: present
 
-# - name: "Install docker"
-#   become: yes
-#   hosts: web
-#   roles:
-#     - role: geerlingguy.docker
+- name: "Install docker"
+  become: yes
+  hosts: web
+  roles:
+    - role: geerlingguy.docker
 
-# - name: "Install redis"
-#   become: yes
-#   hosts: dbserver
-#   roles:
-#     - role: geerlingguy.redis
+- name: "Install redis"
+  become: yes
+  hosts: dbserver
+  roles:
+    - role: geerlingguy.redis

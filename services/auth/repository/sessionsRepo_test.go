@@ -8,22 +8,21 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
-	"github.com/borscht/backend/services/auth/config"
 	"github.com/gomodule/redigo/redis"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewSessionRepo(t *testing.T) {
-	redisConn, err := redis.Dial("tcp", config.RedisHost)
-	if err != nil {
-		t.Errorf("unexpected err: %s", err)
-		return
-	}
-	sessionRepo := NewSessionRepo(redisConn)
-	if sessionRepo != nil {
-		return
-	}
-}
+// func TestNewSessionRepo(t *testing.T) {
+// 	redisConn, err := redis.Dial("tcp", config.RedisHost)
+// 	if err != nil {
+// 		t.Errorf("unexpected err: %s", err)
+// 		return
+// 	}
+// 	sessionRepo := NewSessionRepo(redisConn)
+// 	if sessionRepo != nil {
+// 		return
+// 	}
+// }
 
 func TestSessionRepo_Create(t *testing.T) {
 	serverRedis, err := miniredis.Run()
