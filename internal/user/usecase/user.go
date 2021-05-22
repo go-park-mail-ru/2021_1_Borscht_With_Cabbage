@@ -28,7 +28,7 @@ type userUsecase struct {
 
 func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase {
 	return &userUsecase{
-		FolderSaveImages: config.Static,
+		FolderSaveImages: config.ConfigStatic.Folder,
 
 		userRepository:  repo,
 		imageRepository: image,
@@ -159,8 +159,8 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 		return nil, failError
 	}
 
-	if user.Avatar != config.DefaultUserImage {
-		removeFile := u.FolderSaveImages + strings.Replace(user.Avatar, config.Repository, "", -1)
+	if user.Avatar != config.ConfigStatic.DefaultUserImage {
+		removeFile := u.FolderSaveImages + strings.Replace(user.Avatar, config.ConfigStatic.Repository, "", -1)
 		err := u.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
@@ -173,7 +173,7 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 		return nil, err
 	}
 
-	filename = config.Repository + HeadAvatar + uid + expansion
+	filename = config.ConfigStatic.Repository + HeadAvatar + uid + expansion
 	err = u.userRepository.UpdateAvatar(ctx, user.Uid, filename)
 	if err != nil {
 		return nil, err

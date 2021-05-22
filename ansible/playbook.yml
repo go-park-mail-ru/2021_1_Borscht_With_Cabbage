@@ -7,6 +7,13 @@
 #         src: files/certs
 #         dest: /home/ubuntu
 
+- name: "Create file for log"
+  hosts: all
+  become: yes
+  tasks:
+    - name: "Create directory"
+      command: mkdir -p /var/log/deliveryborscht
+
 - name: "Provide Project config"
   hosts: web
   become: yes

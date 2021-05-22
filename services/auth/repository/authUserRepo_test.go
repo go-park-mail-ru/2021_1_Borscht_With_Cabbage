@@ -75,7 +75,7 @@ func TestUserRepo_Create(t *testing.T) {
 		Name:     "Kate",
 		Phone:    "81111111111",
 		Password: "111111",
-		Avatar:   config.DefaultUserImage,
+		Avatar:   config.ConfigStatic.DefaultUserImage,
 	}
 	uid, err := userRepo.Create(*ctx, user)
 	if err != nil {

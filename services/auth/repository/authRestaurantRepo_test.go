@@ -234,7 +234,7 @@ func TestRestaurantRepo_CheckRestaurantExists(t *testing.T) {
 	}
 	restaurantFromBD := sqlmock.NewRows([]string{"rid", "name", "adminemail", "adminphone", "deliveryCost", "avgCheck",
 		"description", "avatar", "adminpassword"})
-	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", config.DefaultRestaurantImage, "111111")
+	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 1200, "yum", config.ConfigStatic.DefaultRestaurantImage, "111111")
 
 	mock.
 		ExpectQuery("select rid, name, adminemail,").
@@ -269,7 +269,7 @@ func TestRestaurantRepo_GetByRid(t *testing.T) {
 	}
 
 	restaurantFromBD := sqlmock.NewRows([]string{"title", "adminphone", "adminemail", "avatar"})
-	restaurantFromBD.AddRow("rest1", "89111111111", "dasha@mail.ru", config.DefaultRestaurantImage)
+	restaurantFromBD.AddRow("rest1", "89111111111", "dasha@mail.ru", config.ConfigStatic.DefaultRestaurantImage)
 
 	mock.
 		ExpectQuery("select name, adminphone,").

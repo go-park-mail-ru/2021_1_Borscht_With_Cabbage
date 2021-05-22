@@ -31,7 +31,7 @@ func NewDishUsecase(adminRepo restaurantAdmin.AdminDishRepo,
 	imageRepo image.ImageRepo) restaurantAdmin.AdminDishUsecase {
 
 	return &dishUsecase{
-		FolderSaveImages:  config.Static,
+		FolderSaveImages:  config.ConfigStatic.Folder,
 		dishRepository:    adminRepo,
 		sectionRepository: sectionRepo,
 		imageRepository:   imageRepo,
@@ -111,8 +111,8 @@ func (a dishUsecase) DeleteDish(ctx context.Context, did int) (*models.DeleteSuc
 
 	// удаление изображения
 	oldDish, err := a.dishRepository.GetDish(ctx, did)
-	if oldDish.Image != config.DefaultDishImage {
-		removeFile := a.FolderSaveImages + strings.Replace(oldDish.Image, config.Repository, "", -1)
+	if oldDish.Image != config.ConfigStatic.DefaultDishImage {
+		removeFile := a.FolderSaveImages + strings.Replace(oldDish.Image, config.ConfigStatic.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
@@ -144,7 +144,7 @@ func (a dishUsecase) AddDish(ctx context.Context, dish models.Dish) (*models.Dis
 	}
 	responseDish := dish
 	responseDish.ID = id
-	responseDish.Image = config.DefaultDishImage
+	responseDish.Image = config.ConfigStatic.DefaultDishImage
 	return &responseDish, nil
 }
 
@@ -172,8 +172,8 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 
 	// удаление изображения
 	oldDish, err := a.dishRepository.GetDish(ctx, idDish)
-	if oldDish.Image != config.DefaultDishImage {
-		removeFile := a.FolderSaveImages + strings.Replace(oldDish.Image, config.Repository, "", -1)
+	if oldDish.Image != config.ConfigStatic.DefaultDishImage {
+		removeFile := a.FolderSaveImages + strings.Replace(oldDish.Image, config.ConfigStatic.Repository, "", -1)
 		err = a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
@@ -186,7 +186,7 @@ func (a dishUsecase) UploadDishImage(ctx context.Context, image *multipart.FileH
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImageDish + uid + expansion
+	custFilename = config.ConfigStatic.Repository + HeadImageDish + uid + expansion
 	err = a.dishRepository.UpdateDishImage(ctx, idDish, custFilename)
 	if err != nil {
 		return nil, err

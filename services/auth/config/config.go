@@ -9,17 +9,10 @@ import (
 
 // значения используемые в микросервисе auth
 var (
-	PostgresDB             string
-	DBUser                 string
-	DBPass                 string
-	DBName                 string
-	DBHost                 string
-	DBPort                 string
-	RedisHost              string
-	Port                   string
-	DefaultUserImage       string
-	DefaultRestaurantImage string
-	DefaultDishImage       string
+	ConfigDb     Db
+	ConfigStatic Static
+	RedisHost    string
+	Port         string
 )
 
 func ReadConfig() error {
@@ -42,32 +35,27 @@ func ReadConfig() error {
 }
 
 func saveConfig(ctx context.Context, config Config) {
-	PostgresDB = config.Db.NameSql
-	DBUser = config.Db.User
-	DBPass = config.Db.Password
-	DBName = config.Db.NameDb
-	DBHost = config.Db.Host
-	DBPort = config.Db.Port
+	ConfigStatic = config.Static
+	ConfigDb = config.Db
 
 	RedisHost = config.Redis.Host
-
-	DefaultUserImage = config.Static.DefaultUserImage
-	DefaultRestaurantImage = config.Static.DefaultRestaurantImage
-	DefaultDishImage = config.Static.DefaultDishImage
 
 	Port = config.Microservices["auth"].Port
 
 	logger.UtilsLevel().InfoLog(ctx, logger.Fields{
-		"PostgresDB":             PostgresDB,
-		"DBUser":                 DBUser,
-		"DBPass":                 DBPass,
-		"DBName":                 DBName,
-		"DBHost":                 DBHost,
-		"DBPort":                 DBPort,
-		"RedisHost":              RedisHost,
-		"DefaultUserImage":       DefaultUserImage,
-		"DefaultRestaurantImage": DefaultRestaurantImage,
-		"DefaultDishImage":       DefaultDishImage,
-		"Port":                   Port,
+		"PostgresDB": ConfigDb.NameSql,
+		"DBUser":     ConfigDb.User,
+		"DBPass":     ConfigDb.Password,
+		"DBName":     ConfigDb.NameDb,
+		"DBHost":     ConfigDb.Host,
+		"DBPort":     ConfigDb.Port,
+
+		"DefaultUserImage":       ConfigStatic.DefaultUserImage,
+		"DefaultRestaurantImage": ConfigStatic.DefaultRestaurantImage,
+		"DefaultDishImage":       ConfigStatic.DefaultDishImage,
+
+		"RedisHost": RedisHost,
+
+		"Port": Port,
 	})
 }

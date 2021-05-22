@@ -9,13 +9,9 @@ import (
 
 // значения используемые в микросервисе chat
 var (
-	PostgresDB string
-	DBUser     string
-	DBPass     string
-	DBName     string
-	DBHost     string
-	DBPort     string
-	Port       string
+	ConfigDb Db
+
+	Port string
 )
 
 func ReadConfig() error {
@@ -38,22 +34,18 @@ func ReadConfig() error {
 }
 
 func saveConfig(ctx context.Context, config Config) {
-	PostgresDB = config.Db.NameSql
-	DBUser = config.Db.User
-	DBPass = config.Db.Password
-	DBName = config.Db.NameDb
-	DBHost = config.Db.Host
-	DBPort = config.Db.Port
+	ConfigDb = config.Db
 
-	Port = config.Microservices["chat"].Port
+	Port = config.Microservices["basket"].Port
 
 	logger.UtilsLevel().InfoLog(ctx, logger.Fields{
-		"PostgresDB": PostgresDB,
-		"DBUser":     DBUser,
-		"DBPass":     DBPass,
-		"DBName":     DBName,
-		"DBHost":     DBHost,
-		"DBPort":     DBPort,
-		"Port":       Port,
+		"PostgresDB": ConfigDb.NameSql,
+		"DBUser":     ConfigDb.User,
+		"DBPass":     ConfigDb.Password,
+		"DBName":     ConfigDb.NameDb,
+		"DBHost":     ConfigDb.Host,
+		"DBPort":     ConfigDb.Port,
+
+		"Port": Port,
 	})
 }

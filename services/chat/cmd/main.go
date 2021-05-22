@@ -25,9 +25,10 @@ func main() {
 	}
 	// подключение postgres
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.DBHost, config.DBPort, config.DBUser, config.DBPass, config.DBName)
+		config.ConfigDb.Host, config.ConfigDb.Port, config.ConfigDb.User,
+		config.ConfigDb.Password, config.ConfigDb.NameDb)
 
-	db, err := sql.Open(config.PostgresDB, dsn)
+	db, err := sql.Open(config.ConfigDb.NameSql, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}

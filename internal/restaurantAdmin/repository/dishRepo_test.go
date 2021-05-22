@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewDishRepo(t *testing.T) {
@@ -296,7 +297,7 @@ func TestDishRepo_AddDish(t *testing.T) {
 		WillReturnRows(rowsDishes)
 	mock.
 		ExpectQuery("insert into dishes").
-		WithArgs(1, 1, "newName", 120, 100, "new description", config.DefaultDishImage).
+		WithArgs(1, 1, "newName", 120, 100, "new description", config.ConfigStatic.DefaultDishImage).
 		WillReturnRows(rowsDid)
 	mock.
 		ExpectQuery("select name from restaurants").

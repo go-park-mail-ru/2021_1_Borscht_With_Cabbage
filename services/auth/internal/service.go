@@ -68,7 +68,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 		Phone:    user.Phone,
 		Name:     user.Name,
 		Password: user.Password,
-		Avatar:   config.DefaultUserImage,
+		Avatar:   config.ConfigStatic.DefaultUserImage,
 	}
 
 	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
@@ -125,7 +125,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		AdminEmail:    restaurant.Email,
 		AdminPhone:    restaurant.Phone,
 		AdminPassword: restaurant.Password,
-		Avatar:        config.DefaultRestaurantImage,
+		Avatar:        config.ConfigStatic.DefaultRestaurantImage,
 	}
 
 	newRestaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), newRestaurant.AdminPassword)

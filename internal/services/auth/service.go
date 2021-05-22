@@ -87,7 +87,7 @@ func (s service) Create(ctx context.Context, user models.User) (*models.SuccessU
 		User: user,
 		Role: configProject.RoleUser,
 	}
-	response.Avatar = config.DefaultUserImage
+	response.Avatar = config.ConfigStatic.DefaultUserImage
 
 	return &response, nil
 }
@@ -172,7 +172,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 	restaurantResponse := models.RestaurantInfo{
 		ID:         int(restaurantResult.RID),
 		Title:      restaurantResult.Title,
-		Avatar:     config.DefaultRestaurantImage,
+		Avatar:     config.ConfigStatic.DefaultRestaurantImage,
 		AdminEmail: restaurant.AdminEmail,
 		AdminPhone: restaurant.AdminPhone,
 		Address:    restaurant.Address,

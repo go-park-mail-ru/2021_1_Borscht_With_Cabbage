@@ -37,7 +37,7 @@ type StaticProject struct {
 	DefaultDishImage       string
 }
 
-type Config struct {
+type ConfigProject struct {
 	Protocol      string
 	Server        ServerHost
 	Client        ClientHost

@@ -9,30 +9,15 @@ import (
 
 // значения используемые в главном микросервисе
 var (
-	Protocol    string
-	HostAddress string
-	Host        string
-	ServerPort  string
-	Repository  string
-	Client      string
-
-	Static        string
-	DefaultStatic string
-
-	PostgresDB string
-	DBUser     string
-	DBPass     string
-	DBName     string
-	DBHost     string
-	DBPort     string
+	ConfigDb     Db
+	ConfigStatic StaticProject
+	Config       ConfigProject
+	HostAddress  string
+	Client       string
 
 	ChatServiceAddress   string
 	AuthServiceAddress   string
 	BasketServiceAddress string
-
-	DefaultUserImage       string
-	DefaultRestaurantImage string
-	DefaultDishImage       string
 )
 
 func ReadConfig() error {
@@ -46,61 +31,46 @@ func ReadConfig() error {
 		return err
 	}
 
-	var config Config
+	var config ConfigProject
 	viper.Unmarshal(&config)
 
 	saveConfig(ctx, config)
 
-	logger.UtilsLevel().InlineInfoLog(ctx, config)
+	logger.UtilsLevel().InlineDebugLog(ctx, config)
 	return nil
 }
 
-func saveConfig(ctx context.Context, config Config) {
-	Protocol = config.Protocol
+func saveConfig(ctx context.Context, config ConfigProject) {
+	Config = config
+	ConfigStatic = config.Static
+	ConfigDb = config.Db
 	HostAddress = config.Server.Host
-	Host = Protocol + HostAddress
-	ServerPort = config.Server.Port
-	Repository = config.Static.Repository
 	Client = config.Client.Host + ":" + config.Client.Port + "/"
-
-	Static = config.Static.Folder
-	DefaultStatic = config.Static.Default
-
-	PostgresDB = config.Db.NameSql
-	DBUser = config.Db.User
-	DBPass = config.Db.Password
-	DBName = config.Db.NameDb
-	DBHost = config.Db.Host
-	DBPort = config.Db.Port
 
 	ChatServiceAddress = config.Microservices["chat"].GetFullHost()
 	AuthServiceAddress = config.Microservices["auth"].GetFullHost()
 	BasketServiceAddress = config.Microservices["basket"].GetFullHost()
 
-	DefaultUserImage = config.Static.DefaultUserImage
-	DefaultRestaurantImage = config.Static.DefaultRestaurantImage
-	DefaultDishImage = config.Static.DefaultDishImage
-
 	logger.UtilsLevel().InfoLog(ctx, logger.Fields{
-		"Protocol":    Protocol,
+		"Protocol":    Config.Protocol,
 		"HostAddress": HostAddress,
-		"Host":        Host,
-		"ServerPort":  ServerPort,
-		"Repository":  Repository,
+		"Host":        Config.Server.Host,
+		"ServerPort":  Config.Server.Port,
+		"Repository":  ConfigStatic.Repository,
 		"Client":      Client,
 
-		"PostgresDB": PostgresDB,
-		"DBUser":     DBUser,
-		"DBPass":     DBPass,
-		"DBName":     DBName,
-		"DBHost":     DBHost,
-		"DBPort":     DBPort,
+		"PostgresDB": ConfigDb.NameSql,
+		"DBUser":     ConfigDb.User,
+		"DBPass":     ConfigDb.Password,
+		"DBName":     ConfigDb.NameDb,
+		"DBHost":     ConfigDb.Host,
+		"DBPort":     ConfigDb.Port,
 
-		"Static":                 Static,
-		"DefaultStatic":          DefaultStatic,
-		"DefaultUserImage":       DefaultUserImage,
-		"DefaultRestaurantImage": DefaultRestaurantImage,
-		"DefaultDishImage":       DefaultDishImage,
+		"Static":                 ConfigStatic.Folder,
+		"DefaultStatic":          ConfigStatic.Default,
+		"DefaultUserImage":       ConfigStatic.DefaultUserImage,
+		"DefaultRestaurantImage": ConfigStatic.DefaultRestaurantImage,
+		"DefaultDishImage":       ConfigStatic.DefaultDishImage,
 
 		"ChatServiceAddress":   ChatServiceAddress,
 		"AuthServiceAddress":   AuthServiceAddress,

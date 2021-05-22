@@ -30,7 +30,7 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	imageRepo image.ImageRepo) restaurantAdmin.AdminRestaurantUsecase {
 
 	return &restaurantUsecase{
-		FolderSaveImages: config.Static,
+		FolderSaveImages: config.ConfigStatic.Folder,
 
 		restaurantRepository: adminRepo,
 		imageRepository:      imageRepo,
@@ -145,8 +145,8 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		return nil, failError
 	}
 
-	if restaurant.Avatar != config.DefaultRestaurantImage {
-		removeFile := a.FolderSaveImages + strings.Replace(restaurant.Avatar, config.Repository, "", -1)
+	if restaurant.Avatar != config.ConfigStatic.DefaultRestaurantImage {
+		removeFile := a.FolderSaveImages + strings.Replace(restaurant.Avatar, config.ConfigStatic.Repository, "", -1)
 		err := a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
@@ -159,7 +159,7 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImageRestaurant + uid + expansion
+	custFilename = config.ConfigStatic.Repository + HeadImageRestaurant + uid + expansion
 	err = a.restaurantRepository.UpdateRestaurantImage(ctx, restaurant.ID, custFilename)
 	if err != nil {
 		return nil, err
