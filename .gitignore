@@ -5,4 +5,4 @@ cover
 static/*
 ansible/files/certs/*
 ansible/roles/*
-ansible/files/static/*
+ansible/files/static/css/*
