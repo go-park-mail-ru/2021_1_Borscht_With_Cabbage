@@ -1,4 +1,4 @@
-package models
+package websocketPool
 
 import (
 	"sync"
@@ -8,27 +8,27 @@ import (
 
 func NewConnectionPool() ConnectionPool {
 	return ConnectionPool{
-		connections: make(map[int]*websocket.Conn),
+		Connections: make(map[int]*websocket.Conn),
 	}
 }
 
 type ConnectionPool struct {
 	mutex       sync.RWMutex
-	connections map[int]*websocket.Conn
+	Connections map[int]*websocket.Conn
 }
 
 func (p *ConnectionPool) Add(id int, ws *websocket.Conn) {
 	p.mutex.Lock()
-	p.connections[id] = ws
+	p.Connections[id] = ws
 	p.mutex.Unlock()
 }
 
 func (p *ConnectionPool) Get(id int) *websocket.Conn {
-	return p.connections[id]
+	return p.Connections[id]
 }
 
 func (p *ConnectionPool) Remove(id int) {
 	p.mutex.Lock()
-	p.connections[id] = nil
+	p.Connections[id] = nil
 	p.mutex.Unlock()
 }

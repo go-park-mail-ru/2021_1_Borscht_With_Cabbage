@@ -6,18 +6,21 @@ import (
 	"github.com/borscht/backend/internal/services/basket"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
+	"github.com/borscht/backend/utils/notifications"
 	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
 	OrderUcase    order.OrderUsecase
 	BasketService basket.ServiceBasket
+	Notificator   notifications.OrderNotificator
 }
 
-func NewOrderHandler(orderUcase order.OrderUsecase, basketService basket.ServiceBasket) order.OrderHandler {
+func NewOrderHandler(orderUcase order.OrderUsecase, basketService basket.ServiceBasket, notificator notifications.OrderNotificator) order.OrderHandler {
 	handler := &Handler{
 		OrderUcase:    orderUcase,
 		BasketService: basketService,
+		Notificator:   notificator,
 	}
 
 	return handler
@@ -186,9 +189,14 @@ func (h Handler) SetNewStatus(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	err := h.OrderUcase.SetNewStatus(ctx, newStatus)
+	uid, err := h.OrderUcase.SetNewStatus(ctx, newStatus)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
+	}
+
+	err = h.Notificator.OrderStatusChangedNotification(newStatus.Status, uid)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Order notification error")
 	}
 
 	return models.SendResponse(c, nil)

@@ -214,21 +214,22 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 	return orders, nil
 }
 
-func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) error {
+func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) (int, error) {
 	timeToDB, err := time.Parse(config.TimeFormat, newStatus.DeliveryTime)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error while converting time")
-		return errors.BadRequestError("Error while converting time")
+		return 0, errors.BadRequestError("Error while converting time")
 	}
 
-	_, err = o.DB.Exec("UPDATE orders SET status=$1, deliverytime=$2 where restaurant=$3 and oid=$4",
-		newStatus.Status, timeToDB, newStatus.Restaurant, newStatus.OID)
+	var uid int
+	err = o.DB.QueryRow("UPDATE orders SET status=$1, deliverytime=$2 where restaurant=$3 and oid=$4 returning userid",
+		newStatus.Status, timeToDB, newStatus.Restaurant, newStatus.OID).Scan(&uid)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with updating order status in DB")
-		return errors.BadRequestError("Error with updating order status in DB")
+		return 0, errors.BadRequestError("Error with updating order status in DB")
 	}
 
-	return nil
+	return uid, nil
 }
 
 func (o orderRepo) CreateReview(ctx context.Context, newReview models.SetNewReview) error {
