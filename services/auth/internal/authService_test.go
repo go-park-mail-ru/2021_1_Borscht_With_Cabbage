@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
-	"github.com/borscht/backend/config"
+	"testing"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	authRepoMocks "github.com/borscht/backend/services/auth/mocks"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
@@ -10,7 +12,6 @@ import (
 	"github.com/borscht/backend/utils/secure"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 //func TestService_CreateUser(t *testing.T) {
@@ -88,7 +89,7 @@ func TestService_GetByUid(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, response.Role, config.RoleUser)
+	require.EqualValues(t, response.Role, configProject.RoleUser)
 }
 
 func TestService_CheckUserExists(t *testing.T) {
@@ -130,7 +131,7 @@ func TestService_CheckUserExists(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, response.Role, config.RoleUser)
+	require.EqualValues(t, response.Role, configProject.RoleUser)
 }
 
 //func TestRestaurantUsecase_CreateRestaurant(t *testing.T) {
@@ -250,7 +251,7 @@ func TestService_CheckSession(t *testing.T) {
 
 	sessionInfo := models.SessionInfo{
 		Id:   1,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 	session := protoAuth.SessionValue{
 		Session: "session1",

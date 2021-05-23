@@ -2,7 +2,8 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/borscht/backend/config"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/utils/logger"
@@ -17,7 +18,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := models.GetContext(c)
 		logger.MiddleLevel().InlineDebugLog(ctx, "Autorization")
-		session, err := c.Cookie(config.SessionCookie)
+		session, err := c.Cookie(configProject.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
@@ -35,7 +36,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		if sessionData.Role == config.RoleUser {
+		if sessionData.Role == configProject.RoleUser {
 			user, err := m.AuthService.GetByUid(ctx, sessionData.Id)
 			if err != nil {
 				return models.SendRedirectLogin(c)
@@ -44,7 +45,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			c.Set("User", user.User)
 		}
 
-		if sessionData.Role == config.RoleAdmin {
+		if sessionData.Role == configProject.RoleAdmin {
 			restaurant, err := m.AuthService.GetByRid(ctx, sessionData.Id)
 			fmt.Println("rest ", restaurant)
 			if err != nil {

@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"testing"
+
 	"github.com/borscht/backend/config"
 	"github.com/borscht/backend/internal/image/mocks"
 	"github.com/borscht/backend/internal/models"
@@ -9,7 +11,6 @@ import (
 	"github.com/borscht/backend/utils/logger"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewDishUsecase(t *testing.T) {
@@ -137,7 +138,7 @@ func TestDishUsecase_DeleteDish(t *testing.T) {
 
 	dish := models.Dish{
 		ID: 1, Restaurant: 1,
-		Image: config.DefaultDishImage,
+		Image: config.ConfigStatic.DefaultDishImage,
 	}
 	dishFull := dish
 	dishFull.Restaurant = 1
@@ -188,7 +189,7 @@ func TestDishUsecase_AddDish(t *testing.T) {
 
 	require.EqualValues(t, dishResponse.ID, 1)
 	require.EqualValues(t, dishResponse.Name, "dish1")
-	require.EqualValues(t, dishResponse.Image, config.DefaultDishImage)
+	require.EqualValues(t, dishResponse.Image, config.ConfigStatic.DefaultDishImage)
 }
 
 func TestDishUsecase_UploadDishImage(t *testing.T) {

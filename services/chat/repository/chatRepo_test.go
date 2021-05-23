@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/services/chat/models"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewChatRepository(t *testing.T) {
@@ -34,17 +35,17 @@ func TestChatRepo_GetAllChats(t *testing.T) {
 	chatRepoMock := NewChatRepository(db)
 
 	rowsChats := sqlmock.NewRows([]string{"mid", "id", "role", "text", "date"})
-	rowsChats.AddRow(1, 1, config.RoleUser, "hi", "01.01.21")
+	rowsChats.AddRow(1, 1, configProject.RoleUser, "hi", "01.01.21")
 
 	mock.ExpectQuery("SELECT").
-		WithArgs(1, config.RoleUser).
+		WithArgs(1, configProject.RoleUser).
 		WillReturnRows(rowsChats)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 	logger.InitLogger()
 
-	infoChat, err := chatRepoMock.GetAllChats(ctx, models.User{Id: 1, Role: config.RoleUser})
+	infoChat, err := chatRepoMock.GetAllChats(ctx, models.User{Id: 1, Role: configProject.RoleUser})
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -68,11 +69,11 @@ func TestChatRepo_GetAllChats_UserNotFound(t *testing.T) {
 	chatRepoMock := NewChatRepository(db)
 
 	mock.ExpectQuery("SELECT").
-		WithArgs(1, config.RoleUser).
+		WithArgs(1, configProject.RoleUser).
 		WillReturnError(sql.ErrNoRows)
 
 	ctx := new(context.Context)
-	_, err = chatRepoMock.GetAllChats(*ctx, models.User{Id: 1, Role: config.RoleUser})
+	_, err = chatRepoMock.GetAllChats(*ctx, models.User{Id: 1, Role: configProject.RoleUser})
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -94,14 +95,14 @@ func TestChatRepo_GetAllChats_Error(t *testing.T) {
 	chatRepoMock := NewChatRepository(db)
 
 	mock.ExpectQuery("SELECT").
-		WithArgs(1, config.RoleUser).
+		WithArgs(1, configProject.RoleUser).
 		WillReturnError(sql.ErrConnDone)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 	logger.InitLogger()
 
-	_, err = chatRepoMock.GetAllChats(ctx, models.User{Id: 1, Role: config.RoleUser})
+	_, err = chatRepoMock.GetAllChats(ctx, models.User{Id: 1, Role: configProject.RoleUser})
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -123,18 +124,18 @@ func TestChatRepo_GetAllMessages(t *testing.T) {
 	chatRepoMock := NewChatRepository(db)
 
 	rowsMessage := sqlmock.NewRows([]string{"mid", "senderId", "senderRole", "recipientId", "recipientRole", "content", "sentWhen"})
-	rowsMessage.AddRow(1, 1, config.RoleUser, 1, config.RoleAdmin, "hi", "21.01.2020")
+	rowsMessage.AddRow(1, 1, configProject.RoleUser, 1, configProject.RoleAdmin, "hi", "21.01.2020")
 
 	mock.ExpectQuery("SELECT").
-		WithArgs(1, config.RoleUser, 1, config.RoleAdmin).
+		WithArgs(1, configProject.RoleUser, 1, configProject.RoleAdmin).
 		WillReturnRows(rowsMessage)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 	logger.InitLogger()
 
-	user1 := models.User{Id: 1, Role: config.RoleUser}
-	user2 := models.User{Id: 1, Role: config.RoleAdmin}
+	user1 := models.User{Id: 1, Role: configProject.RoleUser}
+	user2 := models.User{Id: 1, Role: configProject.RoleAdmin}
 	messages, err := chatRepoMock.GetAllMessages(ctx, user1, user2)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -159,15 +160,15 @@ func TestChatRepo_GetAllMessages_NotFound(t *testing.T) {
 	chatRepoMock := NewChatRepository(db)
 
 	mock.ExpectQuery("SELECT").
-		WithArgs(1, config.RoleUser, 1, config.RoleAdmin).
+		WithArgs(1, configProject.RoleUser, 1, configProject.RoleAdmin).
 		WillReturnError(sql.ErrNoRows)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 	logger.InitLogger()
 
-	user1 := models.User{Id: 1, Role: config.RoleUser}
-	user2 := models.User{Id: 1, Role: config.RoleAdmin}
+	user1 := models.User{Id: 1, Role: configProject.RoleUser}
+	user2 := models.User{Id: 1, Role: configProject.RoleAdmin}
 	_, err = chatRepoMock.GetAllMessages(ctx, user1, user2)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -190,15 +191,15 @@ func TestChatRepo_GetAllMessages_Error(t *testing.T) {
 	chatRepoMock := NewChatRepository(db)
 
 	mock.ExpectQuery("SELECT").
-		WithArgs(1, config.RoleUser, 1, config.RoleAdmin).
+		WithArgs(1, configProject.RoleUser, 1, configProject.RoleAdmin).
 		WillReturnError(sql.ErrConnDone)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 	logger.InitLogger()
 
-	user1 := models.User{Id: 1, Role: config.RoleUser}
-	user2 := models.User{Id: 1, Role: config.RoleAdmin}
+	user1 := models.User{Id: 1, Role: configProject.RoleUser}
+	user2 := models.User{Id: 1, Role: configProject.RoleAdmin}
 	_, err = chatRepoMock.GetAllMessages(ctx, user1, user2)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
@@ -230,16 +231,16 @@ func TestChatRepo_SaveMessage(t *testing.T) {
 		},
 		Sender: models.User{
 			Id:   1,
-			Role: config.RoleUser,
+			Role: configProject.RoleUser,
 		},
 		Recipient: models.User{
 			Id:   1,
-			Role: config.RoleAdmin,
+			Role: configProject.RoleAdmin,
 		},
 	}
 
 	mock.ExpectQuery("INSERT").
-		WithArgs(1, config.RoleUser, 1, config.RoleAdmin, messageInfo.Message.Text, messageInfo.Message.Date).
+		WithArgs(1, configProject.RoleUser, 1, configProject.RoleAdmin, messageInfo.Message.Text, messageInfo.Message.Date).
 		WillReturnRows(rowsMessage)
 
 	c := context.Background()

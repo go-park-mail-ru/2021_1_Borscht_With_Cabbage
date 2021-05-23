@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
 	"github.com/borscht/backend/utils/logger"
@@ -84,9 +85,9 @@ func (s service) Create(ctx context.Context, user models.User) (*models.SuccessU
 	user.Uid = int(userResponse.UID)
 	response := models.SuccessUserResponse{
 		User: user,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
-	response.Avatar = config.DefaultUserImage
+	response.Avatar = config.ConfigStatic.DefaultUserImage
 
 	return &response, nil
 }
@@ -119,7 +120,7 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 	}
 	response := models.SuccessUserResponse{
 		User: userResponse,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	return &response, nil
@@ -151,7 +152,7 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 
 	return &models.SuccessUserResponse{
 		User: UserResponse,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}, nil
 }
 
@@ -171,7 +172,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 	restaurantResponse := models.RestaurantInfo{
 		ID:         int(restaurantResult.RID),
 		Title:      restaurantResult.Title,
-		Avatar:     config.DefaultRestaurantImage,
+		Avatar:     config.ConfigStatic.DefaultRestaurantImage,
 		AdminEmail: restaurant.AdminEmail,
 		AdminPhone: restaurant.AdminPhone,
 		Address:    restaurant.Address,
@@ -179,7 +180,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 
@@ -207,7 +208,7 @@ func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.Re
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 
@@ -237,7 +238,7 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 

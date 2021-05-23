@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/services/auth/config"
 	"github.com/borscht/backend/services/auth/internal"
 	repo "github.com/borscht/backend/services/auth/repository"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
@@ -18,9 +18,16 @@ import (
 
 func main() {
 	logger.InitLogger()
+	if config.ReadConfig() != nil {
+		return
+	}
+
 	// подключение postgres
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
-	db, err := sql.Open(config.PostgresDB, dsn)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.ConfigDb.Host, config.ConfigDb.Port, config.ConfigDb.User,
+		config.ConfigDb.Password, config.ConfigDb.NameDb)
+
+	db, err := sql.Open(config.ConfigDb.NameSql, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +47,7 @@ func main() {
 	}
 	defer redisConn.Close()
 
-	lis, err := net.Listen("tcp", ":8081")
+	lis, err := net.Listen("tcp", ":"+config.Port)
 	if err != nil {
 		log.Fatalln("cant listen port", err)
 	}
@@ -54,7 +61,7 @@ func main() {
 	authService := internal.NewService(userAuthRepository, restaurantAuthRepo, sessionRepository)
 	protoAuth.RegisterAuthServer(server, authService)
 
-	log.Print("starting server at :8081")
+	log.Print("starting server at :" + config.Port)
 	err = server.Serve(lis)
 	if err != nil {
 		log.Fatalln("Serve auth error: ", err)

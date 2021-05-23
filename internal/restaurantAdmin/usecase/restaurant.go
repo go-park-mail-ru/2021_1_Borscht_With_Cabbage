@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
@@ -20,6 +21,7 @@ const (
 )
 
 type restaurantUsecase struct {
+	FolderSaveImages     string
 	restaurantRepository restaurantAdmin.AdminRestaurantRepo
 	imageRepository      image.ImageRepo
 }
@@ -28,6 +30,8 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	imageRepo image.ImageRepo) restaurantAdmin.AdminRestaurantUsecase {
 
 	return &restaurantUsecase{
+		FolderSaveImages: config.ConfigStatic.Folder,
+
 		restaurantRepository: adminRepo,
 		imageRepository:      imageRepo,
 	}
@@ -120,7 +124,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: *restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 
@@ -141,21 +145,21 @@ func (a restaurantUsecase) UploadRestaurantImage(ctx context.Context, image *mul
 		return nil, failError
 	}
 
-	if restaurant.Avatar != config.DefaultRestaurantImage {
-		removeFile := strings.Replace(restaurant.Avatar, config.Repository, "", -1)
+	if restaurant.Avatar != config.ConfigStatic.DefaultRestaurantImage {
+		removeFile := a.FolderSaveImages + strings.Replace(restaurant.Avatar, config.ConfigStatic.Repository, "", -1)
 		err := a.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	custFilename := HeadImageRestaurant + uid + expansion
+	custFilename := a.FolderSaveImages + HeadImageRestaurant + uid + expansion
 	err := a.imageRepository.UploadImage(ctx, custFilename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	custFilename = config.Repository + HeadImageRestaurant + uid + expansion
+	custFilename = config.ConfigStatic.Repository + HeadImageRestaurant + uid + expansion
 	err = a.restaurantRepository.UpdateRestaurantImage(ctx, restaurant.ID, custFilename)
 	if err != nil {
 		return nil, err

@@ -8,7 +8,7 @@ import (
 
 	"github.com/borscht/backend/utils/validation"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	errors "github.com/borscht/backend/utils/errors"
@@ -68,7 +68,7 @@ func (a RestaurantHandler) UpdateRestaurantData(c echo.Context) error {
 func setResponseCookie(c echo.Context, session string) {
 	sessionCookie := http.Cookie{
 		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     config.SessionCookie,
+		Name:     configProject.SessionCookie,
 		Value:    session,
 		HttpOnly: true,
 		Path:     "/",
@@ -101,7 +101,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 
 	sessionInfo := models.SessionInfo{
 		Id:   responseRestaurant.ID,
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	session, err := a.AuthService.CreateSession(ctx, sessionInfo)
@@ -136,7 +136,7 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 
 	sessionInfo := models.SessionInfo{
 		Id:   existingRest.ID,
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 	session, err := a.AuthService.CreateSession(ctx, sessionInfo)
 

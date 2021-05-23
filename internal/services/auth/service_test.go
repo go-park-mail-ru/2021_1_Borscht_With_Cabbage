@@ -2,13 +2,14 @@ package auth
 
 import (
 	"context"
-	"github.com/borscht/backend/config"
+	"testing"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth/mocks"
 	proto "github.com/borscht/backend/services/proto/auth"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestService_CheckKey(t *testing.T) {
@@ -24,7 +25,7 @@ func TestService_CheckKey(t *testing.T) {
 	}
 	sessionResult := proto.SessionInfo{
 		Id:   1,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	clientMock.EXPECT().CheckKey(c, &session).Return(&sessionResult, nil)
@@ -49,7 +50,7 @@ func TestService_CreateKey(t *testing.T) {
 
 	session := models.SessionInfo{
 		Id:   1,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 	sessionInfo := proto.SessionInfo{
 		Id:   int32(session.Id),
@@ -99,7 +100,7 @@ func TestService_Create(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, user.Role, config.RoleUser)
+	require.EqualValues(t, user.Role, configProject.RoleUser)
 }
 
 func TestService_CheckUserExists(t *testing.T) {
@@ -127,7 +128,7 @@ func TestService_CheckUserExists(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, user.Role, config.RoleUser)
+	require.EqualValues(t, user.Role, configProject.RoleUser)
 }
 
 func TestService_GetByUid(t *testing.T) {
@@ -151,7 +152,7 @@ func TestService_GetByUid(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, user.Role, config.RoleUser)
+	require.EqualValues(t, user.Role, configProject.RoleUser)
 }
 
 func TestService_CreateRestaurant(t *testing.T) {
@@ -183,7 +184,7 @@ func TestService_CreateRestaurant(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, restaurant.Role, config.RoleAdmin)
+	require.EqualValues(t, restaurant.Role, configProject.RoleAdmin)
 }
 
 func TestService_CheckRestaurantExists(t *testing.T) {
@@ -211,7 +212,7 @@ func TestService_CheckRestaurantExists(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, restaurant.Role, config.RoleAdmin)
+	require.EqualValues(t, restaurant.Role, configProject.RoleAdmin)
 }
 
 func TestService_GetByRid(t *testing.T) {
@@ -235,7 +236,7 @@ func TestService_GetByRid(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, restaurant.Role, config.RoleAdmin)
+	require.EqualValues(t, restaurant.Role, configProject.RoleAdmin)
 }
 
 func TestService_CheckSession(t *testing.T) {
@@ -272,7 +273,7 @@ func TestService_CreateSession(t *testing.T) {
 
 	session := models.SessionInfo{
 		Id:   1,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 	sessionRequest := proto.SessionInfo{
 		Id:   int32(session.Id),

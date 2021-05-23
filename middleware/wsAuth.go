@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/utils/errors"
@@ -17,7 +17,7 @@ func (m *WsAuthMiddleware) WsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := models.GetContext(c)
 
-		key := c.Param(config.KeyParams)
+		key := c.Param(configProject.KeyParams)
 		if key == "" {
 			return models.SendResponseWithError(c, errors.BadRequestError("Error with key"))
 		}
@@ -31,7 +31,7 @@ func (m *WsAuthMiddleware) WsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendResponseWithError(c, errors.BadRequestError("Key not valid"))
 		}
 
-		if sessionData.Role == config.RoleUser {
+		if sessionData.Role == configProject.RoleUser {
 			user, err := m.AuthService.GetByUid(ctx, sessionData.Id)
 			if err != nil {
 				return models.SendResponseWithError(c, err)
@@ -41,7 +41,7 @@ func (m *WsAuthMiddleware) WsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			c.Set("User", user.User)
 		}
 
-		if sessionData.Role == config.RoleAdmin {
+		if sessionData.Role == configProject.RoleAdmin {
 			restaurant, err := m.AuthService.GetByRid(ctx, sessionData.Id)
 			if err != nil {
 				return models.SendResponseWithError(c, err)
