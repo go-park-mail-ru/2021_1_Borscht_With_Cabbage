@@ -3,7 +3,7 @@ package authRepo
 import (
 	"context"
 	"database/sql"
-	"github.com/borscht/backend/config"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
 	"github.com/borscht/backend/utils/errors"
@@ -46,7 +46,7 @@ func (a authRepo) Create(ctx context.Context, newUser models.User) (int, error) 
 
 	var uid int
 	err = a.DB.QueryRow("insert into users (name, phone, email, password, photo) values ($1, $2, $3, $4, $5) returning uid",
-		newUser.Name, newUser.Phone, newUser.Email, newUser.HashPassword, config.DefaultUserImage).Scan(&uid)
+		newUser.Name, newUser.Phone, newUser.Email, newUser.HashPassword, newUser.Avatar).Scan(&uid)
 	if err != nil {
 		insertError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, insertError)

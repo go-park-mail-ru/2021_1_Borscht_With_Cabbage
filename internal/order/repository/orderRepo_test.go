@@ -2,11 +2,12 @@ package repository
 
 import (
 	"database/sql"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func TestNewOrderRepo(t *testing.T) {

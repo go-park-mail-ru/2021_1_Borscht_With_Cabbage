@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/image"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
@@ -15,19 +16,20 @@ import (
 	"github.com/borscht/backend/utils/uniq"
 )
 
-// TODO: хранить статику в /var/...
-
 const (
 	HeadAvatar = "static/user/avatar/"
 )
 
 type userUsecase struct {
-	userRepository  user.UserRepo
-	imageRepository image.ImageRepo
+	FolderSaveImages string
+	userRepository   user.UserRepo
+	imageRepository  image.ImageRepo
 }
 
 func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase {
 	return &userUsecase{
+		FolderSaveImages: config.ConfigStatic.Folder,
+
 		userRepository:  repo,
 		imageRepository: image,
 	}
@@ -77,7 +79,7 @@ func (u *userUsecase) GetUserData(ctx context.Context) (*models.SuccessUserRespo
 
 	return &models.SuccessUserResponse{
 		User: responseUser,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}, nil
 }
 
@@ -134,7 +136,7 @@ func (u *userUsecase) UpdateData(ctx context.Context, newUser models.UserData) (
 
 	response := &models.SuccessUserResponse{
 		User: responseUser,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	return response, err
@@ -157,21 +159,21 @@ func (u *userUsecase) UploadAvatar(ctx context.Context, image *multipart.FileHea
 		return nil, failError
 	}
 
-	if user.Avatar != config.DefaultUserImage {
-		removeFile := strings.Replace(user.Avatar, config.Repository, "", -1)
+	if user.Avatar != config.ConfigStatic.DefaultUserImage {
+		removeFile := u.FolderSaveImages + strings.Replace(user.Avatar, config.ConfigStatic.Repository, "", -1)
 		err := u.imageRepository.DeleteImage(ctx, removeFile)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	filename := HeadAvatar + uid + expansion
+	filename := u.FolderSaveImages + HeadAvatar + uid + expansion
 	err := u.imageRepository.UploadImage(ctx, filename, image)
 	if err != nil {
 		return nil, err
 	}
 
-	filename = config.Repository + HeadAvatar + uid + expansion
+	filename = config.ConfigStatic.Repository + HeadAvatar + uid + expansion
 	err = u.userRepository.UpdateAvatar(ctx, user.Uid, filename)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/services/chat/config"
 	"github.com/borscht/backend/utils/logger"
 
 	"github.com/borscht/backend/services/chat/internal"
@@ -20,9 +20,15 @@ import (
 
 func main() {
 	logger.InitLogger()
+	if config.ReadConfig() != nil {
+		return
+	}
 	// подключение postgres
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
-	db, err := sql.Open(config.PostgresDB, dsn)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.ConfigDb.Host, config.ConfigDb.Port, config.ConfigDb.User,
+		config.ConfigDb.Password, config.ConfigDb.NameDb)
+
+	db, err := sql.Open(config.ConfigDb.NameSql, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lis, err := net.Listen("tcp", ":8083")
+	lis, err := net.Listen("tcp", ":"+config.Port)
 	if err != nil {
 		log.Fatalln("cant listen port", err)
 	}
@@ -46,7 +52,7 @@ func main() {
 	chatService := internal.NewService(chatRepository)
 	protoChat.RegisterChatServer(server, chatService)
 
-	log.Print("starting server at :8083")
+	log.Print("starting server at :" + config.Port)
 	err = server.Serve(lis)
 	if err != nil {
 		log.Fatalln("Serve auth error: ", err)

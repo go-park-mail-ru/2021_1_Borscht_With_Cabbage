@@ -15,6 +15,7 @@ require (
 	github.com/lib/pq v1.10.0
 	github.com/microcosm-cc/bluemonday v1.0.7
 	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1

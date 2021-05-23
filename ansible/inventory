@@ -1,0 +1,5 @@
+[web]
+89.208.197.150 ansible_user=ubuntu ansible_ssh_private_key_file=~/Projects/key/2021-1-Borscht-With-Cabbage-n4wVhFLb.pem
+
+[dbserver]
+89.208.197.150 ansible_user=ubuntu ansible_ssh_private_key_file=~/Projects/key/2021-1-Borscht-With-Cabbage-n4wVhFLb.pem

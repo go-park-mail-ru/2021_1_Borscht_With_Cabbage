@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/borscht/backend/utils/websocketPool"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
 	serviceAuth "github.com/borscht/backend/internal/services/auth"
@@ -108,8 +108,8 @@ func (ch *chatUsecase) ProcessMessage(ctx context.Context, ws *websocket.Conn, m
 
 	if user, ok := checkUser(ctx); ok {
 		me.Id = user.Uid
-		me.Role = config.RoleUser
-		opponent.Role = config.RoleAdmin
+		me.Role = configProject.RoleUser
+		opponent.Role = configProject.RoleAdmin
 
 		wsOpponent.Avatar = user.Avatar
 		wsOpponent.Name = user.Name
@@ -117,8 +117,8 @@ func (ch *chatUsecase) ProcessMessage(ctx context.Context, ws *websocket.Conn, m
 		wsSent = ch.poolRestaurant.Get(opponent.Id)
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
 		me.Id = restaurant.ID
-		me.Role = config.RoleAdmin
-		opponent.Role = config.RoleUser
+		me.Role = configProject.RoleAdmin
+		opponent.Role = configProject.RoleUser
 
 		wsOpponent.Avatar = restaurant.Avatar
 		wsOpponent.Name = restaurant.Title
@@ -155,11 +155,11 @@ func (ch *chatUsecase) GetAllChats(ctx context.Context) ([]models.BriefInfoChat,
 	var me models.ChatUser
 	if user, ok := checkUser(ctx); ok {
 		me.Id = user.Uid
-		me.Role = config.RoleUser
+		me.Role = configProject.RoleUser
 
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
 		me.Id = restaurant.ID
-		me.Role = config.RoleAdmin
+		me.Role = configProject.RoleAdmin
 
 	} else {
 		foundError := errors.AuthorizationError("not user and restaurant")
@@ -190,7 +190,7 @@ func (ch *chatUsecase) convertChats(ctx context.Context, me models.ChatUser,
 		}
 		breifChat.Uid = opponent.Id
 
-		if opponent.Role == config.RoleAdmin {
+		if opponent.Role == configProject.RoleAdmin {
 			restaurant, err := ch.AuthService.GetByRid(ctx, opponent.Id)
 			if err != nil {
 				return nil, err
@@ -220,9 +220,9 @@ func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.Info
 	chat := new(models.InfoChat)
 	if user, ok := checkUser(ctx); ok {
 		me.Id = user.Uid
-		me.Role = config.RoleUser
+		me.Role = configProject.RoleUser
 		opponent.Id = id
-		opponent.Role = config.RoleAdmin
+		opponent.Role = configProject.RoleAdmin
 
 		restaurant, err := ch.AuthService.GetByRid(ctx, id)
 		if err != nil {
@@ -233,9 +233,9 @@ func (ch *chatUsecase) GetAllMessages(ctx context.Context, id int) (*models.Info
 
 	} else if restaurant, ok := checkRestaurant(ctx); ok {
 		me.Id = restaurant.ID
-		me.Role = config.RoleAdmin
+		me.Role = configProject.RoleAdmin
 		opponent.Id = id
-		opponent.Role = config.RoleUser
+		opponent.Role = configProject.RoleUser
 
 		user, err := ch.AuthService.GetByUid(ctx, id)
 		if err != nil {

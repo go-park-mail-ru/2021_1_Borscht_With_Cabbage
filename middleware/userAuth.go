@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/utils/logger"
@@ -15,7 +15,7 @@ type UserAuthMiddleware struct {
 func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := models.GetContext(c)
-		session, err := c.Cookie(config.SessionCookie)
+		session, err := c.Cookie(configProject.SessionCookie)
 		if err != nil {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
@@ -30,7 +30,7 @@ func (m *UserAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c) // пользователь не вошел
 		}
 
-		if sessionData.Role != config.RoleUser { // тут проверяются права именно на обычного юзера
+		if sessionData.Role != configProject.RoleUser { // тут проверяются права именно на обычного юзера
 			return models.SendRedirectLogin(c)
 		}
 
