@@ -15,7 +15,18 @@ type BasketForUser struct {
 	RestaurantImage string         `json:"restaurantImage"`
 	RID             int            `json:"restaurantID"`
 	DeliveryCost    int            `json:"deliveryPrice"`
+	DeliveryTime    int            `json:"deliveryTime"`
 	Summary         int            `json:"totalPrice"`
 	Foods           []DishInBasket `json:"foods"`
 	Address         Address        `json:"address"`
+}
+
+type BasketsForUser struct {
+	Baskets []BasketForUser `json:"baskets"`
+}
+
+type GetBasketParams struct {
+	Uid       int
+	Latitude  string
+	Longitude string
 }

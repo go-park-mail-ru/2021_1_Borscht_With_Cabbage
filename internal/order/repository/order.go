@@ -26,21 +26,18 @@ func NewOrderRepo(db *sql.DB) order.OrderRepo {
 
 // TODO транзакция
 func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.CreateOrder) error {
-	var basketID int
+	var basketID, restID int
 	var basketRestaurant string
 	// находим что за корзина и из какого ресторана привязана к юзеру
-	err := o.DB.QueryRow("select basketID from basket_users where userID = $1", uid).Scan(&basketID)
+	err := o.DB.QueryRow("select basketID, restaurantid from basket_users where basketID = $1", orderParams.BasketID).Scan(&basketID, &restID)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant name")
 		return errors.BadRequestError("Error with getting restaurant name")
 	}
 
-	// ищем ресторан по корзине
-	err = o.DB.QueryRow("select restaurant from baskets where bid = $1", basketID).Scan(&basketRestaurant)
-
 	// цена доставки ресторана для формирования заказа
 	var deliveryCost int
-	err = o.DB.QueryRow("select deliverycost from restaurants where name=$1", basketRestaurant).Scan(&deliveryCost)
+	err = o.DB.QueryRow("select deliverycost from restaurants where rid = $1", restID).Scan(&deliveryCost)
 	if err != nil {
 		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting delivery cost")
@@ -57,12 +54,12 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 		return errors.BadRequestError("Error with inserting order in DB")
 	}
 
-	// удаляем связь корзина-юзер
-	_, err = o.DB.Exec("delete from basket_users where basketid = $1", basketID)
-	if err != nil {
-		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
-		return errors.BadRequestError("Error with inserting order in DB")
-	}
+	//// удаляем связь корзина-юзер
+	//_, err = o.DB.Exec("delete from basket_users where basketid = $1", basketID)
+	//if err != nil {
+	//	logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
+	//	return errors.BadRequestError("Error with inserting order in DB")
+	//}
 
 	// создаем связь корзина-заказ
 	_, err = o.DB.Exec("insert into basket_orders (basketid, orderid) values ($1, $2)", basketID, orderID)

@@ -38,9 +38,10 @@ func createBasketResponse(basket models.BasketForUser, address models.Address) p
 	}
 	basketResponse := protoBasket.BasketInfo{
 		Bid:             int32(basket.BID),
+		Rid:             int32(basket.RID),
 		RestaurantName:  basket.Restaurant,
 		RestaurantImage: basket.RestaurantImage,
-		Rid:             int32(basket.DeliveryCost),
+		DeliveryCost:    int32(basket.DeliveryCost),
 		Summary:         int32(basket.Summary),
 		Address:         &addressProto,
 		Dishes:          dishesProto,
@@ -51,9 +52,9 @@ func createBasketResponse(basket models.BasketForUser, address models.Address) p
 
 func (s service) AddToBasket(ctx context.Context, dish *protoBasket.DishToBasket) (*protoBasket.Nothing, error) {
 	dishToBasket := models.DishToBasket{
-		SameBasket: dish.SameBasket,
-		IsPlus:     dish.IsPlus,
-		DishID:     int(dish.Did),
+		RestaurantID: int(dish.Rid),
+		IsPlus:       dish.IsPlus,
+		DishID:       int(dish.Did),
 	}
 
 	err := s.basketRepo.AddToBasket(ctx, dishToBasket, int(dish.Uid))
@@ -66,9 +67,9 @@ func (s service) AddToBasket(ctx context.Context, dish *protoBasket.DishToBasket
 
 func (s service) DeleteFromBasket(ctx context.Context, dish *protoBasket.DishToBasket) (*protoBasket.Nothing, error) {
 	dishFromBasket := models.DishToBasket{
-		SameBasket: dish.SameBasket,
-		IsPlus:     dish.IsPlus,
-		DishID:     int(dish.Did),
+		RestaurantID: int(dish.Rid),
+		IsPlus:       dish.IsPlus,
+		DishID:       int(dish.Did),
 	}
 
 	err := s.basketRepo.DeleteFromBasket(ctx, dishFromBasket, int(dish.Uid))
@@ -79,8 +80,8 @@ func (s service) DeleteFromBasket(ctx context.Context, dish *protoBasket.DishToB
 	return &protoBasket.Nothing{}, nil
 }
 
-func (s service) GetBasket(ctx context.Context, uid *protoBasket.UID) (*protoBasket.BasketInfo, error) {
-	basket, err := s.basketRepo.GetBasket(ctx, int(uid.Uid))
+func (s service) GetBasket(ctx context.Context, uid *protoBasket.IDs) (*protoBasket.BasketInfo, error) {
+	basket, err := s.basketRepo.GetBasket(ctx, int(uid.Uid), int(uid.Rid))
 	if err != nil {
 		return &protoBasket.BasketInfo{}, err
 	}
@@ -102,48 +103,74 @@ func (s service) GetBasket(ctx context.Context, uid *protoBasket.UID) (*protoBas
 	return &basketResponse, nil
 }
 
-func (s service) AddBasket(ctx context.Context, info *protoBasket.BasketInfo) (*protoBasket.BasketInfo, error) {
-	uid := int(info.Uid)
-	// пока что удаляем предыдущую корзину, в будущем надо будет изменить логику
-	basketOld, err := s.basketRepo.GetBasket(ctx, uid)
-	if err != nil {
-		return &protoBasket.BasketInfo{}, err
+func (s service) GetBaskets(ctx context.Context, params *protoBasket.GetBasketsParams) (*protoBasket.Baskets, error) {
+	paramsUser := models.GetBasketParams{
+		Uid:       int(params.Uid),
+		Latitude:  params.Latitude,
+		Longitude: params.Longitude,
 	}
 
-	// у пользователя уже есть корзина, удаляем ее
-	if basketOld != nil {
-		err = s.basketRepo.DeleteBasket(ctx, uid, basketOld.BID)
+	baskets, err := s.basketRepo.GetBaskets(ctx, paramsUser)
+	if err != nil {
+		return &protoBasket.Baskets{}, err
+	}
+
+	basketsResponse := make([]*protoBasket.BasketInfo, 0)
+	for _, basket := range baskets.Baskets {
+		basketResponse := createBasketResponse(basket, models.Address{})
+		basketsResponse = append(basketsResponse, &basketResponse)
+	}
+
+	return &protoBasket.Baskets{Baskets: basketsResponse}, nil
+}
+
+func (s service) AddBasket(ctx context.Context, info *protoBasket.Baskets) (*protoBasket.Baskets, error) {
+	uid := int(info.Baskets[0].Uid)
+
+	response := protoBasket.Baskets{}
+	for _, basket := range info.Baskets {
+		// пока что удаляем предыдущую корзину, в будущем надо будет изменить логику
+		basketOld, err := s.basketRepo.GetBasket(ctx, uid, int(basket.Rid))
 		if err != nil {
-			return &protoBasket.BasketInfo{}, err
+			return &protoBasket.Baskets{}, err
 		}
-	}
 
-	newBasketId, err := s.basketRepo.AddBasket(ctx, uid, int(info.Rid))
-	if err != nil {
-		return &protoBasket.BasketInfo{}, err
-	}
+		// у пользователя уже есть корзина, удаляем ее
+		if basketOld != nil {
+			err = s.basketRepo.DeleteBasket(ctx, basketOld.BID)
+			if err != nil {
+				return &protoBasket.Baskets{}, err
+			}
+		}
 
-	// TODO: попробовать сделать одной транзакцией это
-	// а то может записать только половину корзины
-	for _, value := range info.Dishes {
-		err = s.basketRepo.AddDishToBasket(ctx, newBasketId, models.DishInBasket{
-			ID:     int(value.ID),
-			Name:   value.Name,
-			Number: int(value.Number),
-			Image:  value.Image,
-			Price:  int(value.Price),
-		})
+		newBasketId, err := s.basketRepo.AddBasket(ctx, uid, int(basket.Rid))
 		if err != nil {
-			return &protoBasket.BasketInfo{}, err
+			return &protoBasket.Baskets{}, err
 		}
+
+		// TODO: попробовать сделать одной транзакцией это
+		// а то может записать только половину корзины
+		for _, value := range basket.Dishes {
+			err = s.basketRepo.AddDishToBasket(ctx, newBasketId, models.DishInBasket{
+				ID:     int(value.ID),
+				Name:   value.Name,
+				Number: int(value.Number),
+				Image:  value.Image,
+				Price:  int(value.Price),
+			})
+			if err != nil {
+				return &protoBasket.Baskets{}, err
+			}
+		}
+
+		basketResult, err := s.basketRepo.GetBasket(ctx, uid, int(basket.Rid))
+		if err != nil {
+			return &protoBasket.Baskets{}, err
+		}
+
+		basketResponse := createBasketResponse(*basketResult, models.Address{})
+		response.Baskets = append(response.Baskets, &basketResponse)
 	}
 
-	basketResult, err := s.basketRepo.GetBasket(ctx, uid)
-	if err != nil {
-		return &protoBasket.BasketInfo{}, err
-	}
-
-	basketResponse := createBasketResponse(*basketResult, models.Address{})
-
-	return &basketResponse, nil
+	return &response, nil
 }

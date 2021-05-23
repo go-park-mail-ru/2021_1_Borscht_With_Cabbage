@@ -33,13 +33,14 @@ type DishInOrder struct {
 }
 
 type CreateOrder struct {
-	Address string `json:"address"`
+	Address  string `json:"address"`
+	BasketID int    `json:"basketID"`
 }
 
 type DishToBasket struct {
-	DishID     int  `json:"dishID"`
-	IsPlus     bool `json:"isPlus"`
-	SameBasket bool `json:"same"`
+	DishID       int  `json:"dishID"`
+	RestaurantID int  `json:"restaurantID"`
+	IsPlus       bool `json:"isPlus"`
 }
 
 type SetNewStatus struct {

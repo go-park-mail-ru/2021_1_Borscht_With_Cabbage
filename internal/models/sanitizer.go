@@ -140,6 +140,12 @@ func (u *BasketForUser) Sanitize() {
 	}
 }
 
+func (u *BasketsForUser) Sanitize() {
+	for i := range u.Baskets {
+		u.Baskets[i].Sanitize()
+	}
+}
+
 func (u *Key) Sanitize() {}
 
 func (u *Address) Sanitize() {

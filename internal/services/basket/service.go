@@ -11,8 +11,9 @@ import (
 type ServiceBasket interface {
 	AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error
 	DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error
-	GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error)
-	AddBasket(ctx context.Context, basket models.BasketForUser) (*models.BasketForUser, error)
+	GetBasket(ctx context.Context, uid, rid int) (*models.BasketForUser, error)
+	GetBaskets(ctx context.Context, params models.GetBasketParams) ([]models.BasketForUser, error)
+	AddBaskets(ctx context.Context, basket []models.BasketForUser) (*[]models.BasketForUser, error)
 }
 
 type service struct {
@@ -90,10 +91,10 @@ func convertProtoToBasket(basket *protoBasket.BasketInfo) models.BasketForUser {
 
 func (s service) AddToBasket(ctx context.Context, dish models.DishToBasket, uid int) error {
 	dishToBasket := protoBasket.DishToBasket{
-		SameBasket: dish.SameBasket,
-		Did:        int32(dish.DishID),
-		IsPlus:     dish.IsPlus,
-		Uid:        int32(uid),
+		Rid:    int32(dish.RestaurantID),
+		Did:    int32(dish.DishID),
+		IsPlus: dish.IsPlus,
+		Uid:    int32(uid),
 	}
 
 	_, err := s.basketService.AddToBasket(ctx, &dishToBasket)
@@ -106,10 +107,10 @@ func (s service) AddToBasket(ctx context.Context, dish models.DishToBasket, uid 
 
 func (s service) DeleteFromBasket(ctx context.Context, dish models.DishToBasket, uid int) error {
 	dishToDelete := protoBasket.DishToBasket{
-		SameBasket: dish.SameBasket,
-		Did:        int32(dish.DishID),
-		IsPlus:     dish.IsPlus,
-		Uid:        int32(uid),
+		Rid:    int32(dish.RestaurantID),
+		Did:    int32(dish.DishID),
+		IsPlus: dish.IsPlus,
+		Uid:    int32(uid),
 	}
 
 	_, err := s.basketService.DeleteFromBasket(ctx, &dishToDelete)
@@ -120,12 +121,13 @@ func (s service) DeleteFromBasket(ctx context.Context, dish models.DishToBasket,
 	return nil
 }
 
-func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser, error) {
-	UID := protoBasket.UID{
+func (s service) GetBasket(ctx context.Context, uid, rid int) (*models.BasketForUser, error) {
+	IDs := protoBasket.IDs{
 		Uid: int32(uid),
+		Rid: int32(rid),
 	}
 
-	basket, err := s.basketService.GetBasket(ctx, &UID)
+	basket, err := s.basketService.GetBasket(ctx, &IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -166,14 +168,40 @@ func (s service) GetBasket(ctx context.Context, uid int) (*models.BasketForUser,
 	return &basketForUser, nil
 }
 
-func (s service) AddBasket(ctx context.Context, basket models.BasketForUser) (*models.BasketForUser, error) {
-	basketInfo := convertBasketToProto(basket)
+func (s service) GetBaskets(ctx context.Context, params models.GetBasketParams) ([]models.BasketForUser, error) {
+	userParams := protoBasket.GetBasketsParams{
+		Uid:       int32(params.Uid),
+		Latitude:  params.Latitude,
+		Longitude: params.Longitude,
+	}
 
-	basketResult, err := s.basketService.AddBasket(ctx, basketInfo)
+	baskets, err := s.basketService.GetBaskets(ctx, &userParams)
 	if err != nil {
 		return nil, err
 	}
 
-	basketResponse := convertProtoToBasket(basketResult)
-	return &basketResponse, nil
+	basketsResponse := make([]models.BasketForUser, 0)
+	for i := range baskets.Baskets {
+		basketResponse := convertProtoToBasket(baskets.Baskets[i])
+		basketsResponse = append(basketsResponse, basketResponse)
+	}
+
+	return basketsResponse, nil
+}
+
+func (s service) AddBaskets(ctx context.Context, basket []models.BasketForUser) (*[]models.BasketForUser, error) {
+	basketRequest := protoBasket.Baskets{}
+	for _, bask := range basket {
+		basketRequest.Baskets = append(basketRequest.Baskets, convertBasketToProto(bask))
+	}
+
+	basketResult, err := s.basketService.AddBaskets(ctx, &basketRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, _ := range basketResult.Baskets {
+		basket[i] = convertProtoToBasket(basketResult.Baskets[i])
+	}
+	return &basket, nil
 }

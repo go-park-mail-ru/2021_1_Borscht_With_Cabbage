@@ -34,13 +34,24 @@ message BasketInfo {
     int32 Uid = 9;
 }
 
+message Baskets {
+    repeated BasketInfo Baskets = 1;
+}
+
 message UserRestaurantBasket {
     int32 UserID = 1;
     int32 RestaurantID = 2;
 }
 
-message UID {
+message IDs {
     int32 uid = 1;
+    int32 rid = 2;
+}
+
+message GetBasketsParams {
+    int32 uid = 1;
+    string latitude = 2;
+    string longitude = 3;
 }
 
 message DishToBasket {
@@ -48,6 +59,7 @@ message DishToBasket {
     int32 Did = 2;
     bool IsPlus = 3;
     bool SameBasket = 4;
+    int32 Rid = 5;
 }
 
 message Nothing {
@@ -56,6 +68,7 @@ message Nothing {
 service Basket {
     rpc AddToBasket(DishToBasket) returns (Nothing);
     rpc DeleteFromBasket(DishToBasket) returns (Nothing);
-    rpc GetBasket(UID) returns (BasketInfo);
-    rpc AddBasket(BasketInfo) returns (BasketInfo);
+    rpc GetBasket(IDs) returns (BasketInfo);
+    rpc GetBaskets(GetBasketsParams) returns (Baskets);
+    rpc AddBaskets(Baskets) returns (Baskets);
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/borscht/backend/utils/logger"
 	"github.com/borscht/backend/utils/notifications"
 	"github.com/labstack/echo/v4"
+	"strconv"
 )
 
 type Handler struct {
@@ -26,7 +27,7 @@ func NewOrderHandler(orderUcase order.OrderUsecase, basketService basket.Service
 	return handler
 }
 
-func (h Handler) AddBasket(c echo.Context) error {
+func (h Handler) AddBaskets(c echo.Context) error {
 	ctx := models.GetContext(c)
 	user, ok := ctx.Value("User").(models.User)
 	if !ok {
@@ -35,16 +36,18 @@ func (h Handler) AddBasket(c echo.Context) error {
 		return models.SendResponseWithError(c, failError)
 	}
 
-	basket := models.BasketForUser{}
-	if err := c.Bind(&basket); err != nil {
+	baskets := models.BasketsForUser{}
+	if err := c.Bind(&baskets); err != nil {
 		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
-	basket.UID = user.Uid
-	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"basket": basket})
+	for i := range baskets.Baskets {
+		baskets.Baskets[i].UID = user.Uid
+	}
+	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"baskets": baskets.Baskets})
 
-	result, err := h.BasketService.AddBasket(ctx, basket)
+	result, err := h.BasketService.AddBaskets(ctx, baskets.Baskets)
 	if err != nil {
 		models.SendResponseWithError(c, err)
 	}
@@ -57,9 +60,9 @@ func (h Handler) AddBasket(c echo.Context) error {
 
 func (h Handler) AddToBasket(c echo.Context) error {
 	ctx := models.GetContext(c)
+	var err error
 
 	user := c.Get("User")
-
 	if user == nil {
 		sendErr := errors.AuthorizationError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -73,6 +76,12 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
+	dish.RestaurantID, err = strconv.Atoi(c.QueryParam("idRestaurant"))
+	if err != nil {
+		sendErr := errors.AuthorizationError("error with restaurant id")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
 
 	if dish.IsPlus {
 		err := h.BasketService.AddToBasket(ctx, dish, userStruct.Uid)
@@ -80,7 +89,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 			return models.SendResponseWithError(c, err)
 		}
 
-		basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid)
+		basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid, dish.RestaurantID)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
@@ -89,12 +98,12 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		return models.SendResponse(c, basket)
 	}
 
-	err := h.BasketService.DeleteFromBasket(ctx, dish, userStruct.Uid)
+	err = h.BasketService.DeleteFromBasket(ctx, dish, userStruct.Uid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
 
-	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid)
+	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid, dish.RestaurantID)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -107,6 +116,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 
 func (h Handler) Create(c echo.Context) error {
 	ctx := models.GetContext(c)
+	var err error
 
 	user := c.Get("User")
 	if user == nil {
@@ -121,9 +131,15 @@ func (h Handler) Create(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
+	order.BasketID, err = strconv.Atoi(c.QueryParam("idBasket"))
+	if err != nil {
+		sendErr := errors.AuthorizationError("error with restaurant id")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
 
 	userStruct := user.(models.User)
-	err := h.OrderUcase.Create(ctx, userStruct.Uid, order)
+	err = h.OrderUcase.Create(ctx, userStruct.Uid, order)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -229,9 +245,15 @@ func (h Handler) GetBasket(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
+	rid, err := strconv.Atoi(c.QueryParam("idRestaurant"))
+	if err != nil {
+		sendErr := errors.AuthorizationError("error with restaurant id")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
 
 	userStruct := user.(models.User)
-	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid)
+	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid, rid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
@@ -241,4 +263,37 @@ func (h Handler) GetBasket(c echo.Context) error {
 	}
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"basket": basket})
 	return models.SendResponse(c, basket)
+}
+
+func (h Handler) GetBaskets(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	user := c.Get("User")
+	if user == nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+	userStruct := user.(models.User)
+
+	getBasketsParams := models.GetBasketParams{
+		Uid:       userStruct.Uid,
+		Latitude:  c.QueryParam("latitude"),
+		Longitude: c.QueryParam("longitude"),
+	}
+
+	baskets, err := h.BasketService.GetBaskets(ctx, getBasketsParams)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	response := models.BasketsForUser{}
+	if baskets != nil {
+		response = models.BasketsForUser{
+			Baskets: baskets,
+		}
+	}
+
+	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"basket": baskets})
+	return models.SendResponse(c, &response)
 }

@@ -4,7 +4,7 @@
 // 	protoc        v3.6.1
 // source: basket.proto
 
-package proto
+package basket
 
 import (
 	context "context"
@@ -285,6 +285,53 @@ func (x *BasketInfo) GetUid() int32 {
 	return 0
 }
 
+type Baskets struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Baskets []*BasketInfo `protobuf:"bytes,1,rep,name=Baskets,proto3" json:"Baskets,omitempty"`
+}
+
+func (x *Baskets) Reset() {
+	*x = Baskets{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_basket_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Baskets) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Baskets) ProtoMessage() {}
+
+func (x *Baskets) ProtoReflect() protoreflect.Message {
+	mi := &file_basket_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Baskets.ProtoReflect.Descriptor instead.
+func (*Baskets) Descriptor() ([]byte, []int) {
+	return file_basket_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Baskets) GetBaskets() []*BasketInfo {
+	if x != nil {
+		return x.Baskets
+	}
+	return nil
+}
+
 type UserRestaurantBasket struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -297,7 +344,7 @@ type UserRestaurantBasket struct {
 func (x *UserRestaurantBasket) Reset() {
 	*x = UserRestaurantBasket{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_basket_proto_msgTypes[3]
+		mi := &file_basket_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -310,7 +357,7 @@ func (x *UserRestaurantBasket) String() string {
 func (*UserRestaurantBasket) ProtoMessage() {}
 
 func (x *UserRestaurantBasket) ProtoReflect() protoreflect.Message {
-	mi := &file_basket_proto_msgTypes[3]
+	mi := &file_basket_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,7 +370,7 @@ func (x *UserRestaurantBasket) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRestaurantBasket.ProtoReflect.Descriptor instead.
 func (*UserRestaurantBasket) Descriptor() ([]byte, []int) {
-	return file_basket_proto_rawDescGZIP(), []int{3}
+	return file_basket_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UserRestaurantBasket) GetUserID() int32 {
@@ -340,31 +387,32 @@ func (x *UserRestaurantBasket) GetRestaurantID() int32 {
 	return 0
 }
 
-type UID struct {
+type IDs struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	Uid int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Rid int32 `protobuf:"varint,2,opt,name=rid,proto3" json:"rid,omitempty"`
 }
 
-func (x *UID) Reset() {
-	*x = UID{}
+func (x *IDs) Reset() {
+	*x = IDs{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_basket_proto_msgTypes[4]
+		mi := &file_basket_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *UID) String() string {
+func (x *IDs) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UID) ProtoMessage() {}
+func (*IDs) ProtoMessage() {}
 
-func (x *UID) ProtoReflect() protoreflect.Message {
-	mi := &file_basket_proto_msgTypes[4]
+func (x *IDs) ProtoReflect() protoreflect.Message {
+	mi := &file_basket_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -375,16 +423,86 @@ func (x *UID) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UID.ProtoReflect.Descriptor instead.
-func (*UID) Descriptor() ([]byte, []int) {
-	return file_basket_proto_rawDescGZIP(), []int{4}
+// Deprecated: Use IDs.ProtoReflect.Descriptor instead.
+func (*IDs) Descriptor() ([]byte, []int) {
+	return file_basket_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *UID) GetUid() int32 {
+func (x *IDs) GetUid() int32 {
 	if x != nil {
 		return x.Uid
 	}
 	return 0
+}
+
+func (x *IDs) GetRid() int32 {
+	if x != nil {
+		return x.Rid
+	}
+	return 0
+}
+
+type GetBasketsParams struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Uid       int32  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Latitude  string `protobuf:"bytes,2,opt,name=latitude,proto3" json:"latitude,omitempty"`
+	Longitude string `protobuf:"bytes,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
+}
+
+func (x *GetBasketsParams) Reset() {
+	*x = GetBasketsParams{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_basket_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetBasketsParams) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBasketsParams) ProtoMessage() {}
+
+func (x *GetBasketsParams) ProtoReflect() protoreflect.Message {
+	mi := &file_basket_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBasketsParams.ProtoReflect.Descriptor instead.
+func (*GetBasketsParams) Descriptor() ([]byte, []int) {
+	return file_basket_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetBasketsParams) GetUid() int32 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *GetBasketsParams) GetLatitude() string {
+	if x != nil {
+		return x.Latitude
+	}
+	return ""
+}
+
+func (x *GetBasketsParams) GetLongitude() string {
+	if x != nil {
+		return x.Longitude
+	}
+	return ""
 }
 
 type DishToBasket struct {
@@ -396,12 +514,13 @@ type DishToBasket struct {
 	Did        int32 `protobuf:"varint,2,opt,name=Did,proto3" json:"Did,omitempty"`
 	IsPlus     bool  `protobuf:"varint,3,opt,name=IsPlus,proto3" json:"IsPlus,omitempty"`
 	SameBasket bool  `protobuf:"varint,4,opt,name=SameBasket,proto3" json:"SameBasket,omitempty"`
+	Rid        int32 `protobuf:"varint,5,opt,name=Rid,proto3" json:"Rid,omitempty"`
 }
 
 func (x *DishToBasket) Reset() {
 	*x = DishToBasket{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_basket_proto_msgTypes[5]
+		mi := &file_basket_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -414,7 +533,7 @@ func (x *DishToBasket) String() string {
 func (*DishToBasket) ProtoMessage() {}
 
 func (x *DishToBasket) ProtoReflect() protoreflect.Message {
-	mi := &file_basket_proto_msgTypes[5]
+	mi := &file_basket_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -427,7 +546,7 @@ func (x *DishToBasket) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DishToBasket.ProtoReflect.Descriptor instead.
 func (*DishToBasket) Descriptor() ([]byte, []int) {
-	return file_basket_proto_rawDescGZIP(), []int{5}
+	return file_basket_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DishToBasket) GetUid() int32 {
@@ -458,6 +577,13 @@ func (x *DishToBasket) GetSameBasket() bool {
 	return false
 }
 
+func (x *DishToBasket) GetRid() int32 {
+	if x != nil {
+		return x.Rid
+	}
+	return 0
+}
+
 type Nothing struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -467,7 +593,7 @@ type Nothing struct {
 func (x *Nothing) Reset() {
 	*x = Nothing{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_basket_proto_msgTypes[6]
+		mi := &file_basket_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -480,7 +606,7 @@ func (x *Nothing) String() string {
 func (*Nothing) ProtoMessage() {}
 
 func (x *Nothing) ProtoReflect() protoreflect.Message {
-	mi := &file_basket_proto_msgTypes[6]
+	mi := &file_basket_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +619,7 @@ func (x *Nothing) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Nothing.ProtoReflect.Descriptor instead.
 func (*Nothing) Descriptor() ([]byte, []int) {
-	return file_basket_proto_rawDescGZIP(), []int{6}
+	return file_basket_proto_rawDescGZIP(), []int{8}
 }
 
 var File_basket_proto protoreflect.FileDescriptor
@@ -535,38 +661,54 @@ var file_basket_proto_rawDesc = []byte{
 	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x41, 0x64, 0x64, 0x72,
 	0x65, 0x73, 0x73, 0x52, 0x07, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x10, 0x0a, 0x03,
-	0x55, 0x69, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x55, 0x69, 0x64, 0x22, 0x52,
-	0x0a, 0x14, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74,
-	0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x12, 0x22,
-	0x0a, 0x0c, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x49, 0x44, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x05, 0x52, 0x0c, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74,
-	0x49, 0x44, 0x22, 0x17, 0x0a, 0x03, 0x55, 0x49, 0x44, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x69, 0x64,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x75, 0x69, 0x64, 0x22, 0x6a, 0x0a, 0x0c, 0x44,
+	0x55, 0x69, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x55, 0x69, 0x64, 0x22, 0x3c,
+	0x0a, 0x07, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x12, 0x31, 0x0a, 0x07, 0x42, 0x61, 0x73,
+	0x6b, 0x65, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x49,
+	0x6e, 0x66, 0x6f, 0x52, 0x07, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x22, 0x52, 0x0a, 0x14,
+	0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x42, 0x61,
+	0x73, 0x6b, 0x65, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x12, 0x22, 0x0a, 0x0c,
+	0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x49, 0x44, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x0c, 0x52, 0x65, 0x73, 0x74, 0x61, 0x75, 0x72, 0x61, 0x6e, 0x74, 0x49, 0x44,
+	0x22, 0x29, 0x0a, 0x03, 0x49, 0x44, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x75, 0x69, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x72, 0x69, 0x64,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x72, 0x69, 0x64, 0x22, 0x5e, 0x0a, 0x10, 0x47,
+	0x65, 0x74, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12,
+	0x10, 0x0a, 0x03, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x75, 0x69,
+	0x64, 0x12, 0x1a, 0x0a, 0x08, 0x6c, 0x61, 0x74, 0x69, 0x74, 0x75, 0x64, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x08, 0x6c, 0x61, 0x74, 0x69, 0x74, 0x75, 0x64, 0x65, 0x12, 0x1c, 0x0a,
+	0x09, 0x6c, 0x6f, 0x6e, 0x67, 0x69, 0x74, 0x75, 0x64, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x09, 0x6c, 0x6f, 0x6e, 0x67, 0x69, 0x74, 0x75, 0x64, 0x65, 0x22, 0x7c, 0x0a, 0x0c, 0x44,
 	0x69, 0x73, 0x68, 0x54, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x55,
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x55, 0x69, 0x64, 0x12, 0x10, 0x0a,
 	0x03, 0x44, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x44, 0x69, 0x64, 0x12,
 	0x16, 0x0a, 0x06, 0x49, 0x73, 0x50, 0x6c, 0x75, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52,
 	0x06, 0x49, 0x73, 0x50, 0x6c, 0x75, 0x73, 0x12, 0x1e, 0x0a, 0x0a, 0x53, 0x61, 0x6d, 0x65, 0x42,
 	0x61, 0x73, 0x6b, 0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0a, 0x53, 0x61, 0x6d,
-	0x65, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x22, 0x09, 0x0a, 0x07, 0x4e, 0x6f, 0x74, 0x68, 0x69,
-	0x6e, 0x67, 0x32, 0x84, 0x02, 0x0a, 0x06, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x3e, 0x0a,
-	0x0b, 0x41, 0x64, 0x64, 0x54, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x19, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x44, 0x69, 0x73, 0x68, 0x54,
-	0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x1a, 0x14, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42,
-	0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x12, 0x43, 0x0a,
-	0x10, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x46, 0x72, 0x6f, 0x6d, 0x42, 0x61, 0x73, 0x6b, 0x65,
-	0x74, 0x12, 0x19, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e,
-	0x44, 0x69, 0x73, 0x68, 0x54, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x1a, 0x14, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x4e, 0x6f, 0x74, 0x68, 0x69,
-	0x6e, 0x67, 0x12, 0x36, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12,
-	0x10, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x55, 0x49,
-	0x44, 0x1a, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e,
-	0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x3d, 0x0a, 0x09, 0x41, 0x64,
-	0x64, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42,
-	0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x49, 0x6e, 0x66, 0x6f,
-	0x1a, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x42,
-	0x61, 0x73, 0x6b, 0x65, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x42, 0x34, 0x5a, 0x32, 0x67, 0x69, 0x74,
+	0x65, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x52, 0x69, 0x64, 0x18, 0x05,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x52, 0x69, 0x64, 0x22, 0x09, 0x0a, 0x07, 0x4e, 0x6f, 0x74,
+	0x68, 0x69, 0x6e, 0x67, 0x32, 0xc2, 0x02, 0x0a, 0x06, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12,
+	0x3e, 0x0a, 0x0b, 0x41, 0x64, 0x64, 0x54, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x12, 0x19,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x44, 0x69, 0x73,
+	0x68, 0x54, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x1a, 0x14, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x12,
+	0x43, 0x0a, 0x10, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x46, 0x72, 0x6f, 0x6d, 0x42, 0x61, 0x73,
+	0x6b, 0x65, 0x74, 0x12, 0x19, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65,
+	0x74, 0x2e, 0x44, 0x69, 0x73, 0x68, 0x54, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x1a, 0x14,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x4e, 0x6f, 0x74,
+	0x68, 0x69, 0x6e, 0x67, 0x12, 0x36, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x42, 0x61, 0x73, 0x6b, 0x65,
+	0x74, 0x12, 0x10, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e,
+	0x49, 0x44, 0x73, 0x1a, 0x17, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65,
+	0x74, 0x2e, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x41, 0x0a, 0x0a,
+	0x47, 0x65, 0x74, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x12, 0x1d, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x42, 0x61, 0x73, 0x6b,
+	0x65, 0x74, 0x73, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x14, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x12,
+	0x38, 0x0a, 0x0a, 0x41, 0x64, 0x64, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x12, 0x14, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x2e, 0x42, 0x61, 0x73, 0x6b,
+	0x65, 0x74, 0x73, 0x1a, 0x14, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x42, 0x61, 0x73, 0x6b, 0x65,
+	0x74, 0x2e, 0x42, 0x61, 0x73, 0x6b, 0x65, 0x74, 0x73, 0x42, 0x34, 0x5a, 0x32, 0x67, 0x69, 0x74,
 	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x6f, 0x72, 0x73, 0x63, 0x68, 0x74, 0x2f,
 	0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c,
 	0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
@@ -585,32 +727,37 @@ func file_basket_proto_rawDescGZIP() []byte {
 	return file_basket_proto_rawDescData
 }
 
-var file_basket_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_basket_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_basket_proto_goTypes = []interface{}{
 	(*Address)(nil),              // 0: protoBasket.Address
 	(*DishFromBasket)(nil),       // 1: protoBasket.DishFromBasket
 	(*BasketInfo)(nil),           // 2: protoBasket.BasketInfo
-	(*UserRestaurantBasket)(nil), // 3: protoBasket.UserRestaurantBasket
-	(*UID)(nil),                  // 4: protoBasket.UID
-	(*DishToBasket)(nil),         // 5: protoBasket.DishToBasket
-	(*Nothing)(nil),              // 6: protoBasket.Nothing
+	(*Baskets)(nil),              // 3: protoBasket.Baskets
+	(*UserRestaurantBasket)(nil), // 4: protoBasket.UserRestaurantBasket
+	(*IDs)(nil),                  // 5: protoBasket.IDs
+	(*GetBasketsParams)(nil),     // 6: protoBasket.GetBasketsParams
+	(*DishToBasket)(nil),         // 7: protoBasket.DishToBasket
+	(*Nothing)(nil),              // 8: protoBasket.Nothing
 }
 var file_basket_proto_depIdxs = []int32{
 	1, // 0: protoBasket.BasketInfo.Dishes:type_name -> protoBasket.DishFromBasket
 	0, // 1: protoBasket.BasketInfo.Address:type_name -> protoBasket.Address
-	5, // 2: protoBasket.Basket.AddToBasket:input_type -> protoBasket.DishToBasket
-	5, // 3: protoBasket.Basket.DeleteFromBasket:input_type -> protoBasket.DishToBasket
-	4, // 4: protoBasket.Basket.GetBasket:input_type -> protoBasket.UID
-	2, // 5: protoBasket.Basket.AddBasket:input_type -> protoBasket.BasketInfo
-	6, // 6: protoBasket.Basket.AddToBasket:output_type -> protoBasket.Nothing
-	6, // 7: protoBasket.Basket.DeleteFromBasket:output_type -> protoBasket.Nothing
-	2, // 8: protoBasket.Basket.GetBasket:output_type -> protoBasket.BasketInfo
-	2, // 9: protoBasket.Basket.AddBasket:output_type -> protoBasket.BasketInfo
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	2, // 2: protoBasket.Baskets.Baskets:type_name -> protoBasket.BasketInfo
+	7, // 3: protoBasket.Basket.AddToBasket:input_type -> protoBasket.DishToBasket
+	7, // 4: protoBasket.Basket.DeleteFromBasket:input_type -> protoBasket.DishToBasket
+	5, // 5: protoBasket.Basket.GetBasket:input_type -> protoBasket.IDs
+	6, // 6: protoBasket.Basket.GetBaskets:input_type -> protoBasket.GetBasketsParams
+	3, // 7: protoBasket.Basket.AddBaskets:input_type -> protoBasket.Baskets
+	8, // 8: protoBasket.Basket.AddToBasket:output_type -> protoBasket.Nothing
+	8, // 9: protoBasket.Basket.DeleteFromBasket:output_type -> protoBasket.Nothing
+	2, // 10: protoBasket.Basket.GetBasket:output_type -> protoBasket.BasketInfo
+	3, // 11: protoBasket.Basket.GetBaskets:output_type -> protoBasket.Baskets
+	3, // 12: protoBasket.Basket.AddBaskets:output_type -> protoBasket.Baskets
+	8, // [8:13] is the sub-list for method output_type
+	3, // [3:8] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_basket_proto_init() }
@@ -656,7 +803,7 @@ func file_basket_proto_init() {
 			}
 		}
 		file_basket_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserRestaurantBasket); i {
+			switch v := v.(*Baskets); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -668,7 +815,7 @@ func file_basket_proto_init() {
 			}
 		}
 		file_basket_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UID); i {
+			switch v := v.(*UserRestaurantBasket); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -680,7 +827,7 @@ func file_basket_proto_init() {
 			}
 		}
 		file_basket_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DishToBasket); i {
+			switch v := v.(*IDs); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -692,6 +839,30 @@ func file_basket_proto_init() {
 			}
 		}
 		file_basket_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetBasketsParams); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_basket_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DishToBasket); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_basket_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Nothing); i {
 			case 0:
 				return &v.state
@@ -710,7 +881,7 @@ func file_basket_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_basket_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -738,8 +909,9 @@ const _ = grpc.SupportPackageIsVersion6
 type BasketClient interface {
 	AddToBasket(ctx context.Context, in *DishToBasket, opts ...grpc.CallOption) (*Nothing, error)
 	DeleteFromBasket(ctx context.Context, in *DishToBasket, opts ...grpc.CallOption) (*Nothing, error)
-	GetBasket(ctx context.Context, in *UID, opts ...grpc.CallOption) (*BasketInfo, error)
-	AddBasket(ctx context.Context, in *BasketInfo, opts ...grpc.CallOption) (*BasketInfo, error)
+	GetBasket(ctx context.Context, in *IDs, opts ...grpc.CallOption) (*BasketInfo, error)
+	GetBaskets(ctx context.Context, in *GetBasketsParams, opts ...grpc.CallOption) (*Baskets, error)
+	AddBaskets(ctx context.Context, in *Baskets, opts ...grpc.CallOption) (*Baskets, error)
 }
 
 type basketClient struct {
@@ -768,7 +940,7 @@ func (c *basketClient) DeleteFromBasket(ctx context.Context, in *DishToBasket, o
 	return out, nil
 }
 
-func (c *basketClient) GetBasket(ctx context.Context, in *UID, opts ...grpc.CallOption) (*BasketInfo, error) {
+func (c *basketClient) GetBasket(ctx context.Context, in *IDs, opts ...grpc.CallOption) (*BasketInfo, error) {
 	out := new(BasketInfo)
 	err := c.cc.Invoke(ctx, "/protoBasket.Basket/GetBasket", in, out, opts...)
 	if err != nil {
@@ -777,9 +949,18 @@ func (c *basketClient) GetBasket(ctx context.Context, in *UID, opts ...grpc.Call
 	return out, nil
 }
 
-func (c *basketClient) AddBasket(ctx context.Context, in *BasketInfo, opts ...grpc.CallOption) (*BasketInfo, error) {
-	out := new(BasketInfo)
-	err := c.cc.Invoke(ctx, "/protoBasket.Basket/AddBasket", in, out, opts...)
+func (c *basketClient) GetBaskets(ctx context.Context, in *GetBasketsParams, opts ...grpc.CallOption) (*Baskets, error) {
+	out := new(Baskets)
+	err := c.cc.Invoke(ctx, "/protoBasket.Basket/GetBaskets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *basketClient) AddBaskets(ctx context.Context, in *Baskets, opts ...grpc.CallOption) (*Baskets, error) {
+	out := new(Baskets)
+	err := c.cc.Invoke(ctx, "/protoBasket.Basket/AddBaskets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -790,8 +971,9 @@ func (c *basketClient) AddBasket(ctx context.Context, in *BasketInfo, opts ...gr
 type BasketServer interface {
 	AddToBasket(context.Context, *DishToBasket) (*Nothing, error)
 	DeleteFromBasket(context.Context, *DishToBasket) (*Nothing, error)
-	GetBasket(context.Context, *UID) (*BasketInfo, error)
-	AddBasket(context.Context, *BasketInfo) (*BasketInfo, error)
+	GetBasket(context.Context, *IDs) (*BasketInfo, error)
+	GetBaskets(context.Context, *GetBasketsParams) (*Baskets, error)
+	AddBaskets(context.Context, *Baskets) (*Baskets, error)
 }
 
 // UnimplementedBasketServer can be embedded to have forward compatible implementations.
@@ -804,11 +986,14 @@ func (*UnimplementedBasketServer) AddToBasket(context.Context, *DishToBasket) (*
 func (*UnimplementedBasketServer) DeleteFromBasket(context.Context, *DishToBasket) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteFromBasket not implemented")
 }
-func (*UnimplementedBasketServer) GetBasket(context.Context, *UID) (*BasketInfo, error) {
+func (*UnimplementedBasketServer) GetBasket(context.Context, *IDs) (*BasketInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBasket not implemented")
 }
-func (*UnimplementedBasketServer) AddBasket(context.Context, *BasketInfo) (*BasketInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddBasket not implemented")
+func (*UnimplementedBasketServer) GetBaskets(context.Context, *GetBasketsParams) (*Baskets, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBaskets not implemented")
+}
+func (*UnimplementedBasketServer) AddBaskets(context.Context, *Baskets) (*Baskets, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBaskets not implemented")
 }
 
 func RegisterBasketServer(s *grpc.Server, srv BasketServer) {
@@ -852,7 +1037,7 @@ func _Basket_DeleteFromBasket_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 func _Basket_GetBasket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UID)
+	in := new(IDs)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -864,25 +1049,43 @@ func _Basket_GetBasket_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/protoBasket.Basket/GetBasket",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BasketServer).GetBasket(ctx, req.(*UID))
+		return srv.(BasketServer).GetBasket(ctx, req.(*IDs))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Basket_AddBasket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BasketInfo)
+func _Basket_GetBaskets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBasketsParams)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BasketServer).AddBasket(ctx, in)
+		return srv.(BasketServer).GetBaskets(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protoBasket.Basket/AddBasket",
+		FullMethod: "/protoBasket.Basket/GetBaskets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BasketServer).AddBasket(ctx, req.(*BasketInfo))
+		return srv.(BasketServer).GetBaskets(ctx, req.(*GetBasketsParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Basket_AddBaskets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Baskets)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BasketServer).AddBaskets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protoBasket.Basket/AddBaskets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BasketServer).AddBaskets(ctx, req.(*Baskets))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -904,8 +1107,12 @@ var _Basket_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Basket_GetBasket_Handler,
 		},
 		{
-			MethodName: "AddBasket",
-			Handler:    _Basket_AddBasket_Handler,
+			MethodName: "GetBaskets",
+			Handler:    _Basket_GetBaskets_Handler,
+		},
+		{
+			MethodName: "AddBaskets",
+			Handler:    _Basket_AddBaskets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

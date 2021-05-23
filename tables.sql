@@ -94,8 +94,10 @@ CREATE TABLE baskets_food (
 );
 
 CREATE TABLE basket_users (
-                              basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
-                              userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE
+                            --  basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
+                              basketID SERIAL PRIMARY KEY,
+                              userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE,
+                              restaurantID INTEGER REFERENCES  restaurants(rid) ON DELETE CASCADE
 );
 
 CREATE TABLE basket_orders(
