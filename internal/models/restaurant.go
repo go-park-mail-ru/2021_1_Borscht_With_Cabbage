@@ -50,9 +50,10 @@ type RestaurantUpdateData struct {
 	AdminPhone        string  `json:"number"`
 	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
-	Title             string `json:"title"`
-	Description       string `json:"description"`
-	DeliveryCost      int    `json:"deliveryCost"`
+	Title             string   `json:"title"`
+	Description       string   `json:"description"`
+	DeliveryCost      int      `json:"deliveryCost"`
+	Categories        []string `json:"filters"`
 }
 
 type CheckRestaurantExists struct {
