@@ -45,7 +45,7 @@ func saveConfig(ctx context.Context, config ConfigProject) {
 	ConfigStatic = config.Static
 	ConfigDb = config.Db
 	HostAddress = config.Server.Host
-	Client = config.Client.Host + ":" + config.Client.Port + "/"
+	Client = config.Protocol + config.Client.Host + ":" + config.Client.Port + "/"
 
 	ChatServiceAddress = config.Microservices["chat"].GetFullHost()
 	AuthServiceAddress = config.Microservices["auth"].GetFullHost()
