@@ -3,6 +3,7 @@ package authRepo
 import (
 	"context"
 	"database/sql"
+	"math"
 
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
@@ -88,12 +89,13 @@ func (a authRestaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant 
 
 func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*models.RestaurantInfo, error) {
 	restaurant := new(models.RestaurantInfo)
+	var ratingsSum, reviewsCount int
 	err := a.DB.QueryRow(`select rid, name, adminemail, adminphone, deliveryCost, avgCheck,
-		description, avatar, adminpassword from restaurants where (adminphone=$1 or adminemail=$1)`,
+		description, avatar, adminpassword, ratingssum, reviewscount from restaurants where (adminphone=$1 or adminemail=$1)`,
 		login).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
 			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
-			&restaurant.Avatar, &restaurant.AdminHashPassword)
+			&restaurant.Avatar, &restaurant.AdminHashPassword, &ratingsSum, &reviewsCount)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
@@ -104,29 +106,36 @@ func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*mode
 		return nil, custError
 	}
 
+	if reviewsCount != 0 {
+		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+	}
+
 	return restaurant, nil
 }
 
 func (a authRestaurantRepo) GetByRid(ctx context.Context, rid int) (*models.RestaurantInfo, error) {
-	DBuser, err := a.DB.Query("select name, adminphone, adminemail, avatar from restaurants where rid=$1", rid)
+	restaurant := new(models.RestaurantInfo)
+	var ratingsSum, reviewsCount int
+	err := a.DB.QueryRow(`select rid, name, adminemail, adminphone, deliveryCost, avgCheck,
+		description, avatar, adminpassword, ratingssum, reviewscount from restaurants where rid=$1`,
+		rid).
+		Scan(&restaurant.ID, &restaurant.Title, &restaurant.AdminEmail, &restaurant.AdminPhone,
+			&restaurant.DeliveryCost, &restaurant.AvgCheck, &restaurant.Description,
+			&restaurant.Avatar, &restaurant.AdminHashPassword, &ratingsSum, &reviewsCount)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
+	}
 	if err != nil {
-		return nil, errors.NewErrorWithMessage("error with getting restaurant's data").SetDescription("user not found")
+		custError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, custError)
+		return nil, custError
 	}
 
-	restaurant := new(models.RestaurantInfo)
-	for DBuser.Next() {
-		err = DBuser.Scan(
-			&restaurant.Title,
-			&restaurant.AdminPhone,
-			&restaurant.AdminEmail,
-			&restaurant.Avatar,
-		)
-		if err != nil {
-			custError := errors.FailServerError(err.Error())
-			logger.RepoLevel().ErrorLog(ctx, custError)
-			return nil, custError
-		}
+	if reviewsCount != 0 {
+		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 	}
+
 	return restaurant, nil
 }
 
