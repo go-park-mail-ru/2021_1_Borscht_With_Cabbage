@@ -133,7 +133,8 @@ func (h Handler) Create(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
-	order.BasketID, err = strconv.Atoi(c.QueryParam("idBasket"))
+
+	order.BasketID, err = strconv.Atoi(c.Param("basketID"))
 	if err != nil {
 		sendErr := errors.AuthorizationError("error with restaurant id")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)

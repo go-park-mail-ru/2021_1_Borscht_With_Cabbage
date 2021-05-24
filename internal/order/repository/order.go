@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/borscht/backend/configProject"
@@ -36,9 +35,8 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 
 	// цена доставки ресторана для формирования заказа
 	var deliveryCost int
-	err = o.DB.QueryRow("select deliverycost from restaurants where rid = $1", restID).Scan(&deliveryCost)
+	err = o.DB.QueryRow("select deliverycost, name from restaurants where rid = $1", restID).Scan(&deliveryCost, &basketRestaurant)
 	if err != nil {
-		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting delivery cost")
 		return errors.BadRequestError("Error with getting delivery cost")
 	}
@@ -53,12 +51,12 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 		return errors.BadRequestError("Error with inserting order in DB")
 	}
 
-	//// удаляем связь корзина-юзер
-	//_, err = o.DB.Exec("delete from basket_users where basketid = $1", basketID)
-	//if err != nil {
-	//	logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
-	//	return errors.BadRequestError("Error with inserting order in DB")
-	//}
+	// удаляем связь корзина-юзер
+	_, err = o.DB.Exec("delete from basket_users where basketid = $1", basketID)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
+		return errors.BadRequestError("Error with inserting order in DB")
+	}
 
 	// создаем связь корзина-заказ
 	_, err = o.DB.Exec("insert into basket_orders (basketid, orderid) values ($1, $2)", basketID, orderID)
