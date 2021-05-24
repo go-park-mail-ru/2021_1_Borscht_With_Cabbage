@@ -16,9 +16,10 @@ type BasketRepo interface {
 	GetBasket(ctx context.Context, uid, rid int) (*models.BasketForUser, error)
 	GetBaskets(ctx context.Context, params models.GetBasketParams) (models.BasketsForUser, error)
 	AddBasket(ctx context.Context, userID, restaurantID int) (basketID int, err error)
-	DeleteBasket(ctx context.Context, basketID int) error
 	AddDishToBasket(ctx context.Context, basketID int, dish models.DishInBasket) error
 	GetAddress(ctx context.Context, rid int) (*models.Address, error)
+	DeleteBaskets(ctx context.Context, uid int) error
+	DeleteBasket(ctx context.Context, bid int) error
 }
 
 type basketRepository struct {
@@ -245,17 +246,6 @@ func (b basketRepository) AddBasket(ctx context.Context, userID, restaurantID in
 	return basketID, nil
 }
 
-func (b basketRepository) DeleteBasket(ctx context.Context, basketID int) error {
-	_, err := b.DB.Exec("delete from basket_users where basketID = $1", basketID)
-	if err != nil {
-		failError := errors.FailServerError(err.Error())
-		logger.RepoLevel().ErrorLog(ctx, failError)
-		return failError
-	}
-
-	return nil
-}
-
 func (b basketRepository) AddDishToBasket(ctx context.Context, basketID int, dish models.DishInBasket) error {
 	// если такого блюда в корзине нет
 	var dishID int
@@ -299,4 +289,30 @@ func (b basketRepository) GetAddress(ctx context.Context, rid int) (*models.Addr
 
 	logger.RepoLevel().DebugLog(ctx, logger.Fields{"address": address})
 	return &address, nil
+}
+
+func (b basketRepository) DeleteBasket(ctx context.Context, bid int) error {
+	_, err := b.DB.Exec("delete from baskets where bid = $1", bid)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	return nil
+}
+
+func (b basketRepository) DeleteBaskets(ctx context.Context, uid int) error {
+	query := `
+	delete from baskets
+	where bid = (select basketID from basket_users where userID = $1)
+`
+	_, err := b.DB.Exec(query, uid)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	return nil
 }

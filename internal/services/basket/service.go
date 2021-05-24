@@ -13,6 +13,8 @@ type ServiceBasket interface {
 	GetBasket(ctx context.Context, uid, rid int) (*models.BasketForUser, error)
 	GetBaskets(ctx context.Context, params models.GetBasketParams) ([]models.BasketForUser, error)
 	AddBaskets(ctx context.Context, basket []models.BasketForUser) (*[]models.BasketForUser, error)
+	DeleteBaskets(ctx context.Context, uid int) error
+	DeleteBasket(ctx context.Context, bid int) error
 }
 
 type service struct {
@@ -203,4 +205,30 @@ func (s service) AddBaskets(ctx context.Context, basket []models.BasketForUser) 
 		basket[i] = convertProtoToBasket(basketResult.Baskets[i])
 	}
 	return &basket, nil
+}
+
+func (s service) DeleteBaskets(ctx context.Context, uid int) error {
+	userID := protoBasket.UID{
+		Uid: int32(uid),
+	}
+
+	_, err := s.basketService.DeleteBaskets(ctx, &userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s service) DeleteBasket(ctx context.Context, bid int) error {
+	IDs := protoBasket.BID{
+		Bid: int32(bid),
+	}
+
+	_, err := s.basketService.DeleteBasket(ctx, &IDs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

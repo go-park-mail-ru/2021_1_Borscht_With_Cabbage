@@ -48,6 +48,14 @@ message IDs {
     int32 rid = 2;
 }
 
+message UID {
+    int32 uid = 1;
+}
+
+message BID {
+    int32 bid = 1;
+}
+
 message GetBasketsParams {
     int32 uid = 1;
     string latitude = 2;
@@ -62,6 +70,10 @@ message DishToBasket {
     int32 Rid = 5;
 }
 
+message Error {
+    string err = 1;
+}
+
 message Nothing {
 }
 
@@ -71,4 +83,6 @@ service Basket {
     rpc GetBasket(IDs) returns (BasketInfo);
     rpc GetBaskets(GetBasketsParams) returns (Baskets);
     rpc AddBaskets(Baskets) returns (Baskets);
+    rpc DeleteBaskets(UID) returns (Nothing);
+    rpc DeleteBasket(BID) returns (Nothing);
 }

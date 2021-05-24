@@ -301,3 +301,40 @@ func (h Handler) GetBaskets(c echo.Context) error {
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"basket": baskets})
 	return models.SendResponse(c, &response)
 }
+
+func (h Handler) DeleteBaskets(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	user := c.Get("User")
+	if user == nil {
+		sendErr := errors.AuthorizationError("error with request data")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+	userStruct := user.(models.User)
+
+	err := h.BasketService.DeleteBaskets(ctx, userStruct.Uid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}
+
+func (h Handler) DeleteBasket(c echo.Context) error {
+	ctx := models.GetContext(c)
+
+	bid, err := strconv.Atoi(c.Param("basketID"))
+	if err != nil {
+		sendErr := errors.AuthorizationError("error with basket id")
+		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
+		return models.SendResponseWithError(c, sendErr)
+	}
+
+	err = h.BasketService.DeleteBasket(ctx, bid)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+
+	return models.SendResponse(c, nil)
+}

@@ -173,3 +173,21 @@ func (s service) AddBaskets(ctx context.Context, info *protoBasket.Baskets) (*pr
 
 	return &response, nil
 }
+
+func (s service) DeleteBaskets(ctx context.Context, uid *protoBasket.UID) (*protoBasket.Nothing, error) {
+	err := s.basketRepo.DeleteBaskets(ctx, int(uid.Uid))
+	if err != nil {
+		return &protoBasket.Nothing{}, err
+	}
+
+	return &protoBasket.Nothing{}, nil
+}
+
+func (s service) DeleteBasket(ctx context.Context, bid *protoBasket.BID) (*protoBasket.Nothing, error) {
+	err := s.basketRepo.DeleteBasket(ctx, int(bid.Bid))
+	if err != nil {
+		return &protoBasket.Nothing{}, err
+	}
+
+	return &protoBasket.Nothing{}, nil
+}

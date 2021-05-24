@@ -17,6 +17,8 @@ type OrderHandler interface {
 	GetBasket(c echo.Context) error
 	GetBaskets(c echo.Context) error
 	AddBaskets(c echo.Context) error
+	DeleteBaskets(c echo.Context) error
+	DeleteBasket(c echo.Context) error
 }
 
 type OrderUsecase interface {
