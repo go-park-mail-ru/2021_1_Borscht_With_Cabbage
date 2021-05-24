@@ -99,7 +99,6 @@ func (s service) GetBasket(ctx context.Context, uid *protoBasket.IDs) (*protoBas
 	}
 
 	basketResponse := createBasketResponse(*basket, *address)
-
 	return &basketResponse, nil
 }
 

@@ -3,6 +3,7 @@ package basketServiceRepo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/utils/calcDistance"
 	"github.com/borscht/backend/utils/errors"
@@ -31,7 +32,6 @@ func NewBasketRepository(db *sql.DB) BasketRepo {
 }
 
 func (b basketRepository) AddToBasket(ctx context.Context, dishToBasket models.DishToBasket, uid int) error {
-	var basketRestaurant string
 	var basketID int
 	// ищем нужную корзину по юзеру
 	err := b.DB.QueryRow("select basketID from basket_users where userID = $1 and restaurantID = $2", uid, dishToBasket.RestaurantID).Scan(&basketID)
@@ -43,14 +43,15 @@ func (b basketRepository) AddToBasket(ctx context.Context, dishToBasket models.D
 	// если к юзеру пока не привязана корзина
 	if err == sql.ErrNoRows {
 		// то мы ищем ресторан, к которому привязать новую корзину
-		err = b.DB.QueryRow("select restaurant from dishes where did = $1", dishToBasket.DishID).Scan(&basketRestaurant)
+		err = b.DB.QueryRow("insert into baskets(restaurant) values ($1) returning bid", dishToBasket.RestaurantID).Scan(&basketID)
+		fmt.Println(err)
 		if err != nil {
-			logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurant through dish")
-			return errors.BadRequestError("Error with finding restaurant through dish")
+			logger.RepoLevel().InlineInfoLog(ctx, "Error with basket creating")
+			return errors.BadRequestError("Error with basket creating")
 		}
 
 		// создаем новую корзину
-		err = b.DB.QueryRow("insert into basket_users (restaurantID, userID) values ($1, $2) returning basketID", dishToBasket.RestaurantID, uid).Scan(&basketID)
+		_, err = b.DB.Exec("insert into basket_users (restaurantID, userID, basketid) values ($1, $2, $3)", dishToBasket.RestaurantID, uid, basketID)
 		if err != nil {
 			insertError := errors.FailServerError(err.Error())
 			logger.RepoLevel().ErrorLog(ctx, insertError)
@@ -129,7 +130,7 @@ func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.
 		BID: basketID,
 	}
 
-	err = b.DB.QueryRow("select rid, deliverycost, avatar from restaurants where name = (select name from restaurants where rid = $1)", rid).Scan(&basketRestaurant, &restaurantID, &deliveryCost, &imageRestaurant)
+	err = b.DB.QueryRow("select name, deliverycost, avatar from restaurants where rid = $1", rid).Scan(&basketRestaurant, &deliveryCost, &imageRestaurant)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with finding restaurantID through name")
 		return nil, errors.BadRequestError("Error with finding restaurantID through name")
@@ -156,6 +157,7 @@ func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.
 			&dish.Number,
 			&dish.Image)
 		sum += dish.Price * dish.Number
+
 		dishes = append(dishes, *dish)
 	}
 	basketResponse.Foods = dishes

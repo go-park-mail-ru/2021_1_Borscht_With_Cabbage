@@ -78,7 +78,7 @@ func (h Handler) AddToBasket(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
-	dish.RestaurantID, err = strconv.Atoi(c.QueryParam("idRestaurant"))
+	dish.RestaurantID, err = strconv.Atoi(c.Param("restID"))
 	if err != nil {
 		sendErr := errors.AuthorizationError("error with restaurant id")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
@@ -247,14 +247,15 @@ func (h Handler) GetBasket(c echo.Context) error {
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
-	rid, err := strconv.Atoi(c.QueryParam("idRestaurant"))
+	userStruct := user.(models.User)
+
+	rid, err := strconv.Atoi(c.Param("restID"))
 	if err != nil {
 		sendErr := errors.AuthorizationError("error with restaurant id")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
 	}
 
-	userStruct := user.(models.User)
 	basket, err := h.BasketService.GetBasket(ctx, userStruct.Uid, rid)
 	if err != nil {
 		return models.SendResponseWithError(c, err)

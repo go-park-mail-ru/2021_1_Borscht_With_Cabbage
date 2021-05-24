@@ -97,7 +97,7 @@ func route(data initRoute) {
 	userGroup.GET("/orders", data.order.GetUserOrders)
 	userGroup.POST("/order/:basketID", data.order.Create)
 	userGroup.POST("/order/review", data.order.CreateReview)
-	userGroup.PUT("/basket", data.order.AddToBasket)
+	userGroup.PUT("/basket/:restID", data.order.AddToBasket)
 	userGroup.GET("/basket/:restID", data.order.GetBasket)
 	userGroup.GET("/baskets", data.order.GetBaskets)
 	userGroup.POST("/basket", data.order.AddBaskets)

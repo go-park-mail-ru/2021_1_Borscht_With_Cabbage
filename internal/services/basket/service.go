@@ -2,7 +2,6 @@ package basket
 
 import (
 	"context"
-
 	"github.com/borscht/backend/internal/models"
 	protoBasket "github.com/borscht/backend/services/proto/basket"
 	"github.com/borscht/backend/utils/logger"
