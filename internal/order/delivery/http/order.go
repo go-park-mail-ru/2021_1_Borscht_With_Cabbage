@@ -53,9 +53,11 @@ func (h Handler) AddBaskets(c echo.Context) error {
 	}
 
 	if result == nil {
-		result = &models.BasketForUser{}
+		result = &[]models.BasketForUser{}
 	}
-	return models.SendResponse(c, result)
+	return models.SendResponse(c, &models.BasketsForUser{
+		Baskets: *result,
+	})
 }
 
 func (h Handler) AddToBasket(c echo.Context) error {

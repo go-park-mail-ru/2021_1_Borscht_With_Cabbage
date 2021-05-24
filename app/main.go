@@ -100,7 +100,7 @@ func route(data initRoute) {
 	userGroup.PUT("/basket", data.order.AddToBasket)
 	userGroup.GET("/basket/:restID", data.order.GetBasket)
 	userGroup.GET("/baskets", data.order.GetBaskets)
-	userGroup.POST("/basket", data.order.AddBasket)
+	userGroup.POST("/basket", data.order.AddBaskets)
 	apiGroup.GET("/logout", data.user.Logout)
 	apiGroup.GET("/:id", data.restaurant.GetRestaurantPage)
 	apiGroup.GET("/", data.restaurant.GetVendor)

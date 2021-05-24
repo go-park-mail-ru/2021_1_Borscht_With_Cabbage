@@ -124,7 +124,7 @@ func (s service) GetBaskets(ctx context.Context, params *protoBasket.GetBasketsP
 	return &protoBasket.Baskets{Baskets: basketsResponse}, nil
 }
 
-func (s service) AddBasket(ctx context.Context, info *protoBasket.Baskets) (*protoBasket.Baskets, error) {
+func (s service) AddBaskets(ctx context.Context, info *protoBasket.Baskets) (*protoBasket.Baskets, error) {
 	uid := int(info.Baskets[0].Uid)
 
 	response := protoBasket.Baskets{}

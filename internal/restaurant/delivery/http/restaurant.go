@@ -34,7 +34,6 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
-
 	rating, parseErr := strconv.ParseFloat(c.QueryParam("rating"), 64)
 	if parseErr != nil {
 		requestError := errors.BadRequestError(err.Error())
