@@ -73,7 +73,7 @@ func route(data initRoute) {
 	auth.GET("/connect/ws", data.chat.GetKey)
 	auth.GET("/chats", data.chat.GetAllChats)
 	auth.GET("/chat/:id", data.chat.GetAllMessages)
-	data.e.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
+	apiGroup.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
 
 	restaurantGroup := apiGroup.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/categories", data.restaurantAdmin.AddCategories)
