@@ -116,7 +116,7 @@ func (b basketRepository) DeleteFromBasket(ctx context.Context, dish models.Dish
 
 func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.BasketForUser, error) {
 	var basketRestaurant, imageRestaurant string
-	var basketID, restaurantID, deliveryCost int
+	var basketID, deliveryCost int
 	err := b.DB.QueryRow("select basketID from basket_users where userID = $1 and restaurantID=$2", uid, rid).Scan(&basketID)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -136,7 +136,7 @@ func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.
 		return nil, errors.BadRequestError("Error with finding restaurantID through name")
 	}
 	basketResponse.Restaurant = basketRestaurant
-	basketResponse.RID = restaurantID
+	basketResponse.RID = rid
 	basketResponse.DeliveryCost = deliveryCost
 	basketResponse.RestaurantImage = imageRestaurant
 
