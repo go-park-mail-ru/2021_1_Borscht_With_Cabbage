@@ -1,4 +1,4 @@
-CREATE EXTENSION postgis;
+--CREATE EXTENSION postgis;
 
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS sessions;
@@ -12,8 +12,8 @@ DROP TABLE IF EXISTS basket_users;
 DROP TABLE IF EXISTS basket_orders;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS addresses;
-DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS categories_restaurants;
+DROP TABLE IF EXISTS categories;
 
 CREATE TABLE users (
                        uid SERIAL PRIMARY KEY,
@@ -83,7 +83,7 @@ CREATE TABLE orders (
 
 CREATE TABLE baskets (
                          bid SERIAL PRIMARY KEY,
-                         restaurant TEXT REFERENCES restaurants(name) ON DELETE CASCADE
+                         restaurant INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
 );
 
 
@@ -94,8 +94,8 @@ CREATE TABLE baskets_food (
 );
 
 CREATE TABLE basket_users (
-                            --  basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
-                              basketID SERIAL PRIMARY KEY,
+    --  basketID INTEGER REFERENCES baskets(bid) ON DELETE CASCADE,
+                              basketID INTEGER REFERENCES baskets(bid),
                               userID INTEGER REFERENCES  users(uid) ON DELETE CASCADE,
                               restaurantID INTEGER REFERENCES  restaurants(rid) ON DELETE CASCADE
 );
@@ -106,44 +106,44 @@ CREATE TABLE basket_orders(
 );
 
 CREATE TABLE categories(
-                            cid TEXT PRIMARY KEY,
-                            name TEXT
+                           cid TEXT PRIMARY KEY,
+                           name TEXT
 );
 
 INSERT INTO categories (cid, name) VALUES
-    ('sushi', 'Суши'),
-    ('pizza', 'Пицца'),
-    ('burgers', 'Бургеры'),
-    ('meat', 'Мясо'),
-    ('fast_food', 'Фастфуд'),
-    ('zosh', 'Здоровая еда');
+('sushi', 'Суши'),
+('pizza', 'Пицца'),
+('burgers', 'Бургеры'),
+('meat', 'Мясо'),
+('fast_food', 'Фастфуд'),
+('zosh', 'Здоровая еда');
 
 CREATE TABLE categories_restaurants(
-                            categoryID TEXT REFERENCES categories(cid) ON DELETE CASCADE,
-                            restaurantID INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
+                                       categoryID TEXT REFERENCES categories(cid) ON DELETE CASCADE,
+                                       restaurantID INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE
 );
 
 CREATE TABLE messages(
-                            mid SERIAL PRIMARY KEY,
-                            senderId INTEGER NOT NULL,
-                            senderRole TEXT NOT NULL,
-                            recipientId INTEGER NOT NULL,
-                            recipientRole TEXT NOT NULL,
-                            content TEXT DEFAULT '' NOT NULL,
-                            sentWhen TEXT DEFAULT '' NOT NULL
+                         mid SERIAL PRIMARY KEY,
+                         senderId INTEGER NOT NULL,
+                         senderRole TEXT NOT NULL,
+                         recipientId INTEGER NOT NULL,
+                         recipientRole TEXT NOT NULL,
+                         content TEXT DEFAULT '' NOT NULL,
+                         sentWhen TEXT DEFAULT '' NOT NULL
 );
 
-GRANT ALL PRIVILEGES ON TABLE users TO delivery;
-GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
-GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
-GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
-GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
-GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
-GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
-GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
-GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
-GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
-GRANT ALL PRIVILEGES ON TABLE categories TO delivery;
-GRANT ALL PRIVILEGES ON TABLE categories_restaurants TO delivery;
-GRANT ALL PRIVILEGES ON TABLE messages TO delivery;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE users TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE addresses TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE restaurants TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE sections TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE dishes TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE orders TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE baskets TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE baskets_food TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE basket_users TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE basket_orders TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE categories TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE categories_restaurants TO delivery;
+-- GRANT ALL PRIVILEGES ON TABLE messages TO delivery;
+-- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO delivery;
