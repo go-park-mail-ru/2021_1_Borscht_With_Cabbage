@@ -86,6 +86,10 @@ func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address mode
 	return a.restaurantRepository.AddAddress(ctx, rid, address)
 }
 
+func (a restaurantUsecase) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
+	return a.restaurantRepository.GetAddress(ctx, rid)
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 

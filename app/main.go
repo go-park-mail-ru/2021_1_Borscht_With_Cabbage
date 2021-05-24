@@ -115,10 +115,10 @@ func initServer(e *echo.Echo) {
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
-	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "header:X-XSRF-TOKEN",
-		CookiePath:  "/",
-	}))
+	// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+	// 	TokenLookup: "header:X-XSRF-TOKEN",
+	// 	CookiePath:  "/",
+	// }))
 
 	e.Use(middleware.Secure())
 
@@ -206,7 +206,7 @@ func main() {
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
 	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, authService)
+	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)

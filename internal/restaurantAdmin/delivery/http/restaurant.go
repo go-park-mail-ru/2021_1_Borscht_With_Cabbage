@@ -134,6 +134,12 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 
+	address, err := a.RestaurantUsecase.GetAddress(ctx, existingRest.ID)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+	existingRest.Address = *address
+
 	sessionInfo := models.SessionInfo{
 		Id:   existingRest.ID,
 		Role: configProject.RoleAdmin,

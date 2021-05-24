@@ -229,6 +229,7 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 		Radius:    int(restaurantResult.Radius),
 	}
 	restaurantResponse := models.RestaurantInfo{
+		ID:         rid,
 		Title:      restaurantResult.Title,
 		AdminPhone: restaurantResult.Phone,
 		AdminEmail: restaurantResult.Email,
