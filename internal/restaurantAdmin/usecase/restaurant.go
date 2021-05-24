@@ -111,12 +111,14 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, err
 	}
 
-	categories := models.Categories{
-		CategoriesID: restaurant.Categories,
-	}
-	err = a.AddCategories(ctx, categories)
-	if err != nil {
-		return nil, err
+	if restaurant.Categories != nil && len(restaurant.Categories) != 0 {
+		categories := models.Categories{
+			CategoriesID: restaurant.Categories,
+		}
+		err = a.AddCategories(ctx, categories)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurant})

@@ -115,10 +115,10 @@ func initServer(e *echo.Echo) {
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
-	// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-	// 	TokenLookup: "header:X-XSRF-TOKEN",
-	// 	CookiePath:  "/",
-	// }))
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "header:X-XSRF-TOKEN",
+		CookiePath:  "/",
+	}))
 
 	e.Use(middleware.Secure())
 
