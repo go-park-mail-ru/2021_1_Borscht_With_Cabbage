@@ -292,7 +292,21 @@ func (b basketRepository) GetAddress(ctx context.Context, rid int) (*models.Addr
 }
 
 func (b basketRepository) DeleteBasket(ctx context.Context, bid int) error {
-	_, err := b.DB.Exec("delete from baskets where bid = $1", bid)
+	_, err := b.DB.Exec("delete from basket_users where basketid = $1", bid)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	_, err = b.DB.Exec("delete from baskets_food where basket = $1", bid)
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return failError
+	}
+
+	_, err = b.DB.Exec("delete from baskets where bid = $1", bid)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
