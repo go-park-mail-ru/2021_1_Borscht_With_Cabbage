@@ -4,8 +4,9 @@ import (
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 
-	//adminModel "github.com/borscht/backend/internal/restaurantAdmin"
+	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/internal/services/auth"
+
 	//sessionModel "github.com/borscht/backend/internal/session"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
@@ -13,6 +14,7 @@ import (
 
 type AdminAuthMiddleware struct {
 	AuthService auth.ServiceAuth
+	AuthUsecase adminModel.AdminRestaurantUsecase
 }
 
 func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -42,6 +44,13 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			return models.SendRedirectLogin(c)
 		}
 		restaurant.ID = sessionData.Id
+
+		address, err := m.AuthUsecase.GetAddress(ctx, restaurant.ID)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		restaurant.Address = *address
+
 		c.Set("Restaurant", restaurant.RestaurantInfo)
 		logger.MiddleLevel().DataLog(ctx, "restaurant auth", c.Get("Restaurant"))
 
@@ -49,8 +58,9 @@ func (m *AdminAuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitAdminMiddleware(authService auth.ServiceAuth) *AdminAuthMiddleware {
+func InitAdminMiddleware(authService auth.ServiceAuth, authUsecase adminModel.AdminRestaurantUsecase) *AdminAuthMiddleware {
 	return &AdminAuthMiddleware{
 		AuthService: authService,
+		AuthUsecase: authUsecase,
 	}
 }

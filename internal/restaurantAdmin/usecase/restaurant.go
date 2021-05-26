@@ -62,7 +62,7 @@ func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.
 	return a.restaurantRepository.AddCategories(ctx, restaurantAdmin.ID, categories.CategoriesID)
 }
 
-func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.RestaurantUpdateData,
+func (a restaurantUsecase) correcRestaurantData(ctx context.Context, newRestaurant *models.RestaurantUpdateData,
 	oldRestaurant *models.RestaurantInfo) {
 
 	newRestaurant.ID = oldRestaurant.ID
@@ -75,6 +75,10 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 	if newRestaurant.AdminPhone == "" {
 		newRestaurant.AdminPhone = oldRestaurant.AdminPhone
 	}
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{
+		"Address new": newRestaurant.Address,
+		"Address old": oldRestaurant.Address,
+	})
 	if newRestaurant.Address.Name == "" {
 		newRestaurant.Address.Name = oldRestaurant.Address.Name
 		newRestaurant.Address.Latitude = oldRestaurant.Address.Latitude
@@ -118,7 +122,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, failError
 	}
 
-	a.correcRestaurantData(&restaurant, &restaurantAdmin)
+	a.correcRestaurantData(ctx, &restaurant, &restaurantAdmin)
 	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {
 		return nil, err
