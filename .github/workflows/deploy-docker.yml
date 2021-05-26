@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: 
     - build
-    # - test
+    - test
 
     steps:
       - name: Pull All docker images
