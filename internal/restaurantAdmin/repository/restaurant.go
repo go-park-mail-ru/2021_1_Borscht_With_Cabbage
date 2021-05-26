@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/utils/errors"
@@ -17,6 +18,41 @@ func NewRestaurantRepo(db *sql.DB) restaurantAdmin.AdminRestaurantRepo {
 	return &restaurantRepo{
 		DB: db,
 	}
+}
+
+func (r *restaurantRepo) GetCategories(ctx context.Context, rid int) ([]string, error) {
+	query :=
+		`
+		SELECT categoryId 
+		FROM categories_restaurants
+		WHERE restaurantId = $1
+	`
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"rid": rid})
+	categories := make([]string, 0)
+	categoriesDB, err := r.DB.Query(query, rid)
+	if err != nil {
+		failErr := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failErr)
+		return nil, failErr
+	}
+
+	for categoriesDB.Next() {
+		var category string
+
+		err = categoriesDB.Scan(
+			&category,
+		)
+		if err != nil {
+			failErr := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failErr)
+			return nil, failErr
+		}
+
+		categories = append(categories, category)
+	}
+
+	logger.RepoLevel().DebugLog(ctx, logger.Fields{"categories": categories})
+	return categories, nil
 }
 
 func (r restaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
