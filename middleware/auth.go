@@ -5,13 +5,17 @@ import (
 
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
+	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/internal/services/auth"
+	userModel "github.com/borscht/backend/internal/user"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthMiddleware struct {
-	AuthService auth.ServiceAuth
+	AuthService  auth.ServiceAuth
+	UserUsecase  userModel.UserUsecase
+	AdminUsecase adminModel.AdminRestaurantUsecase
 }
 
 func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
@@ -42,16 +46,35 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 				return models.SendRedirectLogin(c)
 			}
 			user.Uid = sessionData.Id
+
+			address, err := m.UserUsecase.GetAddress(ctx, user.Uid)
+			if err != nil {
+				return models.SendResponseWithError(c, err)
+			}
+			user.Address = *address
+
 			c.Set("User", user.User)
 		}
 
 		if sessionData.Role == configProject.RoleAdmin {
 			restaurant, err := m.AuthService.GetByRid(ctx, sessionData.Id)
-			fmt.Println("rest ", restaurant)
 			if err != nil {
 				return models.SendRedirectLogin(c)
 			}
 			restaurant.ID = sessionData.Id
+
+			address, err := m.AdminUsecase.GetAddress(ctx, restaurant.ID)
+			if err != nil {
+				return models.SendResponseWithError(c, err)
+			}
+			restaurant.Address = *address
+
+			categories, err := m.AdminUsecase.GetCategories(ctx, restaurant.ID)
+			if err != nil {
+				return models.SendResponseWithError(c, err)
+			}
+			restaurant.Categories = categories.CategoriesID
+
 			c.Set("Restaurant", restaurant.RestaurantInfo)
 		}
 
@@ -59,8 +82,12 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func InitAuthMiddleware(authService auth.ServiceAuth) *AuthMiddleware {
+func InitAuthMiddleware(authService auth.ServiceAuth, userUsecase userModel.UserUsecase,
+	adminUsecase adminModel.AdminRestaurantUsecase) *AuthMiddleware {
+
 	return &AuthMiddleware{
-		AuthService: authService,
+		AuthService:  authService,
+		UserUsecase:  userUsecase,
+		AdminUsecase: adminUsecase,
 	}
 }

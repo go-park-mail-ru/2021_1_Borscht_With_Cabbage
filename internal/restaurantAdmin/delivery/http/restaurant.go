@@ -96,6 +96,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
+
 	err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, newRestaurant.Address)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -143,6 +144,12 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 		return models.SendResponseWithError(c, err)
 	}
 	existingRest.Address = *address
+
+	categories, err := a.RestaurantUsecase.GetCategories(ctx, existingRest.ID)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+	existingRest.Categories = categories.CategoriesID
 
 	sessionInfo := models.SessionInfo{
 		Id:   existingRest.ID,

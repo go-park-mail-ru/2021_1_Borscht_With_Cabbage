@@ -62,7 +62,7 @@ func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.
 	return a.restaurantRepository.AddCategories(ctx, restaurantAdmin.ID, categories.CategoriesID)
 }
 
-func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.RestaurantUpdateData,
+func (a restaurantUsecase) correcRestaurantData(ctx context.Context, newRestaurant *models.RestaurantUpdateData,
 	oldRestaurant *models.RestaurantInfo) {
 
 	newRestaurant.ID = oldRestaurant.ID
@@ -75,6 +75,10 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 	if newRestaurant.AdminPhone == "" {
 		newRestaurant.AdminPhone = oldRestaurant.AdminPhone
 	}
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{
+		"Address new": newRestaurant.Address,
+		"Address old": oldRestaurant.Address,
+	})
 	if newRestaurant.Address.Name == "" {
 		newRestaurant.Address.Name = oldRestaurant.Address.Name
 		newRestaurant.Address.Latitude = oldRestaurant.Address.Latitude
@@ -90,6 +94,14 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 	if newRestaurant.Address.Radius == 0 {
 		newRestaurant.Address.Radius = oldRestaurant.Address.Radius
 	}
+}
+
+func (a restaurantUsecase) GetCategories(ctx context.Context, rid int) (*models.Categories, error) {
+	categories, err := a.restaurantRepository.GetCategories(ctx, rid)
+	if err != nil {
+		return nil, err
+	}
+	return &models.Categories{CategoriesID: categories}, nil
 }
 
 func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address models.Address) error {
@@ -110,7 +122,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, failError
 	}
 
-	a.correcRestaurantData(&restaurant, &restaurantAdmin)
+	a.correcRestaurantData(ctx, &restaurant, &restaurantAdmin)
 	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {
 		return nil, err
@@ -129,6 +141,12 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		categories, err := a.GetCategories(ctx, restaurant.ID)
+		if err != nil {
+			return nil, err
+		}
+		restaurant.Categories = categories.CategoriesID
 	}
 
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurant})
@@ -143,6 +161,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		DeliveryCost: restaurant.DeliveryCost,
 		Avatar:       restaurantAdmin.Avatar,
 		Address:      restaurant.Address,
+		Categories:   restaurant.Categories,
 	}
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 

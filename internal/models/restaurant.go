@@ -30,13 +30,14 @@ type RestaurantInfo struct {
 	AdminPhone        string  `json:"number"`
 	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
-	AvgCheck          int     `json:"cost"`
-	Title             string  `json:"title"`
-	Description       string  `json:"description"`
-	DeliveryCost      int     `json:"deliveryCost"`
-	DeliveryTime      int     `json:"deliveryTime"`
-	Rating            float64 `json:"rating"`
-	Avatar            string  `json:"avatar"`
+	AvgCheck          int      `json:"cost"`
+	Title             string   `json:"title"`
+	Description       string   `json:"description"`
+	DeliveryCost      int      `json:"deliveryCost"`
+	DeliveryTime      int      `json:"deliveryTime"`
+	Rating            float64  `json:"rating"`
+	Avatar            string   `json:"avatar"`
+	Categories        []string `json:"filters"`
 }
 
 type RestaurantImageResponse struct {
