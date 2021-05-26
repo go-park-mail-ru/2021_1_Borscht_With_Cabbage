@@ -203,6 +203,8 @@ func TestRestaurantHandler_Login(t *testing.T) {
 	}
 
 	AuthServiceMock.EXPECT().CheckRestaurantExists(ctx, newRestaurant).Return(&response, nil)
+	RestaurantUsecaseMock.EXPECT().GetAddress(ctx, existingRestaurant.ID).Return(&models.Address{}, nil)
+	RestaurantUsecaseMock.EXPECT().GetCategories(ctx, existingRestaurant.ID).Return(&models.Categories{}, nil)
 	AuthServiceMock.EXPECT().CreateSession(ctx, sessionInfo)
 
 	err := restaurantHandler.Login(c)

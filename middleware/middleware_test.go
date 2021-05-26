@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/borscht/backend/internal/restaurantAdmin/mocks"
 	authServiceMock "github.com/borscht/backend/internal/services/mocks"
+	userMock "github.com/borscht/backend/internal/user/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -13,8 +15,10 @@ func TestInitAuthMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	userUcase := userMock.NewMockUserUsecase(ctrl)
+	restaurantUcase := mocks.NewMockAdminRestaurantUsecase(ctrl)
 
-	authMiddleware := InitAuthMiddleware(AuthServiceMock)
+	authMiddleware := InitAuthMiddleware(AuthServiceMock, userUcase, restaurantUcase)
 	if authMiddleware == nil {
 		t.Errorf("incorrect result")
 		return
@@ -80,8 +84,9 @@ func TestInitAdminMiddleware(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
+	restaurantUcase := mocks.NewMockAdminRestaurantUsecase(ctrl)
 
-	adminMiddleware := InitAdminMiddleware(AuthServiceMock)
+	adminMiddleware := InitAdminMiddleware(AuthServiceMock, restaurantUcase)
 	if adminMiddleware == nil {
 		t.Errorf("incorrect result")
 		return

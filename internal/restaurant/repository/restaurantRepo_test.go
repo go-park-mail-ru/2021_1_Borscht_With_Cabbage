@@ -18,8 +18,8 @@ type RestaurantInfo struct {
 	Avatar       string `json:"avatar"`
 	RatingsSum   float64
 	ReviewsCount float64
-	Latitude     string
-	Longitude    string
+	Latitude     float64
+	Longitude    float64
 	Radius       int
 }
 
@@ -67,8 +67,8 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "latitude", "longitude", "radius"})
 	expect := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2, "55.766516", "37.653424", 1500},
-		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2, "55.735439", "37.584981", 1500},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2, 55.766516, 37.653424, 1500},
+		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2, 55.735439, 37.584981, 1500},
 	}
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude, item.Radius)
@@ -78,8 +78,8 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		Limit:         1,
 		Offset:        2,
 		Address:       true,
-		LatitudeUser:  "55.768096",
-		LongitudeUser: "37.646839",
+		LatitudeUser:  55.768096,
+		LongitudeUser: 37.646839,
 	}
 
 	mock.
@@ -117,7 +117,7 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 
 	restaurant := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "lan", "lon", "radius"})
 	expectRestaurant := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5, "55.766516", "37.653424", 1000},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5, 55.766516, 37.653424, 1000},
 	}
 	for _, item := range expectRestaurant {
 		restaurant = restaurant.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude, item.Radius)
@@ -249,7 +249,7 @@ func TestRestaurantRepo_GetUserAddress(t *testing.T) {
 	}
 
 	rows := sqlmock.NewRows([]string{"name", "latitude", "longitude"})
-	rows.AddRow("Бауманская 2", "", "")
+	rows.AddRow("Бауманская 2", 0, 0)
 
 	mock.
 		ExpectQuery("SELECT").

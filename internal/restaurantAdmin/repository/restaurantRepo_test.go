@@ -35,7 +35,7 @@ func TestRestaurantRepo_GetAddress(t *testing.T) {
 	}
 
 	rowAddress := sqlmock.NewRows([]string{"name", "latitude", "longitude", "radius"})
-	rowAddress.AddRow("Бауманская 2", "", "", 1500)
+	rowAddress.AddRow("Бауманская 2", 0, 0, 1500)
 
 	restID := 1
 	mock.
@@ -73,8 +73,8 @@ func TestRestaurantRepo_AddAddress(t *testing.T) {
 
 	address := models.Address{
 		Name:      "Бауманская 2",
-		Longitude: "",
-		Latitude:  "",
+		Longitude: 0,
+		Latitude:  0,
 		Radius:    1500,
 	}
 	restID := 1
@@ -146,8 +146,8 @@ func TestRestaurantRepo_UpdateAddress(t *testing.T) {
 
 	address := models.Address{
 		Name:      "Бауманская 2",
-		Longitude: "",
-		Latitude:  "",
+		Longitude: 0,
+		Latitude:  0,
 		Radius:    1500,
 	}
 	restID := 1

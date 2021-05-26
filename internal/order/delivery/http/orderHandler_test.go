@@ -6,6 +6,8 @@ import (
 	"github.com/borscht/backend/internal/order/mocks"
 	basketServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"github.com/borscht/backend/utils/errors"
+	"github.com/borscht/backend/utils/notifications"
+	"github.com/borscht/backend/utils/websocketPool"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -19,7 +21,10 @@ func TestNewOrderHandler(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketService := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketService)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketService, notificator)
 	if orderHandler == nil {
 		t.Errorf("incorrect result")
 		return
@@ -31,7 +36,10 @@ func TestHandler_AddBasket(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	basket := models.BasketForUser{
 		Restaurant: "rest1",
@@ -72,7 +80,10 @@ func TestHandler_AddBasket_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"restaurantNamerest1","restaurantID":1}`
 
@@ -106,7 +117,10 @@ func TestHandler_AddToBasket_SameRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	dish := models.DishToBasket{
 		DishID:     1,
@@ -154,7 +168,10 @@ func TestHandler_AddToBasket_NewRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	dish := models.DishToBasket{
 		DishID:     1,
@@ -202,7 +219,10 @@ func TestHandler_AddToBasket_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"dishid:1,"isPlus":true,"same":true}`
 
@@ -236,7 +256,10 @@ func TestHandler_AddToBasket_UserNilError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"dishid":1,"isPlus":true,"same":true}`
 
@@ -265,7 +288,10 @@ func TestHandler_DeleteFromBasket_SameRestaurant(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	dish := models.DishToBasket{
 		DishID:     1,
@@ -313,7 +339,10 @@ func TestHandler_Create(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	order := models.CreateOrder{
 		Address: "prospekt mira 134",
@@ -346,7 +375,10 @@ func TestHandler_Create_UserNilError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"address":"prospekt mira 134"}`
 
@@ -375,7 +407,10 @@ func TestHandler_Create_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"address"prospekt mira 134"}`
 
@@ -409,7 +444,10 @@ func TestHandler_GetUserOrders(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	orders := []models.Order{
 		{OID: 1, UID: 1, Restaurant: "rest1", Address: "prospekt 1"},
@@ -441,7 +479,10 @@ func TestHandler_GetUserOrders_UserNilError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/user/orders", nil)
@@ -468,7 +509,10 @@ func TestHandler_GetRestaurantOrders(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	orders := []models.Order{
 		{OID: 1, UID: 1, Restaurant: "rest1", Address: "prospekt 1"},
@@ -499,7 +543,10 @@ func TestHandler_GetRestaurantOrders_RestaurantNilError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/restaurant/orders", nil)
@@ -526,7 +573,10 @@ func TestHandler_GetBasket(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	basket := models.BasketForUser{
 		BID:          1,
@@ -561,7 +611,10 @@ func TestHandler_SetNewStatus(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"order":1,"status":"delivering","deliveryTime":"12.01.2001"}`
 	newStatus := models.SetNewStatus{
@@ -578,7 +631,7 @@ func TestHandler_SetNewStatus(t *testing.T) {
 
 	ctx := models.GetContext(c)
 
-	OrderUsecaseMock.EXPECT().SetNewStatus(ctx, newStatus).Return(nil)
+	OrderUsecaseMock.EXPECT().SetNewStatus(ctx, newStatus).Return(0, nil)
 
 	err := orderHandler.SetNewStatus(c)
 	if err != nil {
@@ -592,7 +645,10 @@ func TestHandler_SetNewStatus_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"order:1,"status":"delivering","deliveryTime":"12.01.2001"}`
 
@@ -621,7 +677,10 @@ func TestHandler_CreateReview(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"oid":1,"review":"cool","stars":5}`
 	newReview := models.SetNewReview{
@@ -652,7 +711,10 @@ func TestHandler_CreateReview_BindError(t *testing.T) {
 	defer ctrl.Finish()
 	OrderUsecaseMock := mocks.NewMockOrderUsecase(ctrl)
 	BasketServiceMock := basketServiceMock.NewMockServiceBasket(ctrl)
-	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock)
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	notificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
+	orderHandler := NewOrderHandler(OrderUsecaseMock, BasketServiceMock, notificator)
 
 	inputJSON := `{"oid1,"review":"cool","stars":5}`
 

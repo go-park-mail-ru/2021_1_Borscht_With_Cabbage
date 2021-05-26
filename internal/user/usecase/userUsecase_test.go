@@ -174,8 +174,8 @@ func TestUserUsecase_UpdateData(t *testing.T) {
 		Password: "1111111",
 		Address: models.Address{
 			Name:      "yu2",
-			Longitude: "213",
-			Latitude:  "2142",
+			Longitude: 213,
+			Latitude:  2142,
 			Radius:    1000,
 		},
 	}

@@ -147,7 +147,7 @@ func TestUserRepo_GetAddress(t *testing.T) {
 	}
 
 	address := sqlmock.NewRows([]string{"name", "longitude", "latitude"})
-	address.AddRow("address1", "1234", "4321")
+	address.AddRow("address1", 1234.0, 4321.0)
 
 	mock.
 		ExpectQuery("SELECT name, latitude").
@@ -244,13 +244,13 @@ func TestUserRepo_AddAddress(t *testing.T) {
 
 	addressInput := models.Address{
 		Name:      "address1",
-		Longitude: "4321",
-		Latitude:  "1234",
+		Longitude: 4321,
+		Latitude:  1234,
 	}
 
 	mock.
 		ExpectExec("INSERT INTO addresses").
-		WithArgs(1, "address1", "1234", "4321").
+		WithArgs(1, "address1", 1234.0, 4321.0).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	c := context.Background()

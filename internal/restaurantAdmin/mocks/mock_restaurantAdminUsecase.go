@@ -63,6 +63,36 @@ func (mr *MockAdminRestaurantUsecaseMockRecorder) AddCategories(arg0, arg1 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCategories", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).AddCategories), arg0, arg1)
 }
 
+// GetAddress mocks base method
+func (m *MockAdminRestaurantUsecase) GetAddress(arg0 context.Context, arg1 int) (*models.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAddress", arg0, arg1)
+	ret0, _ := ret[0].(*models.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAddress indicates an expected call of GetAddress
+func (mr *MockAdminRestaurantUsecaseMockRecorder) GetAddress(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddress", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).GetAddress), arg0, arg1)
+}
+
+// GetCategories mocks base method
+func (m *MockAdminRestaurantUsecase) GetCategories(arg0 context.Context, arg1 int) (*models.Categories, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategories", arg0, arg1)
+	ret0, _ := ret[0].(*models.Categories)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategories indicates an expected call of GetCategories
+func (mr *MockAdminRestaurantUsecaseMockRecorder) GetCategories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategories", reflect.TypeOf((*MockAdminRestaurantUsecase)(nil).GetCategories), arg0, arg1)
+}
+
 // UpdateRestaurantData mocks base method
 func (m *MockAdminRestaurantUsecase) UpdateRestaurantData(arg0 context.Context, arg1 models.RestaurantUpdateData) (*models.SuccessRestaurantResponse, error) {
 	m.ctrl.T.Helper()
