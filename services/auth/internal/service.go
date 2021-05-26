@@ -40,8 +40,8 @@ func convertToSuccessUserResponse(user models.User, address models.Address, id i
 		UID:         int32(id),
 		Avatar:      user.Avatar,
 		AddressName: address.Name,
-		Latitude:    address.Latitude,
-		Longitude:   address.Longitude,
+		Latitude:    float32(address.Latitude),
+		Longitude:   float32(address.Longitude),
 		Radius:      int32(address.Radius),
 		Role:        configProject.RoleUser,
 	}

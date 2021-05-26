@@ -3,7 +3,6 @@ package calcDistance
 import (
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"math"
-	"strconv"
 )
 
 type TwoAddresses struct {
@@ -13,22 +12,16 @@ type TwoAddresses struct {
 	Longitude2 float64
 }
 
-func GetDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest string, radius int) int {
-	latitudeU, latitudeErrU := strconv.ParseFloat(latitudeUser, 64)
-	longitudeU, longitudeErrU := strconv.ParseFloat(longitudeUser, 64)
-	latitudeR, latitudeErrR := strconv.ParseFloat(latitudeRest, 64)
-	longitudeR, longitudeErrR := strconv.ParseFloat(longitudeRest, 64)
-	if longitudeErrU == nil && latitudeErrU == nil && latitudeErrR == nil && longitudeErrR == nil {
-		distance := GetDistanceFromLatLonInKm(TwoAddresses{latitudeU, longitudeU, latitudeR, longitudeR})
-		// временно пока не сделаем проверку через бд нормально
-		if distance*1000 <= float64(radius) {
-			time := int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
-			// ограничение сверху
-			if time > 180 {
-				time = 180
-			}
-			return time
+func GetDeliveryTime(latitudeUser, longitudeUser, latitudeRest, longitudeRest float64, radius int) int {
+	distance := GetDistanceFromLatLonInKm(TwoAddresses{latitudeUser, longitudeUser, latitudeRest, longitudeRest})
+	// временно пока не сделаем проверку через бд нормально
+	if distance*1000 <= float64(radius) {
+		time := int(restModel.MinutesInHour*distance/restModel.CourierSpeed + restModel.CookingTime)
+		// ограничение сверху
+		if time > 180 {
+			time = 180
 		}
+		return time
 	}
 	return 0
 }

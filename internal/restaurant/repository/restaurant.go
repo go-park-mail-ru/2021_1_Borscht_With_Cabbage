@@ -52,8 +52,8 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 	if request.Address {
 		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
 		query += ` and ST_DWithin(
-					    Geography(ST_SetSRID(ST_POINT(CAST(CAST(a.latitude::float AS varchar) as float), CAST(CAST(a.longitude::float AS varchar) as float)), 4326)),
-						ST_GeomFromText('SRID=4326; POINT(` + request.LatitudeUser + ` ` + request.LongitudeUser + `)'),
+					    Geography(ST_SetSRID(ST_POINT(a.latitude, a.longitude), 4326)),
+						ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", request.LatitudeUser) + ` ` + fmt.Sprintf("%f", request.LongitudeUser) + `)'),
 						a.radius)`
 	} else {
 		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
@@ -72,7 +72,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 		var ratingsSum, reviewsCount int
 		restaurant := new(models.RestaurantInfo)
 
-		var restaurantLongitude, restaurantLatitude string
+		var restaurantLongitude, restaurantLatitude float64
 		var radius int
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
@@ -115,7 +115,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 	WHERE r.rid=$1
 	`
 
-	var restaurantLongitude, restaurantLatitude string
+	var restaurantLongitude, restaurantLatitude float64
 	var radius int
 	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
@@ -129,7 +129,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 	}
 
-	if coordinates.Latitude != "" && coordinates.Longitude != "" {
+	if coordinates.Latitude != 0 && coordinates.Longitude != 0 {
 		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, restaurantLatitude, restaurantLongitude, radius)
 	}
 
@@ -338,11 +338,11 @@ func (r *restaurantRepo) GetRecommendations(ctx context.Context, params models.R
 		WHERE c.cid = ANY ($1) AND r.rid != $2
 	`
 
-	if params.LongitudeUser != "" {
+	if params.LongitudeUser != 0 {
 		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
 		query += ` and ST_DWithin(
 					    Geography(ST_SetSRID(ST_POINT(CAST(CAST(a.latitude::float AS varchar) as float), CAST(CAST(a.longitude::float AS varchar) as float)), 4326)),
-						ST_GeomFromText('SRID=4326; POINT(` + params.LatitudeUser + ` ` + params.LongitudeUser + `)'),
+						ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", params.LatitudeUser) + ` ` + fmt.Sprintf("%f", params.LongitudeUser) + `)'),
 						a.radius)`
 	}
 
@@ -364,7 +364,7 @@ func (r *restaurantRepo) GetRecommendations(ctx context.Context, params models.R
 		var ratingsSum, reviewsCount int
 		restaurant := new(models.RestaurantInfo)
 
-		var restaurantLongitude, restaurantLatitude string
+		var restaurantLongitude, restaurantLatitude float64
 		var radius int
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
@@ -380,8 +380,6 @@ func (r *restaurantRepo) GetRecommendations(ctx context.Context, params models.R
 			&radius,
 		)
 
-		fmt.Println(params)
-		fmt.Println(restaurantLatitude, restaurantLongitude)
 		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(params.LatitudeUser, params.LongitudeUser,
 			restaurantLatitude, restaurantLongitude, radius)
 

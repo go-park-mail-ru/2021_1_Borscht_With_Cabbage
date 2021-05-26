@@ -106,8 +106,8 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 
 	Address := models.Address{
 		Name:      userResult.AddressName,
-		Longitude: userResult.Longitude,
-		Latitude:  userResult.Latitude,
+		Longitude: float64(userResult.Longitude),
+		Latitude:  float64(userResult.Latitude),
 		Radius:    int(userResult.Radius),
 	}
 	userResponse := models.User{
@@ -137,8 +137,8 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 
 	Address := models.Address{
 		Name:      user.AddressName,
-		Longitude: user.Longitude,
-		Latitude:  user.Latitude,
+		Longitude: float64(user.Longitude),
+		Latitude:  float64(user.Latitude),
 		Radius:    int(user.Radius),
 	}
 	UserResponse := models.User{
@@ -224,8 +224,8 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 
 	Address := models.Address{
 		Name:      restaurantResult.AddressName,
-		Longitude: restaurantResult.Longitude,
-		Latitude:  restaurantResult.Latitude,
+		Longitude: float64(restaurantResult.Longitude),
+		Latitude:  float64(restaurantResult.Latitude),
 		Radius:    int(restaurantResult.Radius),
 	}
 	restaurantResponse := models.RestaurantInfo{
