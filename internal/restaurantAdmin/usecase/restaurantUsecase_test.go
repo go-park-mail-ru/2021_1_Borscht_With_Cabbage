@@ -53,6 +53,7 @@ func TestRestaurantUsecase_UpdateRestaurantData(t *testing.T) {
 
 	restaurantRepoMock.EXPECT().UpdateRestaurantData(ctx, restaurant).Return(nil)
 	restaurantRepoMock.EXPECT().UpdateAddress(ctx, restaurant.ID, restaurant.Address)
+	restaurantRepoMock.EXPECT().GetCategories(ctx, restaurant.ID).Return(make([]string, 0), nil)
 
 	restaurantResponse, err := restaurantUsecase.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {

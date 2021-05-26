@@ -2,6 +2,7 @@
 .vscode
 send
 cover
+cover.out
 static/*
 ansible/files/certs/*
 ansible/roles/*
