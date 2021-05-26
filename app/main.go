@@ -215,8 +215,8 @@ func main() {
 	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService, adminRestaurantUsecase)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService, userUcase, adminRestaurantUsecase)
 	initWsMiddleware := custMiddleware.InitWsMiddleware(authService)
 
 	route(initRoute{

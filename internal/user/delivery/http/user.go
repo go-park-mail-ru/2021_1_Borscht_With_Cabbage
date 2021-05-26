@@ -207,11 +207,19 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
+
 		address, err := h.RestaurantUcase.GetAddress(ctx, restaurant.ID)
 		if err != nil {
 			return models.SendResponseWithError(c, err)
 		}
 		restaurant.Address = *address
+
+		categories, err := h.RestaurantUcase.GetCategories(ctx, restaurant.ID)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		restaurant.Categories = categories.CategoriesID
+
 		return models.SendResponse(c, restaurant)
 
 	case configProject.RoleUser:
