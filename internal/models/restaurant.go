@@ -73,8 +73,8 @@ type RestaurantRequest struct {
 	Time          int      `json:"time"`
 	Receipt       int      `json:"receipt"`
 	Rating        float64  `json:"rating"`
-	LatitudeUser  string   `json:"latitude"`
-	LongitudeUser string   `json:"longitude"`
+	LatitudeUser  float64  `json:"latitude"`
+	LongitudeUser float64  `json:"longitude"`
 	Address       bool     `json:"address"`
 }
 
@@ -83,7 +83,7 @@ type Categories struct {
 }
 
 type RecommendationsParams struct {
-	Id            int    `json:"id"`
-	LatitudeUser  string `json:"latitude"`
-	LongitudeUser string `json:"longitude"`
+	Id            int     `json:"id"`
+	LatitudeUser  float64 `json:"latitude"`
+	LongitudeUser float64 `json:"longitude"`
 }

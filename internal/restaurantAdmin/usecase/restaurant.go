@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/borscht/backend/config"
@@ -35,6 +36,15 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 		restaurantRepository: adminRepo,
 		imageRepository:      imageRepo,
 	}
+}
+
+func convertAddressToStr(latitude, longitude string) (float64, float64, error) {
+	latitudeNum, errLat := strconv.ParseFloat(latitude, 64)
+	longitudeNum, errLon := strconv.ParseFloat(longitude, 64)
+	if errLat != nil || errLon != nil {
+		return 0, 0, errors.NewErrorWithMessage("converting address to float error")
+	}
+	return latitudeNum, longitudeNum, nil
 }
 
 func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.Categories) error {
