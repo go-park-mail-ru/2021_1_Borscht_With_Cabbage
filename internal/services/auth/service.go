@@ -167,6 +167,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 
 	restaurantResult, err := s.authService.CreateRestaurant(ctx, &restaurantToService)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{

@@ -7,12 +7,13 @@ import (
 )
 
 const (
-	middlewareLevel = "Middleware Level"
-	usecaseLevel    = "Usecase Level"
-	deliveryLevel   = "Delivery Level"
-	repositoryLevel = "Repository Level"
-	responseLevel   = "Response Level"
-	utilsLevel      = "Utils Level"
+	middlewareLevel       = "Middleware Level"
+	usecaseLevel          = "Usecase Level"
+	deliveryLevel         = "Delivery Level"
+	repositoryLevel       = "Repository Level"
+	responseLevel         = "Response Level"
+	utilsLevel            = "Utils Level"
+	serviceInterfaceLevel = "Service Interface Level"
 )
 
 type Fields map[string]interface{}
@@ -100,6 +101,12 @@ func ResponseLevel() *EntryLog {
 }
 
 func UtilsLevel() *EntryLog {
+	return &EntryLog{
+		level: utilsLevel,
+	}
+}
+
+func ServiceInterfaceLevel() *EntryLog {
 	return &EntryLog{
 		level: utilsLevel,
 	}
