@@ -96,6 +96,10 @@ func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address mode
 	return a.restaurantRepository.AddAddress(ctx, rid, address)
 }
 
+func (a restaurantUsecase) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
+	return a.restaurantRepository.GetAddress(ctx, rid)
+}
+
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
 	*models.SuccessRestaurantResponse, error) {
 
@@ -115,6 +119,16 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 	err = a.restaurantRepository.UpdateAddress(ctx, restaurant.ID, restaurant.Address)
 	if err != nil {
 		return nil, err
+	}
+
+	if restaurant.Categories != nil && len(restaurant.Categories) != 0 {
+		categories := models.Categories{
+			CategoriesID: restaurant.Categories,
+		}
+		err = a.AddCategories(ctx, categories)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurant})

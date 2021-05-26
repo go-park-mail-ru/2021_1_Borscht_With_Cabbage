@@ -10,6 +10,7 @@ import (
 
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
+	restaurantModel "github.com/borscht/backend/internal/restaurantAdmin"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -17,14 +18,20 @@ import (
 )
 
 type Handler struct {
-	UserUcase   userModel.UserUsecase
-	AuthService auth.ServiceAuth
+	UserUcase       userModel.UserUsecase
+	RestaurantUcase restaurantModel.AdminRestaurantUsecase
+	AuthService     auth.ServiceAuth
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, serviceAuth auth.ServiceAuth) userModel.UserHandler {
+func NewUserHandler(
+	userUcase userModel.UserUsecase,
+	restaurantUcase restaurantModel.AdminRestaurantUsecase,
+	serviceAuth auth.ServiceAuth) userModel.UserHandler {
+
 	handler := &Handler{
-		UserUcase:   userUcase,
-		AuthService: serviceAuth,
+		UserUcase:       userUcase,
+		AuthService:     serviceAuth,
+		RestaurantUcase: restaurantUcase,
 	}
 
 	return handler
@@ -200,6 +207,11 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
+		address, err := h.RestaurantUcase.GetAddress(ctx, restaurant.ID)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		restaurant.Address = *address
 		return models.SendResponse(c, restaurant)
 
 	case configProject.RoleUser:
@@ -209,6 +221,11 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
+		address, err := h.UserUcase.GetAddress(ctx, user.Uid)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		user.Address = *address
 		return models.SendResponse(c, user)
 	default:
 		sendErr := errors.BadRequestError("error with roles")

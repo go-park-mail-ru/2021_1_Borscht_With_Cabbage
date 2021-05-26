@@ -38,6 +38,9 @@ func NewUserUsecase(repo user.UserRepo, image image.ImageRepo) user.UserUsecase 
 func (a userUsecase) AddAddress(ctx context.Context, uid int, address models.Address) error {
 	return a.userRepository.AddAddress(ctx, uid, address)
 }
+func (a userUsecase) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
+	return a.userRepository.GetAddress(ctx, rid)
+}
 
 func (a userUsecase) UpdateMainAddress(ctx context.Context, address models.Address) error {
 	logger.UsecaseLevel().InlineDebugLog(ctx, "update address")
