@@ -45,18 +45,18 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 	logger.DeliveryLevel().DebugLog(ctx, logger.Fields{"categories": categories, "size": len(categories)})
 
 	request := models.RestaurantRequest{
-		Limit:         paramsNumber[0],
-		Offset:        paramsNumber[1],
-		Categories:    categories,
-		Time:          paramsNumber[2],
-		Receipt:       paramsNumber[3],
-		Rating:        rating,
-		LatitudeUser:  c.QueryParam("latitude"),
-		LongitudeUser: c.QueryParam("longitude"),
-		Address:       true,
+		Limit:      paramsNumber[0],
+		Offset:     paramsNumber[1],
+		Categories: categories,
+		Time:       paramsNumber[2],
+		Receipt:    paramsNumber[3],
+		Rating:     rating,
+		Address:    true,
 	}
+	request.LatitudeUser, _ = strconv.ParseFloat(c.QueryParam("latitude"), 64)
+	request.LongitudeUser, _ = strconv.ParseFloat(c.QueryParam("longitude"), 64)
 
-	if request.LatitudeUser == "" || request.LongitudeUser == "" { // адрес не передан
+	if request.LatitudeUser == 0 || request.LongitudeUser == 0 { // адрес не передан
 		request.Address = false
 	}
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"getVendor params": request})
@@ -77,8 +77,9 @@ func (h *RestaurantHandler) GetVendor(c echo.Context) error {
 }
 
 func (h *RestaurantHandler) GetRestaurantPage(c echo.Context) error {
-	latitude := c.QueryParam("latitude")
-	longitude := c.QueryParam("longitude")
+	latitude, _ := strconv.ParseFloat(c.QueryParam("latitude"), 64)
+	longitude, _ := strconv.ParseFloat(c.QueryParam("longitude"), 64)
+
 	coordinates := models.Coordinates{Latitude: latitude, Longitude: longitude}
 	ctx := models.GetContext(c)
 
@@ -140,8 +141,8 @@ func AtoiParams(ctx context.Context, params ...string) ([]int, error) {
 func (h *RestaurantHandler) GetRecommendations(c echo.Context) error {
 	ctx := models.GetContext(c)
 
-	latitude := c.QueryParam("latitude")
-	longitude := c.QueryParam("longitude")
+	latitude, _ := strconv.ParseFloat(c.QueryParam("latitude"), 64)
+	longitude, _ := strconv.ParseFloat(c.QueryParam("longitude"), 64)
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		badRequest := errors.BadRequestError(err.Error())

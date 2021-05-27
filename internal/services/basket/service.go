@@ -40,8 +40,8 @@ func convertBasketToProto(basket models.BasketForUser) *protoBasket.BasketInfo {
 		dishes = append(dishes, &dishInfo)
 	}
 	address := protoBasket.Address{
-		Latitude:    basket.Address.Latitude,
-		Longitude:   basket.Address.Longitude,
+		Latitude:    float32(basket.Address.Latitude),
+		Longitude:   float32(basket.Address.Longitude),
 		Radius:      int32(basket.Address.Radius),
 		AddressName: basket.Address.Name,
 	}
@@ -72,8 +72,8 @@ func convertProtoToBasket(basket *protoBasket.BasketInfo) models.BasketForUser {
 		dishes = append(dishes, dishInfo)
 	}
 	address := models.Address{
-		Latitude:  basket.Address.Latitude,
-		Longitude: basket.Address.Longitude,
+		Latitude:  float64(basket.Address.Latitude),
+		Longitude: float64(basket.Address.Longitude),
 		Radius:    int(basket.Address.Radius),
 		Name:      basket.Address.AddressName,
 	}
@@ -146,8 +146,8 @@ func (s service) GetBasket(ctx context.Context, uid, rid int) (*models.BasketFor
 	if basket.Address != nil {
 		address := models.Address{
 			Name:      basket.Address.AddressName,
-			Longitude: basket.Address.Longitude,
-			Latitude:  basket.Address.Latitude,
+			Longitude: float64(basket.Address.Longitude),
+			Latitude:  float64(basket.Address.Latitude),
 			Radius:    int(basket.Address.Radius),
 		}
 		basketForUser.Address = address

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"github.com/borscht/backend/utils/websocketPool"
 	"testing"
 
 	"github.com/borscht/backend/configProject"
@@ -15,9 +16,11 @@ import (
 func TestChatUsecase_ConnectUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	user := models.User{
 		Uid: 1,
@@ -35,9 +38,11 @@ func TestChatUsecase_ConnectUser(t *testing.T) {
 func TestChatUsecase_ConnectRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -55,9 +60,11 @@ func TestChatUsecase_ConnectRestaurant(t *testing.T) {
 func TestChatUsecase_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -72,9 +79,11 @@ func TestChatUsecase_Error(t *testing.T) {
 func TestChatUsecase_UnConnectUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	user := models.User{
 		Uid: 1,
@@ -92,9 +101,11 @@ func TestChatUsecase_UnConnectUser(t *testing.T) {
 func TestChatUsecase_UnConnectRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -112,9 +123,11 @@ func TestChatUsecase_UnConnectRestaurant(t *testing.T) {
 func TestChatUsecase_UnConnect_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -263,9 +276,11 @@ func TestChatUsecase_UnConnect_Error(t *testing.T) {
 func TestChatUsecase_GetAllChatsUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	user := models.User{
 		Uid: 1,
@@ -290,9 +305,11 @@ func TestChatUsecase_GetAllChatsUser(t *testing.T) {
 func TestChatUsecase_GetAllChatsRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	restaurant := models.RestaurantInfo{
 		ID: 1,
@@ -317,9 +334,11 @@ func TestChatUsecase_GetAllChatsRestaurant(t *testing.T) {
 func TestChatUsecase_GetAllChats_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", 1)
@@ -335,9 +354,11 @@ func TestChatUsecase_GetAllChats_Error(t *testing.T) {
 func TestChatUsecase_GetAllMessagesUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	id := 1
 	user := models.User{
@@ -369,9 +390,11 @@ func TestChatUsecase_GetAllMessagesUser(t *testing.T) {
 func TestChatUsecase_GetAllMessagesRestaurant(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
 	ChatServiceMock := serviceMocks.NewMockServiceChat(ctrl)
 	AuthServiceMock := serviceMocks.NewMockServiceAuth(ctrl)
-	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock)
+	chatUsecase := NewChatUsecase(ChatServiceMock, AuthServiceMock, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	id := 1
 	restaurant := models.RestaurantInfo{

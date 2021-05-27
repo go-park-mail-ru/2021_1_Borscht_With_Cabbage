@@ -151,8 +151,6 @@ func (u *Key) Sanitize() {}
 func (u *Address) Sanitize() {
 	sanitizer := bluemonday.UGCPolicy()
 	u.Name = sanitizer.Sanitize(u.Name)
-	u.Latitude = sanitizer.Sanitize(u.Latitude)
-	u.Longitude = sanitizer.Sanitize(u.Longitude)
 }
 
 func (u *BriefInfoChat) Sanitize() {

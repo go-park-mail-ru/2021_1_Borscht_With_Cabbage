@@ -210,7 +210,6 @@ func (o orderRepo) GetRestaurantOrders(ctx context.Context, restaurantName strin
 
 func (o orderRepo) SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) (int, error) {
 	timeToDB, err := time.Parse(configProject.TimeFormat, newStatus.DeliveryTime)
-
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error while converting time")
 		return 0, errors.BadRequestError("Error while converting time")

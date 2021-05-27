@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -80,6 +81,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	ctx := models.GetContext(c)
 	newRestaurant := new(models.RestaurantInfo)
 	if err := c.Bind(newRestaurant); err != nil {
+		fmt.Println(err)
 		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
@@ -94,6 +96,7 @@ func (a RestaurantHandler) CreateRestaurant(c echo.Context) error {
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}
+
 	err = a.RestaurantUsecase.AddAddress(ctx, responseRestaurant.ID, newRestaurant.Address)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
@@ -131,8 +134,22 @@ func (a RestaurantHandler) Login(c echo.Context) error {
 
 	existingRest, err := a.AuthService.CheckRestaurantExists(ctx, *newRest)
 	if err != nil {
+		logger.DeliveryLevel().ErrorLog(ctx, err)
 		return models.SendResponseWithError(c, err)
 	}
+
+	address, err := a.RestaurantUsecase.GetAddress(ctx, existingRest.ID)
+	if err != nil {
+		logger.DeliveryLevel().ErrorLog(ctx, err)
+		return models.SendResponseWithError(c, err)
+	}
+	existingRest.Address = *address
+
+	categories, err := a.RestaurantUsecase.GetCategories(ctx, existingRest.ID)
+	if err != nil {
+		return models.SendResponseWithError(c, err)
+	}
+	existingRest.Categories = categories.CategoriesID
 
 	sessionInfo := models.SessionInfo{
 		Id:   existingRest.ID,

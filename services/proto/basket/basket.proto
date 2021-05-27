@@ -9,8 +9,8 @@ package protoBasket;
 
 message Address {
     string AddressName = 1;
-    string Longitude = 2;
-    string Latitude = 3;
+    float Longitude = 2;
+    float Latitude = 3;
     int32 Radius = 4;
 }
 

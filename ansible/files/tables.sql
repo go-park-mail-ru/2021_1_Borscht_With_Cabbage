@@ -44,8 +44,8 @@ CREATE TABLE addresses (
                            name TEXT DEFAULT '' NOT NULL,
                            rid INTEGER REFERENCES restaurants(rid) ON DELETE CASCADE,
                            uid INTEGER REFERENCES users(uid) ON DELETE CASCADE,
-                           latitude TEXT DEFAULT '' NOT NULL,
-                           longitude TEXT DEFAULT '' NOT NULL,
+                           latitude float DEFAULT 0 NOT NULL,
+                           longitude float DEFAULT 0 NOT NULL,
                            radius INTEGER DEFAULT 0 NOT NULL
 );
 

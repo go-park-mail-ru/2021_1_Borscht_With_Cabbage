@@ -27,6 +27,7 @@ type UserUsecase interface {
 	AddAddress(ctx context.Context, uid int, address models.Address) error
 	UpdateMainAddress(ctx context.Context, address models.Address) error
 	GetMainAddress(ctx context.Context) (*models.Address, error)
+	GetAddress(ctx context.Context, uid int) (*models.Address, error)
 }
 
 type UserRepo interface {

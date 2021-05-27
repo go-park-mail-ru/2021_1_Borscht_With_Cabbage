@@ -91,6 +91,21 @@ func (mr *MockAdminRestaurantRepoMockRecorder) GetAddress(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddress", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).GetAddress), arg0, arg1)
 }
 
+// GetCategories mocks base method
+func (m *MockAdminRestaurantRepo) GetCategories(arg0 context.Context, arg1 int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategories", arg0, arg1)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategories indicates an expected call of GetCategories
+func (mr *MockAdminRestaurantRepoMockRecorder) GetCategories(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategories", reflect.TypeOf((*MockAdminRestaurantRepo)(nil).GetCategories), arg0, arg1)
+}
+
 // UpdateAddress mocks base method
 func (m *MockAdminRestaurantRepo) UpdateAddress(arg0 context.Context, arg1 int, arg2 models.Address) error {
 	m.ctrl.T.Helper()

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -18,8 +19,8 @@ type RestaurantInfo struct {
 	Avatar       string `json:"avatar"`
 	RatingsSum   float64
 	ReviewsCount float64
-	Latitude     string
-	Longitude    string
+	Latitude     float64
+	Longitude    float64
 	Radius       int
 }
 
@@ -67,8 +68,8 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "latitude", "longitude", "radius"})
 	expect := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2, "55.766516", "37.653424", 1500},
-		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2, "55.735439", "37.584981", 1500},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 2, 55.766516, 37.653424, 1500},
+		{2, "Rest2", 100, 1300, "new2", "img2.jpg", 8, 2, 55.735439, 37.584981, 1500},
 	}
 	for _, item := range expect {
 		rows = rows.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude, item.Radius)
@@ -78,8 +79,8 @@ func TestRestaurantRepo_GetVendor(t *testing.T) {
 		Limit:         1,
 		Offset:        2,
 		Address:       true,
-		LatitudeUser:  "55.768096",
-		LongitudeUser: "37.646839",
+		LatitudeUser:  55.768096,
+		LongitudeUser: 37.646839,
 	}
 
 	mock.
@@ -117,7 +118,7 @@ func TestRestaurantRepo_GetById(t *testing.T) {
 
 	restaurant := sqlmock.NewRows([]string{"rid", "name", "deliveryCost", "avgCheck", "description", "avatar", "ratingssum", "reviewscount", "lan", "lon", "radius"})
 	expectRestaurant := []*RestaurantInfo{
-		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5, "55.766516", "37.653424", 1000},
+		{1, "Rest1", 200, 1200, "new", "img.jpg", 10, 5, 55.766516, 37.653424, 1000},
 	}
 	for _, item := range expectRestaurant {
 		restaurant = restaurant.AddRow(item.ID, item.Title, item.DeliveryCost, item.AvgCheck, item.Description, item.Avatar, item.RatingsSum, item.ReviewsCount, item.Latitude, item.Longitude, item.Radius)
@@ -249,7 +250,7 @@ func TestRestaurantRepo_GetUserAddress(t *testing.T) {
 	}
 
 	rows := sqlmock.NewRows([]string{"name", "latitude", "longitude"})
-	rows.AddRow("Бауманская 2", "", "")
+	rows.AddRow("Бауманская 2", 0, 0)
 
 	mock.
 		ExpectQuery("SELECT").
@@ -322,6 +323,116 @@ func TestRestaurantRepo_GetUserAddress_Error(t *testing.T) {
 
 	_, err = restaurantRepo.GetUserAddress(ctx, 1)
 	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestRestaurantRepo_GetAllCategories(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &restaurantRepo{
+		DB: db,
+	}
+
+	rows := sqlmock.NewRows([]string{"cid"})
+	rows.AddRow(0)
+
+	mock.
+		ExpectQuery("SELECT").
+		WillReturnRows(rows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	_, err = restaurantRepo.GetAllCategories(ctx)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestRestaurantRepo_GetRestaurantCategories(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &restaurantRepo{
+		DB: db,
+	}
+
+	rows := sqlmock.NewRows([]string{"cid"})
+	rows.AddRow(0)
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(1).
+		WillReturnRows(rows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	_, err = restaurantRepo.getRestaurantCategories(ctx, 1)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestRestaurantRepo_GetRecommendations(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &restaurantRepo{
+		DB: db,
+	}
+
+	categories := sqlmock.NewRows([]string{"categoryID"})
+	categories.AddRow("food")
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(1).
+		WillReturnRows(categories)
+
+	rows := sqlmock.NewRows([]string{"r.rid", "r.name", "r.deliveryCost", "r.avgCheck", "r.description", "r.avatar",
+		"r.ratingssum", "r.reviewscount", "a.latitude", "a.longitude", "a.radius"})
+	rows.AddRow(0, "rest1", 200, 0, "cool", "avatar.jmp", 5, 1, 57.4554, 37.454, 1000)
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(pq.Array([]string{"food"}), 1).
+		WillReturnRows(rows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	params := models.RecommendationsParams{
+		Id:            1,
+		LatitudeUser:  57.4554,
+		LongitudeUser: 37.454,
+	}
+	_, err = restaurantRepo.GetRecommendations(ctx, params)
+	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}

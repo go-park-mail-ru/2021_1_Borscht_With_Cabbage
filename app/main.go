@@ -209,7 +209,7 @@ func main() {
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
 	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, authService)
+	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
@@ -218,8 +218,8 @@ func main() {
 	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService, adminRestaurantUsecase)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService, userUcase, adminRestaurantUsecase)
 	initWsMiddleware := custMiddleware.InitWsMiddleware(authService)
 
 	route(initRoute{

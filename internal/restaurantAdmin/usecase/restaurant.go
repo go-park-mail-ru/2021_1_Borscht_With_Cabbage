@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/borscht/backend/config"
@@ -37,6 +38,15 @@ func NewRestaurantUsecase(adminRepo restaurantAdmin.AdminRestaurantRepo,
 	}
 }
 
+func convertAddressToStr(latitude, longitude string) (float64, float64, error) {
+	latitudeNum, errLat := strconv.ParseFloat(latitude, 64)
+	longitudeNum, errLon := strconv.ParseFloat(longitude, 64)
+	if errLat != nil || errLon != nil {
+		return 0, 0, errors.NewErrorWithMessage("converting address to float error")
+	}
+	return latitudeNum, longitudeNum, nil
+}
+
 func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.Categories) error {
 	restaurantAdmin, ok := ctx.Value("Restaurant").(models.RestaurantInfo)
 	if !ok {
@@ -52,7 +62,7 @@ func (a restaurantUsecase) AddCategories(ctx context.Context, categories models.
 	return a.restaurantRepository.AddCategories(ctx, restaurantAdmin.ID, categories.CategoriesID)
 }
 
-func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.RestaurantUpdateData,
+func (a restaurantUsecase) correcRestaurantData(ctx context.Context, newRestaurant *models.RestaurantUpdateData,
 	oldRestaurant *models.RestaurantInfo) {
 
 	newRestaurant.ID = oldRestaurant.ID
@@ -65,6 +75,10 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 	if newRestaurant.AdminPhone == "" {
 		newRestaurant.AdminPhone = oldRestaurant.AdminPhone
 	}
+	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{
+		"Address new": newRestaurant.Address,
+		"Address old": oldRestaurant.Address,
+	})
 	if newRestaurant.Address.Name == "" {
 		newRestaurant.Address.Name = oldRestaurant.Address.Name
 		newRestaurant.Address.Latitude = oldRestaurant.Address.Latitude
@@ -82,8 +96,20 @@ func (a restaurantUsecase) correcRestaurantData(newRestaurant *models.Restaurant
 	}
 }
 
+func (a restaurantUsecase) GetCategories(ctx context.Context, rid int) (*models.Categories, error) {
+	categories, err := a.restaurantRepository.GetCategories(ctx, rid)
+	if err != nil {
+		return nil, err
+	}
+	return &models.Categories{CategoriesID: categories}, nil
+}
+
 func (a restaurantUsecase) AddAddress(ctx context.Context, rid int, address models.Address) error {
 	return a.restaurantRepository.AddAddress(ctx, rid, address)
+}
+
+func (a restaurantUsecase) GetAddress(ctx context.Context, rid int) (*models.Address, error) {
+	return a.restaurantRepository.GetAddress(ctx, rid)
 }
 
 func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant models.RestaurantUpdateData) (
@@ -96,7 +122,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		return nil, failError
 	}
 
-	a.correcRestaurantData(&restaurant, &restaurantAdmin)
+	a.correcRestaurantData(ctx, &restaurant, &restaurantAdmin)
 	err := a.restaurantRepository.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {
 		return nil, err
@@ -105,6 +131,22 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 	err = a.restaurantRepository.UpdateAddress(ctx, restaurant.ID, restaurant.Address)
 	if err != nil {
 		return nil, err
+	}
+
+	if restaurant.Categories != nil && len(restaurant.Categories) != 0 {
+		categories := models.Categories{
+			CategoriesID: restaurant.Categories,
+		}
+		err = a.AddCategories(ctx, categories)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		categories, err := a.GetCategories(ctx, restaurant.ID)
+		if err != nil {
+			return nil, err
+		}
+		restaurant.Categories = categories.CategoriesID
 	}
 
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurant})
@@ -119,6 +161,7 @@ func (a restaurantUsecase) UpdateRestaurantData(ctx context.Context, restaurant 
 		DeliveryCost: restaurant.DeliveryCost,
 		Avatar:       restaurantAdmin.Avatar,
 		Address:      restaurant.Address,
+		Categories:   restaurant.Categories,
 	}
 	logger.UsecaseLevel().DebugLog(ctx, logger.Fields{"restaurant": restaurantResponse})
 

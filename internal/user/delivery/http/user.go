@@ -10,6 +10,7 @@ import (
 
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
+	restaurantModel "github.com/borscht/backend/internal/restaurantAdmin"
 	userModel "github.com/borscht/backend/internal/user"
 	errors "github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
@@ -17,14 +18,20 @@ import (
 )
 
 type Handler struct {
-	UserUcase   userModel.UserUsecase
-	AuthService auth.ServiceAuth
+	UserUcase       userModel.UserUsecase
+	RestaurantUcase restaurantModel.AdminRestaurantUsecase
+	AuthService     auth.ServiceAuth
 }
 
-func NewUserHandler(userUcase userModel.UserUsecase, serviceAuth auth.ServiceAuth) userModel.UserHandler {
+func NewUserHandler(
+	userUcase userModel.UserUsecase,
+	restaurantUcase restaurantModel.AdminRestaurantUsecase,
+	serviceAuth auth.ServiceAuth) userModel.UserHandler {
+
 	handler := &Handler{
-		UserUcase:   userUcase,
-		AuthService: serviceAuth,
+		UserUcase:       userUcase,
+		AuthService:     serviceAuth,
+		RestaurantUcase: restaurantUcase,
 	}
 
 	return handler
@@ -88,7 +95,6 @@ func (h Handler) Create(c echo.Context) error {
 	return models.SendResponse(c, responseUser)
 }
 
-// TODO: убрать эту логику отсюда
 func (h Handler) Login(c echo.Context) error {
 	ctx := models.GetContext(c)
 
@@ -101,22 +107,27 @@ func (h Handler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
+		logger.DeliveryLevel().ErrorLog(ctx, err)
 		return models.SendResponseWithError(c, err)
 	}
 
 	oldUser, err := h.AuthService.CheckUserExists(ctx, *newUser)
 	if err != nil {
-		return models.SendResponseWithError(c, err)
+		failErr := errors.FailServerError("AuthService.CheckUserExists: " + err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, failErr)
+		return models.SendResponseWithError(c, failErr)
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   oldUser.Uid,
 		Role: configProject.RoleUser,
 	}
-	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 
+	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 	if err != nil {
-		return models.SendResponseWithError(c, err)
+		failErr := errors.FailServerError("AuthService.CreateSession: " + err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, failErr)
+		return models.SendResponseWithError(c, failErr)
 	}
 	setResponseCookie(c, session)
 
@@ -200,6 +211,19 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
+
+		address, err := h.RestaurantUcase.GetAddress(ctx, restaurant.ID)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		restaurant.Address = *address
+
+		categories, err := h.RestaurantUcase.GetCategories(ctx, restaurant.ID)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		restaurant.Categories = categories.CategoriesID
+
 		return models.SendResponse(c, restaurant)
 
 	case configProject.RoleUser:
@@ -209,6 +233,11 @@ func (h Handler) CheckAuth(c echo.Context) error {
 			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 			return models.SendResponseWithError(c, sendErr)
 		}
+		address, err := h.UserUcase.GetAddress(ctx, user.Uid)
+		if err != nil {
+			return models.SendResponseWithError(c, err)
+		}
+		user.Address = *address
 		return models.SendResponse(c, user)
 	default:
 		sendErr := errors.BadRequestError("error with roles")

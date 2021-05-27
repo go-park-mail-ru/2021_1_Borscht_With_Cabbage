@@ -92,8 +92,8 @@ func TestService_GetBasket(t *testing.T) {
 	}
 	address := models.Address{
 		Name:      "address1",
-		Latitude:  "12343",
-		Longitude: "123442",
+		Latitude:  12343,
+		Longitude: 123442,
 		Radius:    1000,
 	}
 

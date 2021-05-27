@@ -37,8 +37,8 @@ message SuccessUserResponse {
   string Avatar = 6;
   int32 UID = 7;
   string AddressName = 8;
-  string Longitude = 9;
-  string Latitude = 10;
+  float Longitude = 9;
+  float Latitude = 10;
   int32 Radius = 11;
 }
 
@@ -59,8 +59,8 @@ message SuccessRestaurantResponse {
   int32 AvgCheck = 10;
   string Description = 11;
   string AddressName = 12;
-  string Longitude = 13;
-  string Latitude = 14;
+  float Longitude = 13;
+  float Latitude = 14;
   int32 Radius = 15;
 }
 
