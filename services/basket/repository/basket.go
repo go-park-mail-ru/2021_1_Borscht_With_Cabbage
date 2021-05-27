@@ -189,7 +189,7 @@ func (b basketRepository) GetBaskets(ctx context.Context, params models.GetBaske
 		}
 
 		var radius int
-		var latitude, longitude string
+		var latitude, longitude float64
 		err = b.DB.QueryRow(query, basket.RID).Scan(
 			&basket.Restaurant,
 			&basket.DeliveryCost,

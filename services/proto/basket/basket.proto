@@ -58,8 +58,8 @@ message BID {
 
 message GetBasketsParams {
     int32 uid = 1;
-    string latitude = 2;
-    string longitude = 3;
+    float latitude = 2;
+    float longitude = 3;
 }
 
 message DishToBasket {
