@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/secure"
 

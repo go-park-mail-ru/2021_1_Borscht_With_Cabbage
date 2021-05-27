@@ -316,3 +316,108 @@ func TestUserRepo_GetByUid(t *testing.T) {
 		return
 	}
 }
+
+func TestAuthRestaurantRepo_GetAddress(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &authRepo{
+		DB: db,
+	}
+
+	uid := 1
+
+	rows := sqlmock.NewRows([]string{"name", "latitude", "longitude"})
+	rows = rows.AddRow("proskekt 2", 23.3434, 34.443)
+
+	mock.
+		ExpectQuery("SELECT name,").
+		WithArgs(1).
+		WillReturnRows(rows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+
+	_, err = userRepo.GetAddress(ctx, uid)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestAuthRestaurantRepo_GetAddress_NotFound(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &authRepo{
+		DB: db,
+	}
+
+	uid := 1
+
+	mock.
+		ExpectQuery("SELECT name,").
+		WithArgs(1).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+
+	_, err = userRepo.GetAddress(ctx, uid)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestAuthRestaurantRepo_GetAddress_DBerror(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	userRepo := &authRepo{
+		DB: db,
+	}
+
+	uid := 1
+
+	mock.
+		ExpectQuery("SELECT name,").
+		WithArgs(1).
+		WillReturnError(sql.ErrConnDone)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+
+	_, err = userRepo.GetAddress(ctx, uid)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}

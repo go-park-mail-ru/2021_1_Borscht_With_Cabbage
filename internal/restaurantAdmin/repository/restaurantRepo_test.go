@@ -415,3 +415,72 @@ func TestRestaurantRepo_AddCategories(t *testing.T) {
 		return
 	}
 }
+
+func TestRestaurantRepo_GetCategories(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &restaurantRepo{
+		DB: db,
+	}
+
+	RID := 1
+
+	rows := sqlmock.NewRows([]string{"CATEGORYID"})
+	rows.AddRow("food")
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(RID).
+		WillReturnRows(rows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+	_, err = restaurantRepo.GetCategories(ctx, RID)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestRestaurantRepo_GetCategories_DBError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &restaurantRepo{
+		DB: db,
+	}
+
+	RID := 1
+
+	mock.
+		ExpectQuery("SELECT").
+		WithArgs(RID).
+		WillReturnError(sql.ErrNoRows)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+	_, err = restaurantRepo.GetCategories(ctx, RID)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
