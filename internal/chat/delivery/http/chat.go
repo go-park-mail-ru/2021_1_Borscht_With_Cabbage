@@ -118,6 +118,8 @@ func (ch chatHandler) Connect(c echo.Context) error {
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"Open websocket": ws.RemoteAddr()})
 	err = ch.ChatUsecase.Connect(ctx, ws)
 	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, failError)
 		return err
 	}
 
