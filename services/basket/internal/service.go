@@ -38,9 +38,10 @@ func createBasketResponse(basket models.BasketForUser, address models.Address) p
 	}
 	basketResponse := protoBasket.BasketInfo{
 		Bid:             int32(basket.BID),
+		DeliveryCost:    int32(basket.DeliveryCost),
 		RestaurantName:  basket.Restaurant,
 		RestaurantImage: basket.RestaurantImage,
-		Rid:             int32(basket.DeliveryCost),
+		Rid:             int32(basket.RID),
 		Summary:         int32(basket.Summary),
 		Address:         &addressProto,
 		Dishes:          dishesProto,
