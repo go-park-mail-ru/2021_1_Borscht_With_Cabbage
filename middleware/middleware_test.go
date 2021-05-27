@@ -94,7 +94,6 @@ func TestInitAdminMiddleware(t *testing.T) {
 }
 
 func TestAdminAuthMiddleware_Auth(t *testing.T) {
-
 }
 
 func TestCORS(t *testing.T) {

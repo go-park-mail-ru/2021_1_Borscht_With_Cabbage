@@ -310,3 +310,26 @@ func TestService_DeleteSession(t *testing.T) {
 		return
 	}
 }
+
+func TestService_CheckKey(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userAuthRepoMock := authRepoMocks.NewMockUserAuthRepo(ctrl)
+	restaurantAuthRepoMock := authRepoMocks.NewMockRestaurantAuthRepo(ctrl)
+	sessionRepoMock := authRepoMocks.NewMockSessionRepo(ctrl)
+	authService := NewService(userAuthRepoMock, restaurantAuthRepoMock, sessionRepoMock)
+
+	ctx := new(context.Context)
+
+	session := protoAuth.SessionValue{
+		Session: "session1",
+	}
+
+	sessionRepoMock.EXPECT().Check(*ctx, headKey+session.Session).Return(models.SessionInfo{}, true, nil)
+
+	_, err := authService.CheckKey(*ctx, &session)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
