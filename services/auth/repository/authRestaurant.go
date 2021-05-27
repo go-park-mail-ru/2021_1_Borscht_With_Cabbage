@@ -74,16 +74,6 @@ func (a authRestaurantRepo) CreateRestaurant(ctx context.Context, newRestaurant 
 		return 0, custError
 	}
 
-	//TODO: временное, пока на фронте нет возможности добавить категории
-	// _, err = a.DB.Exec(`insert into categories_restaurants (categoryID, restaurantID)
-	// 	values('sushi', $1), ('pizza', $1), ('burgers', $1),
-	// 		  ('meat', $1), ('fast_food', $1), ('zosh', $1)`, rid)
-	// if err != nil {
-	// 	custError := errors.FailServerError(err.Error())
-	// 	logger.RepoLevel().ErrorLog(ctx, custError)
-	// 	return 0, custError
-	// }
-
 	return rid, nil
 }
 
@@ -98,7 +88,7 @@ func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*mode
 			&restaurant.Avatar, &restaurant.AdminHashPassword, &ratingsSum, &reviewsCount)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("restaurant not found")
 	}
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
@@ -124,7 +114,7 @@ func (a authRestaurantRepo) GetByRid(ctx context.Context, rid int) (*models.Rest
 			&restaurant.Avatar, &restaurant.AdminHashPassword, &ratingsSum, &reviewsCount)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("restaurant not found")
 	}
 	if err != nil {
 		custError := errors.FailServerError(err.Error())

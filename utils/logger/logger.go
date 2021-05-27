@@ -108,6 +108,6 @@ func UtilsLevel() *EntryLog {
 
 func ServiceInterfaceLevel() *EntryLog {
 	return &EntryLog{
-		level: utilsLevel,
+		level: serviceInterfaceLevel,
 	}
 }

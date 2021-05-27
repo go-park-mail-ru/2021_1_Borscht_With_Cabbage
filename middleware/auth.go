@@ -8,6 +8,7 @@ import (
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
 	"github.com/borscht/backend/internal/services/auth"
 	userModel "github.com/borscht/backend/internal/user"
+	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/labstack/echo/v4"
 )
@@ -34,7 +35,9 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
 		fmt.Println("session data: ", sessionData)
 		if err != nil {
-			return models.SendResponseWithError(c, err)
+			failErr := errors.FailServerError("CheckSession: " + err.Error())
+			logger.MiddleLevel().ErrorLog(ctx, failErr)
+			return models.SendResponseWithError(c, failErr)
 		}
 		if !exists {
 			return models.SendRedirectLogin(c) // пользователь не вошел

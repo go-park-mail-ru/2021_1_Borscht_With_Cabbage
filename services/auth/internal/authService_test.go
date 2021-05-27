@@ -92,7 +92,7 @@ func TestService_GetByUid(t *testing.T) {
 	require.EqualValues(t, response.Role, configProject.RoleUser)
 }
 
-func TestService_CheckUserExists(t *testing.T) {
+func TestService_CheckUserExists_FailPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	userAuthRepoMock := authRepoMocks.NewMockUserAuthRepo(ctrl)
@@ -110,12 +110,11 @@ func TestService_CheckUserExists(t *testing.T) {
 	}
 
 	user := models.User{
-		Email:        "dasha@mail.ru",
-		Phone:        "89111111111",
-		Name:         "111111",
-		Password:     "1111111",
-		Uid:          1,
-		HashPassword: secure.HashPassword(ctx, secure.GetSalt(), "111111"),
+		Email:    "dasha@mail.ru",
+		Phone:    "89111111111",
+		Name:     "111111",
+		Password: "1111111",
+		Uid:      1,
 	}
 	userProto := protoAuth.UserAuth{
 		Login:    user.Email,
@@ -123,15 +122,12 @@ func TestService_CheckUserExists(t *testing.T) {
 	}
 
 	userAuthRepoMock.EXPECT().GetByLogin(ctx, userAuth.Login).Return(&user, nil)
-	userAuthRepoMock.EXPECT().GetAddress(ctx, 1).Return(&models.Address{}, nil)
 
-	response, err := authService.CheckUserExists(ctx, &userProto)
-	if err != nil {
+	_, err := authService.CheckUserExists(ctx, &userProto)
+	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
-
-	require.EqualValues(t, response.Role, configProject.RoleUser)
 }
 
 //func TestRestaurantUsecase_CreateRestaurant(t *testing.T) {
@@ -179,7 +175,7 @@ func TestService_CheckUserExists(t *testing.T) {
 //	require.EqualValues(t, restaurantResponse.Email, "dasha@mail.ru")
 //}
 
-func TestService_CheckRestaurantExists(t *testing.T) {
+func TestService_CheckRestaurantExists_FailPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	userAuthRepoMock := authRepoMocks.NewMockUserAuthRepo(ctrl)
@@ -194,7 +190,7 @@ func TestService_CheckRestaurantExists(t *testing.T) {
 
 	user := models.RestaurantAuth{
 		Login:    "dasha@mail.ru",
-		Password: "1111111",
+		Password: "111111",
 	}
 	restaurant := models.RestaurantInfo{
 		AdminEmail:    "dasha@mail.ru",
@@ -209,13 +205,12 @@ func TestService_CheckRestaurantExists(t *testing.T) {
 
 	restaurantAuthRepoMock.EXPECT().GetByLogin(ctx, user.Login).Return(&restaurant, nil)
 
-	restaurantResponse, err := authService.CheckRestaurantExists(ctx, &userProto)
-	if err != nil {
+	_, err := authService.CheckRestaurantExists(ctx, &userProto)
+	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
 	}
 
-	require.EqualValues(t, restaurantResponse.Email, "dasha@mail.ru")
 }
 
 func TestService_GetByRid(t *testing.T) {
@@ -310,6 +305,29 @@ func TestService_DeleteSession(t *testing.T) {
 	sessionRepoMock.EXPECT().Delete(*ctx, headSession+session.Session).Return(nil)
 
 	_, err := authService.DeleteSession(*ctx, &session)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+}
+
+func TestService_CheckKey(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userAuthRepoMock := authRepoMocks.NewMockUserAuthRepo(ctrl)
+	restaurantAuthRepoMock := authRepoMocks.NewMockRestaurantAuthRepo(ctrl)
+	sessionRepoMock := authRepoMocks.NewMockSessionRepo(ctrl)
+	authService := NewService(userAuthRepoMock, restaurantAuthRepoMock, sessionRepoMock)
+
+	ctx := new(context.Context)
+
+	session := protoAuth.SessionValue{
+		Session: "session1",
+	}
+
+	sessionRepoMock.EXPECT().Check(*ctx, headKey+session.Session).Return(models.SessionInfo{}, true, nil)
+
+	_, err := authService.CheckKey(*ctx, &session)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
