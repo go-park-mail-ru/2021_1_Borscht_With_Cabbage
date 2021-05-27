@@ -158,6 +158,7 @@ func TestExistingRestaurant_Number(t *testing.T) {
 		return
 	}
 }
+
 func TestRestaurantRepo_CreateRestaurant(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -200,6 +201,41 @@ func TestRestaurantRepo_CreateRestaurant(t *testing.T) {
 	}
 
 	require.EqualValues(t, id, 1)
+}
+
+func TestRestaurantRepo_CreateRestaurant_DBerror(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &authRestaurantRepo{
+		DB: db,
+	}
+
+	mock.
+		ExpectQuery("insert into restaurants").
+		WillReturnError(sql.ErrConnDone)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+
+	logger.InitLogger()
+	restaurant := models.RestaurantInfo{
+		AdminPhone: "89111111111",
+		Title:      "rest1",
+	}
+
+	_, err = restaurantRepo.CreateRestaurant(ctx, restaurant)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
 }
 
 func TestRestaurantRepo_CheckRestaurantExists(t *testing.T) {
@@ -280,4 +316,176 @@ func TestRestaurantRepo_GetByRid(t *testing.T) {
 	}
 
 	require.EqualValues(t, restaurantResponse.Title, "rest1")
+}
+
+func TestRestaurantRepo_GetByRid_DBerror(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &authRestaurantRepo{
+		DB: db,
+	}
+
+	mock.
+		ExpectQuery("select rid, name, ").
+		WithArgs(1).
+		WillReturnError(sql.ErrConnDone)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	_, err = restaurantRepo.GetByRid(ctx, 1)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestAuthRepo_GetAddress(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &authRestaurantRepo{
+		DB: db,
+	}
+	rid := 1
+
+	addressFromBD := sqlmock.NewRows([]string{"name", "latitude", "longitude", "radius"})
+	addressFromBD.AddRow(1, 58.78657, 23.3434, 1000)
+
+	mock.
+		ExpectQuery("SELECT ").
+		WithArgs(rid).
+		WillReturnRows(addressFromBD)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	addressResponse := new(models.Address)
+	addressResponse, err = restaurantRepo.GetAddress(ctx, rid)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	require.EqualValues(t, addressResponse.Radius, 1000)
+}
+
+func TestAuthRepo_GetAddress_DBerror(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &authRestaurantRepo{
+		DB: db,
+	}
+	rid := 1
+
+	mock.
+		ExpectQuery("SELECT ").
+		WithArgs(rid).
+		WillReturnError(sql.ErrConnDone)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	_, err = restaurantRepo.GetAddress(ctx, rid)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestAuthRepo_GetByLogin(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &authRestaurantRepo{
+		DB: db,
+	}
+	login := "login"
+
+	restaurantFromBD := sqlmock.NewRows([]string{"rid", "name", "adminemail", "adminphone", "deliveryCost", "avgCheck",
+		"description", "avatar", "adminpassword", "ratingssum", "reviewscount"})
+	restaurantFromBD.AddRow(1, "rest1", "dasha@mail.ru", "89111111111", 200, 0, "cool", config.ConfigStatic.DefaultRestaurantImage, "111111", 5, 1)
+
+	mock.
+		ExpectQuery("select ").
+		WithArgs(login).
+		WillReturnRows(restaurantFromBD)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	Response := new(models.RestaurantInfo)
+	Response, err = restaurantRepo.GetByLogin(ctx, login)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	require.EqualValues(t, Response.ID, 1)
+}
+
+func TestAuthRepo_GetByLogin_DBerror(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("cant create mock: %s", err)
+	}
+	defer db.Close()
+	restaurantRepo := &authRestaurantRepo{
+		DB: db,
+	}
+	login := "login"
+
+	mock.
+		ExpectQuery("select ").
+		WithArgs(login).
+		WillReturnError(sql.ErrConnDone)
+
+	c := context.Background()
+	ctx := context.WithValue(c, "request_id", 1)
+	logger.InitLogger()
+
+	_, err = restaurantRepo.GetByLogin(ctx, login)
+	if err == nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
 }

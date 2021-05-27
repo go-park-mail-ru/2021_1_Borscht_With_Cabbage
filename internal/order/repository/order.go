@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/borscht/backend/configProject"
@@ -41,7 +40,6 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 	var deliveryCost int
 	err = o.DB.QueryRow("select deliverycost from restaurants where name=$1", basketRestaurant).Scan(&deliveryCost)
 	if err != nil {
-		fmt.Println(err)
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting delivery cost")
 		return errors.BadRequestError("Error with getting delivery cost")
 	}
