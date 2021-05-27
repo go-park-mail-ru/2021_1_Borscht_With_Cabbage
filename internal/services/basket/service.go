@@ -172,8 +172,8 @@ func (s service) GetBasket(ctx context.Context, uid, rid int) (*models.BasketFor
 func (s service) GetBaskets(ctx context.Context, params models.GetBasketParams) ([]models.BasketForUser, error) {
 	userParams := protoBasket.GetBasketsParams{
 		Uid:       int32(params.Uid),
-		Latitude:  params.Latitude,
-		Longitude: params.Longitude,
+		Latitude:  float32(params.Latitude),
+		Longitude: float32(params.Longitude),
 	}
 
 	baskets, err := s.basketService.GetBaskets(ctx, &userParams)
