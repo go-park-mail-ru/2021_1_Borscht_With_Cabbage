@@ -113,9 +113,7 @@ func (h Handler) Login(c echo.Context) error {
 
 	oldUser, err := h.AuthService.CheckUserExists(ctx, *newUser)
 	if err != nil {
-		failErr := errors.FailServerError("AuthService.CheckUserExists: " + err.Error())
-		logger.DeliveryLevel().ErrorLog(ctx, failErr)
-		return models.SendResponseWithError(c, failErr)
+		return models.SendResponseWithError(c, err)
 	}
 
 	sessionInfo := models.SessionInfo{
@@ -207,9 +205,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 	case configProject.RoleAdmin:
 		restaurant, err := h.AuthService.GetByRid(ctx, sessionData.Id)
 		if err != nil {
-			sendErr := errors.BadRequestError(err.Error())
-			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-			return models.SendResponseWithError(c, sendErr)
+			return models.SendResponseWithError(c, err)
 		}
 
 		address, err := h.RestaurantUcase.GetAddress(ctx, restaurant.ID)
@@ -229,9 +225,7 @@ func (h Handler) CheckAuth(c echo.Context) error {
 	case configProject.RoleUser:
 		user, err := h.AuthService.GetByUid(ctx, sessionData.Id)
 		if err != nil {
-			sendErr := errors.BadRequestError(err.Error())
-			logger.DeliveryLevel().ErrorLog(ctx, sendErr)
-			return models.SendResponseWithError(c, sendErr)
+			return models.SendResponseWithError(c, err)
 		}
 		address, err := h.UserUcase.GetAddress(ctx, user.Uid)
 		if err != nil {

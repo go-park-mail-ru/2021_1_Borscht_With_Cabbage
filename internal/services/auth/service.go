@@ -78,7 +78,7 @@ func (s service) Create(ctx context.Context, user models.User) (*models.SuccessU
 	}
 	userResponse, err := s.authService.CreateUser(ctx, &request)
 	if err != nil {
-		return &models.SuccessUserResponse{}, errors.CreateErrorWithService(err)
+		return &models.SuccessUserResponse{}, errors.CreateErrorWithService(ctx, err)
 	}
 	logger.UsecaseLevel().InlineDebugLog(ctx, &user.HashPassword)
 
@@ -102,7 +102,7 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 	userResult, err := s.authService.CheckUserExists(ctx, &userProto)
 	if err != nil {
 		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
-		return &models.SuccessUserResponse{}, errors.CreateErrorWithService(err)
+		return &models.SuccessUserResponse{}, errors.CreateErrorWithService(ctx, err)
 	}
 	logger.UsecaseLevel().InlineDebugLog(ctx, &userResult)
 
@@ -134,7 +134,7 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 	}
 	user, err := s.authService.GetByUid(ctx, &UID)
 	if err != nil {
-		return nil, errors.CreateErrorWithService(err)
+		return nil, errors.CreateErrorWithService(ctx, err)
 	}
 
 	Address := models.Address{
@@ -170,7 +170,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 	restaurantResult, err := s.authService.CreateRestaurant(ctx, &restaurantToService)
 	if err != nil {
 		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
-		return nil, errors.CreateErrorWithService(err)
+		return nil, errors.CreateErrorWithService(ctx, err)
 	}
 	restaurantResponse := models.RestaurantInfo{
 		ID:         int(restaurantResult.RID),
@@ -196,7 +196,7 @@ func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.Re
 	restaurantResult, err := s.authService.CheckRestaurantExists(ctx, &authParametres)
 	if err != nil {
 		logger.ServiceInterfaceLevel().InfoLog(ctx, logger.Fields{"ERROR": err.Error()})
-		return nil, errors.CreateErrorWithService(err)
+		return nil, errors.CreateErrorWithService(ctx, err)
 	}
 	restaurantResponse := models.RestaurantInfo{
 		ID:           int(restaurantResult.RID),
@@ -223,7 +223,7 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 
 	restaurantResult, err := s.authService.GetByRid(ctx, &RID)
 	if err != nil {
-		return nil, errors.CreateErrorWithService(err)
+		return nil, errors.CreateErrorWithService(ctx, err)
 	}
 
 	Address := models.Address{

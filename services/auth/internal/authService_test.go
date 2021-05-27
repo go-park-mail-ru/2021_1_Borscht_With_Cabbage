@@ -194,7 +194,7 @@ func TestService_CheckRestaurantExists(t *testing.T) {
 
 	user := models.RestaurantAuth{
 		Login:    "dasha@mail.ru",
-		Password: "1111111",
+		Password: "111111",
 	}
 	restaurant := models.RestaurantInfo{
 		AdminEmail:    "dasha@mail.ru",
