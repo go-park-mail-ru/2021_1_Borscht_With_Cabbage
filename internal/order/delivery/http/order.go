@@ -280,10 +280,12 @@ func (h Handler) GetBaskets(c echo.Context) error {
 	}
 	userStruct := user.(models.User)
 
+	lat, _ := strconv.ParseFloat(c.QueryParam("latitude"), 64)
+	lon, _ := strconv.ParseFloat(c.QueryParam("longitude"), 64)
 	getBasketsParams := models.GetBasketParams{
 		Uid:       userStruct.Uid,
-		Latitude:  c.QueryParam("latitude"),
-		Longitude: c.QueryParam("longitude"),
+		Latitude:  lat,
+		Longitude: lon,
 	}
 
 	baskets, err := h.BasketService.GetBaskets(ctx, getBasketsParams)
