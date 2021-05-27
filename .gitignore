@@ -5,6 +5,8 @@ cover
 cover.out
 static/*
 ansible/files/certs/*
+ansible/files/config.yml
+ansible/files/docker-compose.yml
 ansible/roles/*
 ansible/files/static/static/css/*
 

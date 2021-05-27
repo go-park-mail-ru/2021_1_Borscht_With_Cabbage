@@ -7,30 +7,30 @@
 #         src: files/certs
 #         dest: /home/ubuntu
 
-- name: "Create file for log"
-  hosts: all
-  become: yes
-  tasks:
-    - name: "Create directory"
-      command: mkdir -p /var/log/deliveryborscht
+# - name: "Create file for log"
+#   hosts: all
+#   become: yes
+#   tasks:
+#     - name: "Create directory"
+#       command: mkdir -p /var/log/deliveryborscht
 
-- name: "Provide Project config"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Copy config"
-      copy:
-        src: files/config.yml
-        dest: /etc/deliveryborscht/conf/config.yml
+# - name: "Provide Project config"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Copy config"
+#       copy:
+#         src: files/config.yml
+#         dest: /etc/deliveryborscht/conf/config.yml
 
-- name: "Provide docker-compose"
-  hosts: web
-  become: yes
-  tasks:
-    - name: "Copy docker-compose"
-      copy:
-        src: files/docker-compose.yml
-        dest: /home/ubuntu
+# - name: "Provide docker-compose"
+#   hosts: web
+#   become: yes
+#   tasks:
+#     - name: "Copy docker-compose"
+#       copy:
+#         src: files/docker-compose.yml
+#         dest: /home/ubuntu
 
 - name: "Provide tables.sql"
   hosts: web
@@ -117,8 +117,8 @@
   roles:
     - role: geerlingguy.docker
 
-- name: "Install redis"
-  become: yes
-  hosts: dbserver
-  roles:
-    - role: geerlingguy.redis
+# - name: "Install redis"
+#   become: yes
+#   hosts: dbserver
+#   roles:
+#     - role: geerlingguy.redis
