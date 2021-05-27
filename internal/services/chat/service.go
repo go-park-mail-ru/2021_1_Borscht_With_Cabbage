@@ -34,7 +34,6 @@ func (s service) GetAllChats(ctx context.Context, user models.ChatUser) (
 
 	response := make([]models.InfoChatMessage, 0)
 	for _, chat := range chats.More {
-
 		chatModel := convertMessage(chat)
 		response = append(response, chatModel)
 	}
