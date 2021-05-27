@@ -95,7 +95,6 @@ func (h Handler) Create(c echo.Context) error {
 	return models.SendResponse(c, responseUser)
 }
 
-// TODO: убрать эту логику отсюда
 func (h Handler) Login(c echo.Context) error {
 	ctx := models.GetContext(c)
 
@@ -108,22 +107,27 @@ func (h Handler) Login(c echo.Context) error {
 	}
 
 	if err := validation.ValidateSignIn(newUser.Login, newUser.Password); err != nil {
+		logger.DeliveryLevel().ErrorLog(ctx, err)
 		return models.SendResponseWithError(c, err)
 	}
 
 	oldUser, err := h.AuthService.CheckUserExists(ctx, *newUser)
 	if err != nil {
-		return models.SendResponseWithError(c, err)
+		failErr := errors.FailServerError("AuthService.CheckUserExists: " + err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, failErr)
+		return models.SendResponseWithError(c, failErr)
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   oldUser.Uid,
 		Role: configProject.RoleUser,
 	}
-	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 
+	session, err := h.AuthService.CreateSession(ctx, sessionInfo)
 	if err != nil {
-		return models.SendResponseWithError(c, err)
+		failErr := errors.FailServerError("AuthService.CreateSession: " + err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, failErr)
+		return models.SendResponseWithError(c, failErr)
 	}
 	setResponseCookie(c, session)
 

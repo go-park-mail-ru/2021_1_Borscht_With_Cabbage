@@ -100,6 +100,7 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 
 	userResult, err := s.authService.CheckUserExists(ctx, &userProto)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return &models.SuccessUserResponse{}, err
 	}
 	logger.UsecaseLevel().InlineDebugLog(ctx, &userResult)
@@ -256,6 +257,7 @@ func (s service) CheckSession(ctx context.Context, value string) (models.Session
 
 	sessionInfo, err := s.authService.CheckSession(ctx, &session)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return models.SessionInfo{}, false, err
 	}
 
@@ -275,6 +277,7 @@ func (s service) CreateSession(ctx context.Context, sessionInfo models.SessionIn
 
 	sessionValue, err := s.authService.CreateSession(ctx, &session)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return "", err
 	}
 
