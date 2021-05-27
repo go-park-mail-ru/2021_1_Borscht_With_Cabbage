@@ -2,11 +2,14 @@ package repository
 
 import (
 	"database/sql"
+	"github.com/borscht/backend/configProject"
+	"testing"
+	"time"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/borscht/backend/internal/models"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func TestNewOrderRepo(t *testing.T) {
@@ -645,19 +648,24 @@ func TestOrderRepo_SetNewStatus(t *testing.T) {
 
 	newStatus := models.SetNewStatus{
 		Status:       models.StatusOrderDone,
-		DeliveryTime: "2012-11-01T22:08:41",
+		DeliveryTime: "2021-05-26T19:00:00",
 		Restaurant:   "rest1",
 		OID:          1,
 	}
+	timeToDB, _ := time.Parse(configProject.TimeFormat, newStatus.DeliveryTime)
+
+	user := sqlmock.NewRows([]string{"uid"})
+	user = user.AddRow(1)
 
 	mock.
-		ExpectExec("UPDATE orders SET").
-		WillReturnResult(sqlmock.NewResult(1, 1))
+		ExpectQuery("UPDATE orders SET").
+		WithArgs(newStatus.Status, timeToDB, newStatus.Restaurant, newStatus.OID).
+		WillReturnRows(user)
 
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	err = orderRepo.SetNewStatus(ctx, newStatus)
+	_, err = orderRepo.SetNewStatus(ctx, newStatus)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -689,7 +697,7 @@ func TestOrderRepo_SetNewStatus_ErrorConvertingTime(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	err = orderRepo.SetNewStatus(ctx, newStatus)
+	_, err = orderRepo.SetNewStatus(ctx, newStatus)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return

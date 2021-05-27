@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
 	"github.com/borscht/backend/utils/logger"
@@ -84,9 +85,9 @@ func (s service) Create(ctx context.Context, user models.User) (*models.SuccessU
 	user.Uid = int(userResponse.UID)
 	response := models.SuccessUserResponse{
 		User: user,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
-	response.Avatar = config.DefaultUserImage
+	response.Avatar = config.ConfigStatic.DefaultUserImage
 
 	return &response, nil
 }
@@ -99,14 +100,15 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 
 	userResult, err := s.authService.CheckUserExists(ctx, &userProto)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return &models.SuccessUserResponse{}, err
 	}
 	logger.UsecaseLevel().InlineDebugLog(ctx, &userResult)
 
 	Address := models.Address{
 		Name:      userResult.AddressName,
-		Longitude: userResult.Longitude,
-		Latitude:  userResult.Latitude,
+		Longitude: float64(userResult.Longitude),
+		Latitude:  float64(userResult.Latitude),
 		Radius:    int(userResult.Radius),
 	}
 	userResponse := models.User{
@@ -119,7 +121,7 @@ func (s service) CheckUserExists(ctx context.Context, user models.UserAuth) (*mo
 	}
 	response := models.SuccessUserResponse{
 		User: userResponse,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	return &response, nil
@@ -136,8 +138,8 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 
 	Address := models.Address{
 		Name:      user.AddressName,
-		Longitude: user.Longitude,
-		Latitude:  user.Latitude,
+		Longitude: float64(user.Longitude),
+		Latitude:  float64(user.Latitude),
 		Radius:    int(user.Radius),
 	}
 	UserResponse := models.User{
@@ -151,7 +153,7 @@ func (s service) GetByUid(ctx context.Context, uid int) (*models.SuccessUserResp
 
 	return &models.SuccessUserResponse{
 		User: UserResponse,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}, nil
 }
 
@@ -166,12 +168,13 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 
 	restaurantResult, err := s.authService.CreateRestaurant(ctx, &restaurantToService)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return nil, err
 	}
 	restaurantResponse := models.RestaurantInfo{
 		ID:         int(restaurantResult.RID),
 		Title:      restaurantResult.Title,
-		Avatar:     config.DefaultRestaurantImage,
+		Avatar:     config.ConfigStatic.DefaultRestaurantImage,
 		AdminEmail: restaurant.AdminEmail,
 		AdminPhone: restaurant.AdminPhone,
 		Address:    restaurant.Address,
@@ -179,7 +182,7 @@ func (s service) CreateRestaurant(ctx context.Context, restaurant models.Restaur
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 
@@ -207,7 +210,7 @@ func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.Re
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 
@@ -223,21 +226,26 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 
 	Address := models.Address{
 		Name:      restaurantResult.AddressName,
-		Longitude: restaurantResult.Longitude,
-		Latitude:  restaurantResult.Latitude,
+		Longitude: float64(restaurantResult.Longitude),
+		Latitude:  float64(restaurantResult.Latitude),
 		Radius:    int(restaurantResult.Radius),
 	}
 	restaurantResponse := models.RestaurantInfo{
-		Title:      restaurantResult.Title,
-		AdminPhone: restaurantResult.Phone,
-		AdminEmail: restaurantResult.Email,
-		Avatar:     restaurantResult.Avatar,
-		Address:    Address,
+		ID:           rid,
+		Title:        restaurantResult.Title,
+		AdminPhone:   restaurantResult.Phone,
+		AdminEmail:   restaurantResult.Email,
+		DeliveryCost: int(restaurantResult.DeliveryCost),
+		Description:  restaurantResult.Description,
+		Rating:       float64(restaurantResult.Rating),
+		AvgCheck:     int(restaurantResult.AvgCheck),
+		Avatar:       restaurantResult.Avatar,
+		Address:      Address,
 	}
 
 	return &models.SuccessRestaurantResponse{
 		RestaurantInfo: restaurantResponse,
-		Role:           config.RoleAdmin,
+		Role:           configProject.RoleAdmin,
 	}, nil
 }
 
@@ -249,6 +257,7 @@ func (s service) CheckSession(ctx context.Context, value string) (models.Session
 
 	sessionInfo, err := s.authService.CheckSession(ctx, &session)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return models.SessionInfo{}, false, err
 	}
 
@@ -268,6 +277,7 @@ func (s service) CreateSession(ctx context.Context, sessionInfo models.SessionIn
 
 	sessionValue, err := s.authService.CreateSession(ctx, &session)
 	if err != nil {
+		logger.ServiceInterfaceLevel().ErrorLog(ctx, err)
 		return "", err
 	}
 

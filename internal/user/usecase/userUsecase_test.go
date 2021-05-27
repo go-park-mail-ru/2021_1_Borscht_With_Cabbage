@@ -2,13 +2,14 @@ package usecase
 
 import (
 	"context"
-	"github.com/borscht/backend/config"
+	"testing"
+
+	"github.com/borscht/backend/configProject"
 	imageMock "github.com/borscht/backend/internal/image/mocks"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewUserUsecase(t *testing.T) {
@@ -150,7 +151,7 @@ func TestUserUsecase_GetUserData(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, response.Role, config.RoleUser)
+	require.EqualValues(t, response.Role, configProject.RoleUser)
 }
 
 func TestUserUsecase_UpdateData(t *testing.T) {
@@ -173,8 +174,8 @@ func TestUserUsecase_UpdateData(t *testing.T) {
 		Password: "1111111",
 		Address: models.Address{
 			Name:      "yu2",
-			Longitude: "213",
-			Latitude:  "2142",
+			Longitude: 213,
+			Latitude:  2142,
 			Radius:    1000,
 		},
 	}
@@ -193,7 +194,7 @@ func TestUserUsecase_UpdateData(t *testing.T) {
 		return
 	}
 
-	require.EqualValues(t, response.Role, config.RoleUser)
+	require.EqualValues(t, response.Role, configProject.RoleUser)
 }
 
 func TestUserUsecase_UploadAvatar(t *testing.T) {

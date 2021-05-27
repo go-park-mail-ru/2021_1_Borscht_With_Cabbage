@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/chat"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/services/auth"
@@ -24,19 +25,25 @@ type chatHandler struct {
 var (
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
+			ctx := context.Background()
 			origin := r.Header["Origin"]
 			if len(origin) == 0 {
+				err := errors.BadRequestError("host == 0")
+				logger.DeliveryLevel().ErrorLog(ctx, err)
 				return false
 			}
 			u, err := url.Parse(origin[0])
 			if err != nil {
+				logger.DeliveryLevel().ErrorLog(ctx, err)
 				return false
 			}
 			client, err := url.Parse(config.Client)
 			if err != nil {
+				logger.DeliveryLevel().ErrorLog(ctx, err)
 				return false
 			}
 
+			logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"Host": u.Host, "ClientHost": client.Host})
 			return u.Host == client.Host
 		},
 	}
@@ -62,7 +69,7 @@ func getSessionInfo(ctx context.Context) (*models.SessionInfo, error) {
 
 		return &models.SessionInfo{
 			Id:   user.Uid,
-			Role: config.RoleUser,
+			Role: configProject.RoleUser,
 		}, nil
 	}
 
@@ -76,7 +83,7 @@ func getSessionInfo(ctx context.Context) (*models.SessionInfo, error) {
 		}
 		return &models.SessionInfo{
 			Id:   restaurant.ID,
-			Role: config.RoleAdmin,
+			Role: configProject.RoleAdmin,
 		}, nil
 	}
 
@@ -101,6 +108,7 @@ func (ch chatHandler) GetKey(c echo.Context) error {
 func (ch chatHandler) Connect(c echo.Context) error {
 	ctx := models.GetContext(c)
 
+	logger.DeliveryLevel().InlineInfoLog(ctx, "!!!!!!!!!!!")
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
@@ -110,6 +118,8 @@ func (ch chatHandler) Connect(c echo.Context) error {
 	logger.DeliveryLevel().InfoLog(ctx, logger.Fields{"Open websocket": ws.RemoteAddr()})
 	err = ch.ChatUsecase.Connect(ctx, ws)
 	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.DeliveryLevel().ErrorLog(ctx, failError)
 		return err
 	}
 

@@ -2,14 +2,16 @@ package http
 
 import (
 	"encoding/json"
-	authServiceMock "github.com/borscht/backend/internal/services/mocks"
+	"github.com/borscht/backend/internal/restaurantAdmin/mocks"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/borscht/backend/config"
+	authServiceMock "github.com/borscht/backend/internal/services/mocks"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	userMock "github.com/borscht/backend/internal/user/mocks"
 	"github.com/borscht/backend/utils/errors"
@@ -21,8 +23,9 @@ func TestHandler_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	input := models.User{
 		Email:    "daria@mail.ru",
@@ -41,14 +44,14 @@ func TestHandler_CreateUser(t *testing.T) {
 	}
 	response := models.SuccessUserResponse{
 		User: output,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 	address := models.Address{}
 	response.Address = address
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -73,8 +76,9 @@ func TestHandler_CreateUser_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"emailaria@mail.ru","number":"89161166000","name":"Daria","password":"111111"}`
 
@@ -95,8 +99,9 @@ func TestSignup_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{email:daria@mail.ru}`
 
@@ -129,8 +134,9 @@ func TestHandler_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	input := models.UserAuth{
 		Login:    "daria@mail.ru",
@@ -146,12 +152,12 @@ func TestHandler_Login(t *testing.T) {
 		Uid:      1,
 	}
 	response := models.SuccessUserResponse{
-		output, config.RoleUser,
+		output, configProject.RoleUser,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -176,8 +182,9 @@ func TestHandler_Login_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"logindaria@mail.ru","password":"111111"}`
 
@@ -199,8 +206,9 @@ func TestHandler_LoginValidationFail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"login":"dariamail.ru","password":"111111"}`
 
@@ -233,8 +241,9 @@ func TestHandler_GetUserData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/user", nil)
@@ -248,7 +257,7 @@ func TestHandler_GetUserData(t *testing.T) {
 		Name: "Daria",
 	}
 	response := models.SuccessUserResponse{
-		user, config.RoleUser,
+		user, configProject.RoleUser,
 	}
 
 	UserUsecaseMock.EXPECT().GetUserData(ctx).Return(&response, nil)
@@ -264,8 +273,9 @@ func TestHandler_UpdateData(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	input := models.UserData{
 		Email:       "daria@mail.ru",
@@ -285,7 +295,7 @@ func TestHandler_UpdateData(t *testing.T) {
 	}
 	response := models.SuccessUserResponse{
 		User: output,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -315,8 +325,9 @@ func TestHandler_UpdateData_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	inputJSON := `{"emaildaria@mail.ru","number":"89161166000","name":"Daria","password":"111111","password_current":"111111"}`
 
@@ -353,8 +364,9 @@ func TestHandler_UploadAvatar_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -381,8 +393,9 @@ func TestHandler_CheckAuth(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	output := models.User{
 		Email:    "daria@mail.ru",
@@ -393,12 +406,12 @@ func TestHandler_CheckAuth(t *testing.T) {
 		Uid:      1,
 	}
 	responseUser := models.SuccessUserResponse{
-		output, config.RoleUser,
+		output, configProject.RoleUser,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -407,7 +420,7 @@ func TestHandler_CheckAuth(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -416,6 +429,7 @@ func TestHandler_CheckAuth(t *testing.T) {
 	ctx := models.GetContext(c)
 	AuthServiceMock.EXPECT().CheckSession(ctx, "session1").Return(sessionInfo, true, nil)
 	AuthServiceMock.EXPECT().GetByUid(ctx, sessionInfo.Id).Return(&responseUser, nil)
+	UserUsecaseMock.EXPECT().GetAddress(ctx, output.Uid).Return(&models.Address{}, nil)
 
 	err := userHandler.CheckAuth(c)
 	if err != nil {
@@ -428,8 +442,9 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	output := models.User{
 		Email:    "daria@mail.ru",
@@ -440,12 +455,12 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 		Uid:      1,
 	}
 	responseUser := models.SuccessUserResponse{
-		output, config.RoleUser,
+		output, configProject.RoleUser,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -454,7 +469,7 @@ func TestHandler_CheckAuth_GetUserError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -483,16 +498,17 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	responseRest := models.SuccessRestaurantResponse{
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	sessionInfo := models.SessionInfo{
 		Id:   1,
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	e := echo.New()
@@ -501,7 +517,7 @@ func TestHandler_CheckAuth_GetRestaurantError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -530,8 +546,9 @@ func TestHandler_CheckAuth_WrongRole(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	sessionInfo := models.SessionInfo{
 		Id:   1,
@@ -544,7 +561,7 @@ func TestHandler_CheckAuth_WrongRole(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -572,8 +589,9 @@ func TestHandler_CheckAuth_CookieNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -600,8 +618,9 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	output := models.User{
 		Email:    "daria@mail.ru",
@@ -614,7 +633,7 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 
 	sessionInfo := models.SessionInfo{
 		Id:   output.Uid,
-		Role: config.RoleUser,
+		Role: configProject.RoleUser,
 	}
 
 	e := echo.New()
@@ -623,7 +642,7 @@ func TestHandler_CheckAuth_UserNotFound(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -651,8 +670,9 @@ func TestHandler_Logout(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -660,7 +680,7 @@ func TestHandler_Logout(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -680,8 +700,9 @@ func TestHandler_Logout_CookieNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/auth", nil)
@@ -712,14 +733,15 @@ func TestHandler_UpdateMainAddress(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
-	inputJSON := `{"name":"address1","longitude":"1234","latitude":"4321","radius":1000}`
+	inputJSON := `{"name":"address1","longitude":1234,"latitude":4321,"radius":1000}`
 	address := models.Address{
 		Name:      "address1",
-		Longitude: "1234",
-		Latitude:  "4321",
+		Longitude: 1234,
+		Latitude:  4321,
 		Radius:    1000,
 	}
 
@@ -729,7 +751,7 @@ func TestHandler_UpdateMainAddress(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -749,10 +771,11 @@ func TestHandler_UpdateMainAddress_BindError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
-	inputJSON := `{"nameaddress1","longitude":"1234","latitude":"4321","radius":1000}`
+	inputJSON := `{"nameaddress1","longitude":1234","latitude":"4321","radius":1000}`
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPut, "/address", strings.NewReader(inputJSON))
@@ -760,7 +783,7 @@ func TestHandler_UpdateMainAddress_BindError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)
@@ -784,13 +807,14 @@ func TestHandler_GetMainAddress(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	UserUsecaseMock := userMock.NewMockUserUsecase(ctrl)
+	RestaurantUsecaseMock := mocks.NewMockAdminRestaurantUsecase(ctrl)
 	AuthServiceMock := authServiceMock.NewMockServiceAuth(ctrl)
-	userHandler := NewUserHandler(UserUsecaseMock, AuthServiceMock)
+	userHandler := NewUserHandler(UserUsecaseMock, RestaurantUsecaseMock, AuthServiceMock)
 
 	address := models.Address{
 		Name:      "address1",
-		Longitude: "1234",
-		Latitude:  "4321",
+		Longitude: 1234,
+		Latitude:  4321,
 		Radius:    1000,
 	}
 
@@ -800,7 +824,7 @@ func TestHandler_GetMainAddress(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sessionCookie := http.Cookie{
 		Expires: time.Now().Add(24 * time.Hour),
-		Name:    config.SessionCookie,
+		Name:    configProject.SessionCookie,
 		Value:   "session1",
 	}
 	req.AddCookie(&sessionCookie)

@@ -93,11 +93,12 @@ func (mr *MockOrderUsecaseMockRecorder) GetUserOrders(arg0, arg1 interface{}) *g
 }
 
 // SetNewStatus mocks base method
-func (m *MockOrderUsecase) SetNewStatus(arg0 context.Context, arg1 models.SetNewStatus) error {
+func (m *MockOrderUsecase) SetNewStatus(arg0 context.Context, arg1 models.SetNewStatus) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetNewStatus", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SetNewStatus indicates an expected call of SetNewStatus

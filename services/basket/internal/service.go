@@ -31,8 +31,8 @@ func createBasketResponse(basket models.BasketForUser, address models.Address) p
 		dishesProto = append(dishesProto, &dishProto)
 	}
 	addressProto := protoBasket.Address{
-		Longitude:   basket.Address.Longitude,
-		Latitude:    basket.Address.Latitude,
+		Longitude:   float32(basket.Address.Longitude),
+		Latitude:    float32(basket.Address.Latitude),
 		AddressName: basket.Address.Name,
 		Radius:      int32(basket.Address.Radius),
 	}

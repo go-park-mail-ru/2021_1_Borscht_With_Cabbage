@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/borscht/backend/utils/notifications"
+	"github.com/borscht/backend/utils/websocketPool"
+
 	"github.com/borscht/backend/internal/services/auth"
 	"github.com/borscht/backend/internal/services/basket"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
@@ -58,8 +61,9 @@ type initRoute struct {
 }
 
 func route(data initRoute) {
-	userGroup := data.e.Group("/user", data.userMiddleware.Auth)
-	auth := data.e.Group("", data.authMiddleware.Auth)
+	apiGroup := data.e.Group("/api")
+	userGroup := apiGroup.Group("/user", data.userMiddleware.Auth)
+	auth := apiGroup.Group("", data.authMiddleware.Auth)
 	userGroup.GET("", data.user.GetUserData)
 	userGroup.PUT("", data.user.UpdateData)
 	userGroup.PUT("/avatar", data.user.UploadAvatar)
@@ -69,9 +73,9 @@ func route(data initRoute) {
 	auth.GET("/connect/ws", data.chat.GetKey)
 	auth.GET("/chats", data.chat.GetAllChats)
 	auth.GET("/chat/:id", data.chat.GetAllMessages)
-	data.e.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
+	apiGroup.GET("/ws/:key", data.chat.Connect, data.wsMiddleware.WsAuth)
 
-	restaurantGroup := data.e.Group("/restaurant", data.adminMiddleware.Auth)
+	restaurantGroup := apiGroup.Group("/restaurant", data.adminMiddleware.Auth)
 	restaurantGroup.POST("/categories", data.restaurantAdmin.AddCategories)
 	restaurantGroup.GET("/orders", data.order.GetRestaurantOrders)
 	restaurantGroup.PUT("/order/status", data.order.SetNewStatus)
@@ -86,32 +90,34 @@ func route(data initRoute) {
 	restaurantGroup.DELETE("/section", data.sectionAdmin.DeleteSection)
 	restaurantGroup.PUT("/section", data.sectionAdmin.UpdateSection)
 
-	data.e.POST("/signin", data.user.Login)
-	data.e.POST("/signup", data.user.Create)
-	data.e.POST("/restaurant/signup", data.restaurantAdmin.CreateRestaurant)
-	data.e.POST("/restaurant/signin", data.restaurantAdmin.Login)
+	apiGroup.POST("/signin", data.user.Login)
+	apiGroup.POST("/signup", data.user.Create)
+	apiGroup.POST("/restaurant/signup", data.restaurantAdmin.CreateRestaurant)
+	apiGroup.POST("/restaurant/signin", data.restaurantAdmin.Login)
 	userGroup.GET("/orders", data.order.GetUserOrders)
 	userGroup.POST("/order", data.order.Create)
 	userGroup.POST("/order/review", data.order.CreateReview)
 	userGroup.PUT("/basket", data.order.AddToBasket)
 	userGroup.GET("/basket", data.order.GetBasket)
 	userGroup.POST("/basket", data.order.AddBasket)
-	data.e.GET("/logout", data.user.Logout)
-	data.e.GET("/:id", data.restaurant.GetRestaurantPage)
-	data.e.GET("/", data.restaurant.GetVendor)
-	data.e.GET("/restaurants", data.restaurant.GetVendor)
-	data.e.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
+	apiGroup.GET("/logout", data.user.Logout)
+	apiGroup.GET("/:id", data.restaurant.GetRestaurantPage)
+	apiGroup.GET("/", data.restaurant.GetVendor)
+	apiGroup.GET("/restaurants", data.restaurant.GetVendor)
+	apiGroup.GET("/restaurant/:id/reviews", data.restaurant.GetReviews)
+	apiGroup.GET("/restaurant/:id/recommendations", data.restaurant.GetRecommendations)
 }
 
 func initServer(e *echo.Echo) {
-	e.Static("/static", config.Static)
-	e.Static("/default", config.DefaultStatic)
+	e.Static("/static", config.ConfigStatic.Folder+"/static")
+	e.Static("/default", config.ConfigStatic.Default)
 
 	logger.InitLogger()
 	e.Use(custMiddleware.LogMiddleware)
 	e.Use(custMiddleware.CORS)
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup: "header:X-XSRF-TOKEN",
+		CookiePath:  "/",
 	}))
 
 	e.Use(middleware.Secure())
@@ -120,6 +126,10 @@ func initServer(e *echo.Echo) {
 }
 
 func main() {
+	if config.ReadConfig() != nil {
+		return
+	}
+
 	e := echo.New()
 	initServer(e)
 	grpcConnAuth, errr := grpc.Dial(
@@ -159,8 +169,11 @@ func main() {
 	chatService := serviceChat.NewService(chatClient)
 
 	// подключение postgres
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s", config.DBUser, config.DBPass, config.DBName)
-	db, err := sql.Open(config.PostgresDB, dsn)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.ConfigDb.Host, config.ConfigDb.Port, config.ConfigDb.User,
+		config.ConfigDb.Password, config.ConfigDb.NameDb)
+
+	db, err := sql.Open(config.ConfigDb.NameSql, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -172,6 +185,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	websocketConnectionsUsers := websocketPool.NewConnectionPool()
+	websocketConnectionsRestaurants := websocketPool.NewConnectionPool()
+	orderNotificator := notifications.NewOrderNotificator(&websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
 	userRepo := userRepo.NewUserRepo(db)
 	adminRestaurantRepo := restaurantAdminRepo.NewRestaurantRepo(db)
@@ -187,19 +204,19 @@ func main() {
 	adminSectionUsecase := restaurantAdminUsecase.NewSectionUsecase(adminSectionRepo)
 	restaurantUsecase := restaurantUsecase.NewRestaurantUsecase(restaurantRepo, adminRestaurantRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, adminRestaurantRepo)
-	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService)
+	chatUsecase := chatUsecase.NewChatUsecase(chatService, authService, &websocketConnectionsUsers, &websocketConnectionsRestaurants)
 
-	userHandler := userDelivery.NewUserHandler(userUcase, authService)
+	userHandler := userDelivery.NewUserHandler(userUcase, adminRestaurantUsecase, authService)
 	adminRestaurantHandler := restaurantAdminDelivery.NewRestaurantHandler(adminRestaurantUsecase, authService)
 	adminDishHandler := restaurantAdminDelivery.NewDishHandler(adminDishUsecase)
 	adminSectionHandler := restaurantAdminDelivery.NewSectionHandler(adminSectionUsecase)
 	restaurantHandler := restaurantDelivery.NewRestaurantHandler(restaurantUsecase)
-	orderHandler := http.NewOrderHandler(orderUsecase, basketService)
+	orderHandler := http.NewOrderHandler(orderUsecase, basketService, orderNotificator)
 	chatHandler := chatDelivery.NewChatHandler(chatUsecase, authService)
 
 	initUserMiddleware := custMiddleware.InitUserMiddleware(authService)
-	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService)
-	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService)
+	initAdminMiddleware := custMiddleware.InitAdminMiddleware(authService, adminRestaurantUsecase)
+	initAuthMiddleware := custMiddleware.InitAuthMiddleware(authService, userUcase, adminRestaurantUsecase)
 	initWsMiddleware := custMiddleware.InitWsMiddleware(authService)
 
 	route(initRoute{
@@ -217,5 +234,5 @@ func main() {
 		wsMiddleware:    *initWsMiddleware,
 	})
 
-	e.Logger.Fatal(e.Start(":5000"))
+	e.Logger.Fatal(e.Start(":" + config.Config.Server.Port))
 }

@@ -30,13 +30,14 @@ type RestaurantInfo struct {
 	AdminPhone        string  `json:"number"`
 	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
-	AvgCheck          int     `json:"cost"`
-	Title             string  `json:"title"`
-	Description       string  `json:"description"`
-	DeliveryCost      int     `json:"deliveryCost"`
-	DeliveryTime      int     `json:"deliveryTime"`
-	Rating            float64 `json:"rating"`
-	Avatar            string  `json:"avatar"`
+	AvgCheck          int      `json:"cost"`
+	Title             string   `json:"title"`
+	Description       string   `json:"description"`
+	DeliveryCost      int      `json:"deliveryCost"`
+	DeliveryTime      int      `json:"deliveryTime"`
+	Rating            float64  `json:"rating"`
+	Avatar            string   `json:"avatar"`
+	Categories        []string `json:"filters"`
 }
 
 type RestaurantImageResponse struct {
@@ -50,9 +51,10 @@ type RestaurantUpdateData struct {
 	AdminPhone        string  `json:"number"`
 	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
-	Title             string `json:"title"`
-	Description       string `json:"description"`
-	DeliveryCost      int    `json:"deliveryCost"`
+	Title             string   `json:"title"`
+	Description       string   `json:"description"`
+	DeliveryCost      int      `json:"deliveryCost"`
+	Categories        []string `json:"filters"`
 }
 
 type CheckRestaurantExists struct {
@@ -73,11 +75,17 @@ type RestaurantRequest struct {
 	Time          int      `json:"time"`
 	Receipt       int      `json:"receipt"`
 	Rating        float64  `json:"rating"`
-	LatitudeUser  string   `json:"latitude"`
-	LongitudeUser string   `json:"longitude"`
+	LatitudeUser  float64  `json:"latitude"`
+	LongitudeUser float64  `json:"longitude"`
 	Address       bool     `json:"address"`
 }
 
 type Categories struct {
 	CategoriesID []string `json:"categories"`
+}
+
+type RecommendationsParams struct {
+	Id            int     `json:"id"`
+	LatitudeUser  float64 `json:"latitude"`
+	LongitudeUser float64 `json:"longitude"`
 }

@@ -37,7 +37,7 @@ func TestRestaurantUsecase_UpdateRestaurantData(t *testing.T) {
 		ID:       1,
 		Rating:   4,
 		AvgCheck: 1400,
-		Avatar:   config.DefaultRestaurantImage,
+		Avatar:   config.ConfigStatic.DefaultRestaurantImage,
 	}
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", restaurantAdmin)
@@ -53,6 +53,7 @@ func TestRestaurantUsecase_UpdateRestaurantData(t *testing.T) {
 
 	restaurantRepoMock.EXPECT().UpdateRestaurantData(ctx, restaurant).Return(nil)
 	restaurantRepoMock.EXPECT().UpdateAddress(ctx, restaurant.ID, restaurant.Address)
+	restaurantRepoMock.EXPECT().GetCategories(ctx, restaurant.ID).Return(make([]string, 0), nil)
 
 	restaurantResponse, err := restaurantUsecase.UpdateRestaurantData(ctx, restaurant)
 	if err != nil {
@@ -99,7 +100,7 @@ func TestRestaurantUsecase_AddCategories(t *testing.T) {
 		ID:       1,
 		Rating:   4,
 		AvgCheck: 1400,
-		Avatar:   config.DefaultRestaurantImage,
+		Avatar:   config.ConfigStatic.DefaultRestaurantImage,
 	}
 	c := context.Background()
 	ctx := context.WithValue(c, "Restaurant", restaurantAdmin)

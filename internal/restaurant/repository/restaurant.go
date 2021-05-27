@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/calcDistance"
@@ -50,32 +51,10 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 	// если запрос с фильтрацией по адресу
 	if request.Address {
 		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		//	Geography(ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326)),
-		//Geography(ST_SetSRID(ST_GeogFromText('SRID=4326; POINT(a.latitude a.longitude)'), 4326)),
-		//ST_GeogFromText('SRID=4326; POINT(a.latitude a.longitude)'),
-
-		//query += ` and ST_DWithin(
-		//			   	ST_SetSRID(ST_POINT(a.latitude::float, a.longitude::float), 4326),
-		//				ST_GeogFromText($2), a.radius)`
-		//userAddress := "'SRID=4326; POINT(" + request.LatitudeUser + " " + request.LongitudeUser + "')"
-
-		// РАБОТАЮЩАЯ ШТУКА, ПОЧЕМУ?????????????????
-		//		query += ` and ST_Distance(
-		//ST_GeomFromText('POINT(-71.064544 42.28787)'),
-		//ST_GeomFromText('POINT(-71.064544 42.28787)')
-		// 				 ) <= a.radius*1000;
-		//`
-
-		//		query += ` and ST_Distance(
-		//                   ST_GeomFromText(POINT(a.latitude a.longitude)'),
-		//                   ST_GeomFromText($2)
-		// 				 ) <= a.radius*1000;
-		//`
-
-		// господи помоги
-
-		//userAddress := "'POINT(" + request.LatitudeUser + " " + request.LongitudeUser + ")'"
-		//queryParametres = append(queryParametres, userAddress)
+		query += ` and ST_DWithin(
+					    Geography(ST_SetSRID(ST_POINT(a.latitude, a.longitude), 4326)),
+						ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", request.LatitudeUser) + ` ` + fmt.Sprintf("%f", request.LongitudeUser) + `)'),
+						a.radius)`
 	} else {
 		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
 		queryParametres = append(queryParametres, request.Offset, request.Limit)
@@ -93,7 +72,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 		var ratingsSum, reviewsCount int
 		restaurant := new(models.RestaurantInfo)
 
-		var restaurantLongitude, restaurantLatitude string
+		var restaurantLongitude, restaurantLatitude float64
 		var radius int
 		err = restaurantsDB.Scan(
 			&restaurant.ID,
@@ -117,13 +96,8 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 		}
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
-		// временно пока не сделаем проверку через бд нормально
-		if restaurant.DeliveryTime != 0 &&
-			restaurant.DeliveryTime < request.Time &&
-			restaurant.Rating >= request.Rating {
 
-			restaurants = append(restaurants, *restaurant)
-		}
+		restaurants = append(restaurants, *restaurant)
 		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
@@ -141,7 +115,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 	WHERE r.rid=$1
 	`
 
-	var restaurantLongitude, restaurantLatitude string
+	var restaurantLongitude, restaurantLatitude float64
 	var radius int
 	err := r.DB.QueryRow(query, id).
 		Scan(&restaurant.ID, &restaurant.Title, &restaurant.DeliveryCost, &restaurant.AvgCheck,
@@ -155,7 +129,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 		restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
 	}
 
-	if coordinates.Latitude != "" && coordinates.Longitude != "" {
+	if coordinates.Latitude != 0 && coordinates.Longitude != 0 {
 		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, restaurantLatitude, restaurantLongitude, radius)
 	}
 
@@ -234,7 +208,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 
 func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
 	reviewsDB, err := r.DB.Query("select review, stars, deliveryTime, (select name from users where uid=userid) from orders"+
-		" where restaurant=(select name from restaurants where rid=$1) and status=$2", id, models.StatusOrderDone)
+		" where restaurant=(select name from restaurants where rid=$1) and status=$2 and review is not null", id, models.StatusOrderDone)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)
@@ -316,4 +290,106 @@ func (r *restaurantRepo) GetAllCategories(ctx context.Context) ([]string, error)
 		return nil, failError
 	}
 	return categories, nil
+}
+
+func (r *restaurantRepo) getRestaurantCategories(ctx context.Context, id int) ([]string, error) {
+	query :=
+		`
+	SELECT categoryID FROM categories_restaurants
+	WHERE restaurantID = $1
+	`
+	categoriesDB, err := r.DB.Query(query, id)
+	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineDebugLog(ctx, "getting restaurant categories failed")
+		return nil, err
+	}
+
+	categories := make([]string, 0)
+	for categoriesDB.Next() {
+		var categoryID string
+		err = categoriesDB.Scan(&categoryID)
+		if err != nil {
+			logger.RepoLevel().InlineDebugLog(ctx, "getting restaurant categories failed")
+			return nil, err
+		}
+		categories = append(categories, categoryID)
+	}
+
+	return categories, nil
+}
+
+func (r *restaurantRepo) GetRecommendations(ctx context.Context, params models.RecommendationsParams) ([]models.RestaurantInfo, error) {
+	categories, err := r.getRestaurantCategories(ctx, params.Id)
+	if err != nil {
+		return nil, nil
+	}
+	logger.RepoLevel().InlineDebugLog(ctx, categories)
+
+	query :=
+		`
+		SELECT DISTINCT r.rid, r.name, r.deliveryCost, r.avgCheck, r.description, r.avatar, 
+			r.ratingssum, r.reviewscount, a.latitude, a.longitude, a.radius
+		FROM restaurants AS r
+		JOIN categories_restaurants AS cr
+		ON r.rid = cr.restaurantID
+		JOIN categories AS c
+		ON cr.categoryID = c.cid
+		JOIN addresses a on r.rid = a.rid
+		WHERE c.cid = ANY ($1) AND r.rid != $2
+	`
+
+	if params.LongitudeUser != 0 {
+		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+		query += ` and ST_DWithin(
+					    Geography(ST_SetSRID(ST_POINT(CAST(CAST(a.latitude::float AS varchar) as float), CAST(CAST(a.longitude::float AS varchar) as float)), 4326)),
+						ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", params.LatitudeUser) + ` ` + fmt.Sprintf("%f", params.LongitudeUser) + `)'),
+						a.radius)`
+	}
+
+	query += " LIMIT 6; "
+
+	restaurantsDB, err := r.DB.Query(query, pq.Array(categories), params.Id)
+	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineDebugLog(ctx, "getting restaurants for recommendations failed")
+		return nil, nil
+	}
+	if err != nil {
+		failError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, failError)
+		return nil, failError
+	}
+
+	restaurants := make([]models.RestaurantInfo, 0)
+	for restaurantsDB.Next() {
+		var ratingsSum, reviewsCount int
+		restaurant := new(models.RestaurantInfo)
+
+		var restaurantLongitude, restaurantLatitude float64
+		var radius int
+		err = restaurantsDB.Scan(
+			&restaurant.ID,
+			&restaurant.Title,
+			&restaurant.DeliveryCost,
+			&restaurant.AvgCheck,
+			&restaurant.Description,
+			&restaurant.Avatar,
+			&ratingsSum,
+			&reviewsCount,
+			&restaurantLatitude,
+			&restaurantLongitude,
+			&radius,
+		)
+
+		restaurant.DeliveryTime = calcDistance.GetDeliveryTime(params.LatitudeUser, params.LongitudeUser,
+			restaurantLatitude, restaurantLongitude, radius)
+
+		if reviewsCount != 0 {
+			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+		}
+
+		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
+		restaurants = append(restaurants, *restaurant)
+	}
+
+	return restaurants, nil
 }

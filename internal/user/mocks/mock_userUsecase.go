@@ -49,6 +49,21 @@ func (mr *MockUserUsecaseMockRecorder) AddAddress(arg0, arg1, arg2 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockUserUsecase)(nil).AddAddress), arg0, arg1, arg2)
 }
 
+// GetAddress mocks base method
+func (m *MockUserUsecase) GetAddress(arg0 context.Context, arg1 int) (*models.Address, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAddress", arg0, arg1)
+	ret0, _ := ret[0].(*models.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAddress indicates an expected call of GetAddress
+func (mr *MockUserUsecaseMockRecorder) GetAddress(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddress", reflect.TypeOf((*MockUserUsecase)(nil).GetAddress), arg0, arg1)
+}
+
 // GetMainAddress mocks base method
 func (m *MockUserUsecase) GetMainAddress(arg0 context.Context) (*models.Address, error) {
 	m.ctrl.T.Helper()

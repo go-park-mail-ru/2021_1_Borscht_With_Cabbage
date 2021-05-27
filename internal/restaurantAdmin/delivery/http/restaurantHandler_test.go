@@ -2,17 +2,18 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/borscht/backend/config"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	adminMock "github.com/borscht/backend/internal/restaurantAdmin/mocks"
 	authServiceMock "github.com/borscht/backend/internal/services/mocks"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 func TestNewRestaurantHandler(t *testing.T) {
@@ -44,7 +45,7 @@ func TestRestaurantHandler_UpdateRestaurantData(t *testing.T) {
 		Description: "yo", // итд
 	}
 	response := models.SuccessRestaurantResponse{
-		restaurantInfo, config.RoleAdmin,
+		restaurantInfo, configProject.RoleAdmin,
 	}
 	requestJSON := `{"Title":"newName","Description":"yo","deliveryCost":200}`
 
@@ -110,7 +111,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 	createdRestaurant := newRestaurant
 	createdRestaurant.ID = 1
 	response := models.SuccessRestaurantResponse{
-		RestaurantInfo: createdRestaurant, Role: config.RoleAdmin,
+		RestaurantInfo: createdRestaurant, Role: configProject.RoleAdmin,
 	}
 	response.ID = 1
 	requestJSON := `{"Title":"newName","password":"111111","number":"89111111111","email":"dasha@mail.ru"}`
@@ -124,7 +125,7 @@ func TestRestaurantHandler_CreateRestaurant(t *testing.T) {
 
 	sessionInfo := models.SessionInfo{
 		Id:   createdRestaurant.ID,
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	AuthServiceMock.EXPECT().CreateRestaurant(ctx, newRestaurant).Return(&response, nil)
@@ -186,7 +187,7 @@ func TestRestaurantHandler_Login(t *testing.T) {
 		Title: "rest1",
 	}
 	response := models.SuccessRestaurantResponse{
-		existingRestaurant, config.RoleAdmin,
+		existingRestaurant, configProject.RoleAdmin,
 	}
 
 	e := echo.New()
@@ -198,10 +199,12 @@ func TestRestaurantHandler_Login(t *testing.T) {
 
 	sessionInfo := models.SessionInfo{
 		Id:   existingRestaurant.ID,
-		Role: config.RoleAdmin,
+		Role: configProject.RoleAdmin,
 	}
 
 	AuthServiceMock.EXPECT().CheckRestaurantExists(ctx, newRestaurant).Return(&response, nil)
+	RestaurantUsecaseMock.EXPECT().GetAddress(ctx, existingRestaurant.ID).Return(&models.Address{}, nil)
+	RestaurantUsecaseMock.EXPECT().GetCategories(ctx, existingRestaurant.ID).Return(&models.Categories{}, nil)
 	AuthServiceMock.EXPECT().CreateSession(ctx, sessionInfo)
 
 	err := restaurantHandler.Login(c)

@@ -2,11 +2,13 @@ package internal
 
 import (
 	"context"
+
 	"github.com/borscht/backend/utils/secure"
 
-	"github.com/borscht/backend/config"
+	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/services/auth"
+	"github.com/borscht/backend/services/auth/config"
 	protoAuth "github.com/borscht/backend/services/proto/auth"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/google/uuid"
@@ -38,10 +40,10 @@ func convertToSuccessUserResponse(user models.User, address models.Address, id i
 		UID:         int32(id),
 		Avatar:      user.Avatar,
 		AddressName: address.Name,
-		Latitude:    address.Latitude,
-		Longitude:   address.Longitude,
+		Latitude:    float32(address.Latitude),
+		Longitude:   float32(address.Longitude),
 		Radius:      int32(address.Radius),
-		Role:        config.RoleUser,
+		Role:        configProject.RoleUser,
 	}
 }
 
@@ -56,7 +58,7 @@ func convertToSuccessRestaurantResponse(restaurant models.RestaurantInfo, addres
 		Description:  restaurant.Description,
 		Rating:       float32(restaurant.Rating),
 		Avatar:       restaurant.Avatar,
-		Role:         config.RoleAdmin,
+		Role:         configProject.RoleAdmin,
 	}
 }
 
@@ -66,7 +68,7 @@ func (s *service) CreateUser(ctx context.Context, user *protoAuth.User) (*protoA
 		Phone:    user.Phone,
 		Name:     user.Name,
 		Password: user.Password,
-		Avatar:   config.DefaultUserImage,
+		Avatar:   config.ConfigStatic.DefaultUserImage,
 	}
 
 	newUser.HashPassword = secure.HashPassword(ctx, secure.GetSalt(), newUser.Password)
@@ -123,7 +125,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		AdminEmail:    restaurant.Email,
 		AdminPhone:    restaurant.Phone,
 		AdminPassword: restaurant.Password,
-		Avatar:        config.DefaultRestaurantImage,
+		Avatar:        config.ConfigStatic.DefaultRestaurantImage,
 	}
 
 	newRestaurant.AdminHashPassword = secure.HashPassword(ctx, secure.GetSalt(), newRestaurant.AdminPassword)
@@ -136,7 +138,7 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 		Title: restaurant.Name,
 		Email: restaurant.Email,
 		Phone: restaurant.Phone,
-		Role:  config.RoleAdmin,
+		Role:  configProject.RoleAdmin,
 		RID:   int32(rid),
 	}
 
@@ -246,7 +248,7 @@ func (s *service) CreateSession(ctx context.Context, sessionInfo *protoAuth.Sess
 		Session:         headSession + session,
 		Id:              int(sessionInfo.Id),
 		Role:            sessionInfo.Role,
-		LifeTimeSeconds: config.LifetimeSecond,
+		LifeTimeSeconds: configProject.LifetimeSecond,
 	}
 	err := s.sessionRepo.Create(ctx, sessionData)
 	if err != nil {
