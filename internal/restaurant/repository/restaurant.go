@@ -208,7 +208,7 @@ func (r *restaurantRepo) GetById(ctx context.Context, id int, coordinates models
 
 func (r *restaurantRepo) GetReviews(ctx context.Context, id int) ([]models.RestaurantReview, error) {
 	reviewsDB, err := r.DB.Query("select review, stars, deliveryTime, (select name from users where uid=userid) from orders"+
-		" where restaurant=(select name from restaurants where rid=$1) and status=$2", id, models.StatusOrderDone)
+		" where restaurant=(select name from restaurants where rid=$1) and status=$2 and review is not null", id, models.StatusOrderDone)
 	if err != nil {
 		failError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failError)

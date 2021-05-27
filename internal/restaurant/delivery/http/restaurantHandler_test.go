@@ -1,8 +1,10 @@
 package http
 
 import (
+	"encoding/json"
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/restaurant/mocks"
+	"github.com/borscht/backend/utils/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -81,6 +83,107 @@ func TestRestaurantHandler_GetRestaurantPage(t *testing.T) {
 
 	err := restaurantHandler.GetRestaurantPage(c)
 	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestRestaurantHandler_GetReviews(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	RestaurantUsecaseMock := mocks.NewMockRestaurantUsecase(ctrl)
+	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/:id")
+	c.SetParamNames("id")
+	c.SetParamValues("1")
+	ctx := models.GetContext(c)
+
+	RestaurantUsecaseMock.EXPECT().GetReviews(ctx, 1).Return(make([]models.RestaurantReview, 0), nil)
+
+	err := restaurantHandler.GetReviews(c)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+func TestRestaurantHandler_GetReviews_idError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	RestaurantUsecaseMock := mocks.NewMockRestaurantUsecase(ctrl)
+	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := restaurantHandler.GetReviews(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+
+	if b.Code == 200 {
+		t.Errorf("incorrect result")
+		return
+	}
+}
+
+//func TestRestaurantHandler_GetRecommendations(t *testing.T) {
+//	ctrl := gomock.NewController(t)
+//	defer ctrl.Finish()
+//	RestaurantUsecaseMock := mocks.NewMockRestaurantUsecase(ctrl)
+//	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock)
+//
+//	e := echo.New()
+//	req := httptest.NewRequest(http.MethodPost, "/restaurants/?limit=1&offset=2&time=30&rating=5&receipt=122&longitude=37.646839&latitude=55.768096", nil)
+//	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+//	rec := httptest.NewRecorder()
+//	c := e.NewContext(req, rec)
+//	ctx := models.GetContext(c)
+//
+//	RestaurantUsecaseMock.EXPECT().GetRecommendations(ctx, 1).Return(make([]models.RestaurantInfo, 0), nil)
+//
+//	err := restaurantHandler.GetRecommendations(c)
+//	if err != nil {
+//		t.Errorf("incorrect result")
+//		return
+//	}
+//}
+
+func TestRestaurantHandler_GetRecommendations_ParamsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	RestaurantUsecaseMock := mocks.NewMockRestaurantUsecase(ctrl)
+	restaurantHandler := NewRestaurantHandler(RestaurantUsecaseMock)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/restaurants/?limit=1&offset=2&time=30&rating=5&receipt=122&longitude=37.646839&latitude=55.768096", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := restaurantHandler.GetRecommendations(c)
+	b := errors.SendError{}
+	respCode := rec.Body.Bytes()
+	err = json.Unmarshal(respCode, &b)
+	if err != nil {
+		t.Errorf("incorrect result")
+		return
+	}
+
+	if b.Code == 200 {
 		t.Errorf("incorrect result")
 		return
 	}
