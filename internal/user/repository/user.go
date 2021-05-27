@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/borscht/backend/internal/models"
 	"github.com/borscht/backend/internal/user"
 	"github.com/borscht/backend/utils/errors"
@@ -25,6 +26,9 @@ func (u userRepo) GetAddress(ctx context.Context, uid int) (*models.Address, err
 	logger.RepoLevel().InlineDebugLog(ctx, uid)
 	var address models.Address
 	err := u.DB.QueryRow(queri, uid).Scan(&address.Name, &address.Latitude, &address.Longitude)
+
+	logger.RepoLevel().InlineDebugLog(ctx, "end of reading from the database address")
+
 	if err == sql.ErrNoRows {
 		logger.RepoLevel().InlineDebugLog(ctx, "end get address not address")
 		return &models.Address{}, nil

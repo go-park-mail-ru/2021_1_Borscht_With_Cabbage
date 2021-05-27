@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
+
 	"github.com/borscht/backend/internal/models"
 	restModel "github.com/borscht/backend/internal/restaurant"
 	"github.com/borscht/backend/utils/calcDistance"
 	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/logger"
 	"github.com/lib/pq"
-	"math"
 )
 
 type restaurantRepo struct {
@@ -55,10 +56,10 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 					    Geography(ST_SetSRID(ST_POINT(a.latitude, a.longitude), 4326)),
 						ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", request.LatitudeUser) + ` ` + fmt.Sprintf("%f", request.LongitudeUser) + `)'),
 						a.radius)`
-	} else {
-		query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
-		queryParametres = append(queryParametres, request.Offset, request.Limit)
 	}
+
+	query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
+	queryParametres = append(queryParametres, request.Offset, request.Limit)
 
 	restaurantsDB, err := r.DB.Query(query, queryParametres...)
 	if err != nil {
@@ -97,7 +98,9 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 
-		restaurants = append(restaurants, *restaurant)
+		if restaurant.Rating >= request.Rating {
+			restaurants = append(restaurants, *restaurant)
+		}
 		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
 	}
 
