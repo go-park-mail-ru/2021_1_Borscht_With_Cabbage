@@ -88,7 +88,7 @@ func (a authRestaurantRepo) GetByLogin(ctx context.Context, login string) (*mode
 			&restaurant.Avatar, &restaurant.AdminHashPassword, &ratingsSum, &reviewsCount)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("restaurant not found")
 	}
 	if err != nil {
 		custError := errors.FailServerError(err.Error())
@@ -114,7 +114,7 @@ func (a authRestaurantRepo) GetByRid(ctx context.Context, rid int) (*models.Rest
 			&restaurant.Avatar, &restaurant.AdminHashPassword, &ratingsSum, &reviewsCount)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("user not found")
+		return nil, errors.NewErrorWithMessage("not authorization").SetDescription("restaurant not found")
 	}
 	if err != nil {
 		custError := errors.FailServerError(err.Error())

@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 
+	"github.com/borscht/backend/utils/errors"
 	"github.com/borscht/backend/utils/secure"
 
 	"github.com/borscht/backend/configProject"
@@ -103,9 +104,16 @@ func (s *service) GetByUid(ctx context.Context, uid *protoAuth.UID) (*protoAuth.
 }
 
 func (s *service) CheckUserExists(ctx context.Context, user *protoAuth.UserAuth) (*protoAuth.SuccessUserResponse, error) {
+	logger.UsecaseLevel().InlineDebugLog(ctx, user)
 	userResult, err := s.userAuthRepo.GetByLogin(ctx, user.Login)
 	if err != nil {
 		return &protoAuth.SuccessUserResponse{}, err
+	}
+	logger.UsecaseLevel().InlineDebugLog(ctx, userResult)
+
+	if !secure.CheckPassword(ctx, userResult.HashPassword, user.Password) {
+		logger.UsecaseLevel().InlineInfoLog(ctx, "Password faild")
+		return nil, errors.AuthorizationError("user not found")
 	}
 
 	address, err := s.userAuthRepo.GetAddress(ctx, userResult.Uid)
@@ -146,9 +154,17 @@ func (s *service) CreateRestaurant(ctx context.Context, restaurant *protoAuth.Us
 }
 
 func (s *service) CheckRestaurantExists(ctx context.Context, restaurantAuth *protoAuth.UserAuth) (*protoAuth.SuccessRestaurantResponse, error) {
+	logger.UsecaseLevel().InlineDebugLog(ctx, restaurantAuth)
 	restaurant, err := s.restaurantAuthRepo.GetByLogin(ctx, restaurantAuth.Login)
 	if err != nil {
 		return &protoAuth.SuccessRestaurantResponse{}, err
+	}
+
+	logger.UsecaseLevel().InlineDebugLog(ctx, restaurant)
+
+	if !secure.CheckPassword(ctx, restaurant.AdminHashPassword, restaurantAuth.Password) {
+		logger.UsecaseLevel().InlineInfoLog(ctx, "Password faild")
+		return nil, errors.AuthorizationError("restaurant not found")
 	}
 
 	response := convertToSuccessRestaurantResponse(*restaurant, models.Address{})
