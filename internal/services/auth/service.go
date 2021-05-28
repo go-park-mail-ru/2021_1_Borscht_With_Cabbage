@@ -206,7 +206,7 @@ func (s service) CheckRestaurantExists(ctx context.Context, restaurant models.Re
 		DeliveryCost: int(restaurantResult.DeliveryCost),
 		Description:  restaurantResult.Description,
 		Rating:       float64(restaurantResult.Rating),
-		AvgCheck:     int(restaurantResult.AvgCheck),
+		AvgCheck:     float64(restaurantResult.AvgCheck),
 		Avatar:       restaurantResult.Avatar,
 	}
 
@@ -240,7 +240,7 @@ func (s service) GetByRid(ctx context.Context, rid int) (*models.SuccessRestaura
 		DeliveryCost: int(restaurantResult.DeliveryCost),
 		Description:  restaurantResult.Description,
 		Rating:       float64(restaurantResult.Rating),
-		AvgCheck:     int(restaurantResult.AvgCheck),
+		AvgCheck:     float64(restaurantResult.AvgCheck),
 		Avatar:       restaurantResult.Avatar,
 		Address:      Address,
 	}

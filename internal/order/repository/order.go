@@ -33,12 +33,33 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 		return errors.BadRequestError("Error with getting restaurant name")
 	}
 
-	// цена доставки ресторана для формирования заказа
-	var deliveryCost int
-	err = o.DB.QueryRow("select deliverycost, name from restaurants where rid = $1", restID).Scan(&deliveryCost, &basketRestaurant)
+	// и для изменения кол-ва заказов и общей суммы заказа
+	var deliveryCost, ordersSum, ordersCount int
+	err = o.DB.QueryRow("select deliverycost, orderscount, orderssum from restaurants where name=$1", basketRestaurant).
+		Scan(&deliveryCost, &ordersCount, &ordersSum)
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting delivery cost")
 		return errors.BadRequestError("Error with getting delivery cost")
+	}
+
+	// сумма текущего заказа
+	var orderSum int
+	err = o.DB.QueryRow("select sum(d.price) from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID).
+		Scan(&orderSum)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting sum dish")
+		return errors.BadRequestError("Error with getting delivery cost")
+	}
+
+	ordersSum += orderSum + deliveryCost
+	ordersCount++
+
+	// сохраняем кол-во заказов и сумарная цена заказов
+	_, err = o.DB.Exec("UPDATE restaurants SET orderscount=$1, orderssum=$2 WHERE name=$3",
+		ordersCount, ordersSum, basketRestaurant)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with update data restaurant")
+		return errors.BadRequestError("Error with update data restaurant")
 	}
 
 	// формируем в бд новый заказ

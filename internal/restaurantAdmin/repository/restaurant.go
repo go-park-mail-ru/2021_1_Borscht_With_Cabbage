@@ -30,6 +30,8 @@ func (r *restaurantRepo) GetCategories(ctx context.Context, rid int) ([]string, 
 	logger.RepoLevel().DebugLog(ctx, logger.Fields{"rid": rid})
 	categories := make([]string, 0)
 	categoriesDB, err := r.DB.Query(query, rid)
+	logger.RepoLevel().InlineDebugLog(ctx, "end of reading from the database categories")
+
 	if err != nil {
 		failErr := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, failErr)
@@ -48,6 +50,7 @@ func (r *restaurantRepo) GetCategories(ctx context.Context, rid int) ([]string, 
 			return nil, failErr
 		}
 
+		logger.RepoLevel().DebugLog(ctx, logger.Fields{"Category": category})
 		categories = append(categories, category)
 	}
 
@@ -62,7 +65,9 @@ func (r restaurantRepo) GetAddress(ctx context.Context, rid int) (*models.Addres
 	err := r.DB.QueryRow(query, rid).Scan(&address.Name, &address.Latitude,
 		&address.Longitude, &address.Radius)
 
+	logger.RepoLevel().InlineDebugLog(ctx, "end of reading from the database address")
 	if err == sql.ErrNoRows {
+		logger.RepoLevel().InlineInfoLog(ctx, "not address")
 		return &models.Address{}, nil
 	}
 	if err != nil {

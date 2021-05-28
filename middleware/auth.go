@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/borscht/backend/configProject"
 	"github.com/borscht/backend/internal/models"
 	adminModel "github.com/borscht/backend/internal/restaurantAdmin"
@@ -33,7 +31,7 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 		sessionData := new(models.SessionInfo)
 		var exists bool
 		*sessionData, exists, err = m.AuthService.CheckSession(ctx, session.Value)
-		fmt.Println("session data: ", sessionData)
+		logger.MiddleLevel().DebugLog(ctx, logger.Fields{"session data": sessionData})
 		if err != nil {
 			failErr := errors.FailServerError("CheckSession: " + err.Error())
 			logger.MiddleLevel().ErrorLog(ctx, failErr)
@@ -54,7 +52,10 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			if err != nil {
 				return models.SendResponseWithError(c, err)
 			}
-			user.Address = *address
+
+			if address != nil {
+				user.Address = *address
+			}
 
 			c.Set("User", user.User)
 		}
@@ -70,7 +71,10 @@ func (m *AuthMiddleware) Auth(next echo.HandlerFunc) echo.HandlerFunc {
 			if err != nil {
 				return models.SendResponseWithError(c, err)
 			}
-			restaurant.Address = *address
+
+			if address != nil {
+				restaurant.Address = *address
+			}
 
 			categories, err := m.AdminUsecase.GetCategories(ctx, restaurant.ID)
 			if err != nil {
