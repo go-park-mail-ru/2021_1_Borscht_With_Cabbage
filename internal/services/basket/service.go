@@ -67,6 +67,7 @@ func convertProtoToBasket(basket *protoBasket.BasketInfo) models.BasketForUser {
 			Name:   dish.Name,
 			Price:  int(dish.Price),
 			Number: int(dish.Number),
+			Weight: int(dish.Weight),
 			Image:  dish.Image,
 		}
 		dishes = append(dishes, dishInfo)
