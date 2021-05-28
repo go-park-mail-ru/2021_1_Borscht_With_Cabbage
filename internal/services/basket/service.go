@@ -82,6 +82,7 @@ func convertProtoToBasket(basket *protoBasket.BasketInfo) models.BasketForUser {
 		BID:             int(basket.Bid),
 		Restaurant:      basket.RestaurantName,
 		RestaurantImage: basket.RestaurantImage,
+		DeliveryTime:    int(basket.DeliveryTime),
 		RID:             int(basket.Rid),
 		DeliveryCost:    int(basket.DeliveryCost),
 		Summary:         int(basket.Summary),
