@@ -30,7 +30,7 @@ type RestaurantInfo struct {
 	AdminPhone        string  `json:"number"`
 	AdminPassword     string  `json:"password"`
 	AdminHashPassword []byte
-	AvgCheck          int      `json:"cost"`
+	AvgCheck          float64  `json:"cost"`
 	Title             string   `json:"title"`
 	Description       string   `json:"description"`
 	DeliveryCost      int      `json:"deliveryCost"`

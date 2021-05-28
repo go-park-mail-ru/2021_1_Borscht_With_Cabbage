@@ -36,7 +36,9 @@ CREATE TABLE restaurants (
                              description TEXT,
                              avatar TEXT,
                              ratingsSum INTEGER DEFAULT 0,
-                             reviewsCount INTEGER DEFAULT 0
+                             reviewsCount INTEGER DEFAULT 0,
+                             ordersCount INTEGER DEFAULT 0,
+                             ordersSum INTEGER DEFAULT 0
 );
 
 CREATE TABLE addresses (
