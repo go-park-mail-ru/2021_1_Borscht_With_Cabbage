@@ -44,6 +44,7 @@ func createBasketResponse(basket models.BasketForUser, address models.Address) p
 		RestaurantImage: basket.RestaurantImage,
 		DeliveryCost:    int32(basket.DeliveryCost),
 		Summary:         int32(basket.Summary),
+		DeliveryTime:    int32(basket.DeliveryTime),
 		Address:         &addressProto,
 		Dishes:          dishesProto,
 	}

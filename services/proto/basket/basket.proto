@@ -33,6 +33,7 @@ message BasketInfo {
     repeated DishFromBasket Dishes = 7;
     Address Address = 8;
     int32 Uid = 9;
+    int32 DeliveryTime = 10;
 }
 
 message Baskets {

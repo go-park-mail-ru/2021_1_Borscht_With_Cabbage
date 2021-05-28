@@ -141,7 +141,7 @@ func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.
 	basketResponse.DeliveryCost = deliveryCost
 	basketResponse.RestaurantImage = imageRestaurant
 
-	dishesDB, errr := b.DB.Query("select d.did, d.name, d.price, bf.number, d.image from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID)
+	dishesDB, errr := b.DB.Query("select d.did, d.name, d.price, bf.number, d.image, d.weight from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basketID)
 	if errr != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket's dishes")
 		return nil, errors.BadRequestError("Error with getting basket's dishes")
@@ -156,7 +156,8 @@ func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.
 			&dish.Name,
 			&dish.Price,
 			&dish.Number,
-			&dish.Image)
+			&dish.Image,
+			&dish.Weight)
 		sum += dish.Price * dish.Number
 
 		dishes = append(dishes, *dish)
