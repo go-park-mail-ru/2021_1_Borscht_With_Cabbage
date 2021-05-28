@@ -27,6 +27,7 @@ func createBasketResponse(basket models.BasketForUser, address models.Address) p
 			Price:  int32(dish.Price),
 			Number: int32(dish.Number),
 			Image:  dish.Image,
+			Weight: int32(dish.Weight),
 		}
 		dishesProto = append(dishesProto, &dishProto)
 	}
@@ -128,15 +129,14 @@ func (s service) AddBaskets(ctx context.Context, info *protoBasket.Baskets) (*pr
 
 	response := protoBasket.Baskets{}
 	for _, basket := range info.Baskets {
+		logger.UsecaseLevel().InlineDebugLog(ctx, "working with basket "+string(basket.Bid))
 		// пока что удаляем предыдущую корзину, в будущем надо будет изменить логику
 		basketOld, err := s.basketRepo.GetBasket(ctx, uid, int(basket.Rid))
-		if err != nil {
-			return &protoBasket.Baskets{}, err
-		}
 
 		// у пользователя уже есть корзина, удаляем ее
 		if basketOld != nil {
 			err = s.basketRepo.DeleteBasket(ctx, basketOld.BID)
+			logger.UsecaseLevel().InlineDebugLog(ctx, "old basket deleted")
 			if err != nil {
 				return &protoBasket.Baskets{}, err
 			}
@@ -146,6 +146,7 @@ func (s service) AddBaskets(ctx context.Context, info *protoBasket.Baskets) (*pr
 		if err != nil {
 			return &protoBasket.Baskets{}, err
 		}
+		logger.UsecaseLevel().InlineDebugLog(ctx, "new basket added")
 
 		// TODO: попробовать сделать одной транзакцией это
 		// а то может записать только половину корзины
@@ -161,6 +162,7 @@ func (s service) AddBaskets(ctx context.Context, info *protoBasket.Baskets) (*pr
 				return &protoBasket.Baskets{}, err
 			}
 		}
+		logger.UsecaseLevel().InlineDebugLog(ctx, "dishes added")
 
 		basketResult, err := s.basketRepo.GetBasket(ctx, uid, int(basket.Rid))
 		if err != nil {

@@ -88,9 +88,8 @@ func TestOrderRepo_AddToNewBasket(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err != nil {
@@ -152,9 +151,8 @@ func TestOrderRepo_AddToNewBasket_GetRestError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -220,9 +218,8 @@ func TestOrderRepo_AddToNewBasket_CreateBasketError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -292,9 +289,8 @@ func TestOrderRepo_AddToNewBasket_BindUserError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -361,9 +357,8 @@ func TestOrderRepo_AddToBasket_SameRestaurant(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err != nil {
@@ -430,9 +425,8 @@ func TestOrderRepo_AddToBasket_SameRestaurant_AddError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -491,9 +485,8 @@ func TestOrderRepo_AddToBasketSameDish_SameRestaurant(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err != nil {
@@ -552,9 +545,8 @@ func TestOrderRepo_AddToBasketSameDish_SameRestaurant_AddError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -607,9 +599,8 @@ func TestOrderRepo_AddToBasket_NewRestaurant(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: false,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err != nil {
@@ -654,9 +645,8 @@ func TestOrderRepo_AddToBasket_NewRestaurant_DeleteOldError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: false,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -705,9 +695,8 @@ func TestOrderRepo_AddToBasket_NewRestaurant_InsertError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: false,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -760,9 +749,8 @@ func TestOrderRepo_AddToBasket_NewRestaurant_UpdRestError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: false,
-		IsPlus:     true,
+		DishID: 1,
+		IsPlus: true,
 	}
 	err = basketRepo.AddToBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -820,9 +808,8 @@ func TestOrderRepo_DeleteFromBasket(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     false,
+		DishID: 1,
+		IsPlus: false,
 	}
 	err = basketRepo.DeleteFromBasket(ctx, dishToBasket, 1)
 	if err != nil {
@@ -855,9 +842,8 @@ func TestOrderRepo_DeleteFromBasket_GetBasketError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     false,
+		DishID: 1,
+		IsPlus: false,
 	}
 	err = basketRepo.DeleteFromBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -902,9 +888,8 @@ func TestOrderRepo_DeleteFromBasket_GetNumberError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     false,
+		DishID: 1,
+		IsPlus: false,
 	}
 	err = basketRepo.DeleteFromBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -962,9 +947,8 @@ func TestOrderRepo_DeleteFromBasket_DeleteError(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     false,
+		DishID: 1,
+		IsPlus: false,
 	}
 	err = basketRepo.DeleteFromBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -1022,9 +1006,8 @@ func TestOrderRepo_DecDishCountInBasket(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     false,
+		DishID: 1,
+		IsPlus: false,
 	}
 	err = basketRepo.DeleteFromBasket(ctx, dishToBasket, 1)
 	if err != nil {
@@ -1082,9 +1065,8 @@ func TestOrderRepo_DecDishCountInBasket_Error(t *testing.T) {
 	ctx := context.WithValue(c, "request_id", 1)
 
 	dishToBasket := models.DishToBasket{
-		DishID:     1,
-		SameBasket: true,
-		IsPlus:     false,
+		DishID: 1,
+		IsPlus: false,
 	}
 	err = basketRepo.DeleteFromBasket(ctx, dishToBasket, 1)
 	if err == nil {
@@ -1140,10 +1122,10 @@ func TestOrderRepo_GetBasket(t *testing.T) {
 		restaurantInfo = restaurantInfo.AddRow(item.ID, item.DeliveryCost)
 	}
 
-	dishes := sqlmock.NewRows([]string{"id", "name", "price", "number", "image"})
+	dishes := sqlmock.NewRows([]string{"id", "name", "price", "number", "image", "weight"})
 	expectDishes := []models.DishInOrder{
-		{ID: 1, Name: "dish1", Price: 250, Image: "img.jpg", Number: 1},
-		{ID: 2, Name: "dish2", Price: 350, Image: "img2.jpg", Number: 2},
+		{ID: 1, Name: "dish1", Price: 250, Image: "img.jpg", Number: 1, Weight: 12},
+		{ID: 2, Name: "dish2", Price: 350, Image: "img2.jpg", Number: 2, Weight: 12},
 	}
 	for _, item := range expectDishes {
 		dishes = dishes.AddRow(item.ID, item.Name, item.Price, item.Number, item.Image)
@@ -1173,7 +1155,7 @@ func TestOrderRepo_GetBasket(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	basketResult, errr := basketRepo.GetBasket(ctx, 1)
+	basketResult, errr := basketRepo.GetBasket(ctx, 1, 1)
 	if errr != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1208,7 +1190,7 @@ func TestOrderRepo_GetBasket_SelectBidError(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	_, errr := basketRepo.GetBasket(ctx, 1)
+	_, errr := basketRepo.GetBasket(ctx, 1, 1)
 	if errr == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1250,7 +1232,7 @@ func TestOrderRepo_GetBasket_GetRestaurantError(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	_, errr := basketRepo.GetBasket(ctx, 1)
+	_, errr := basketRepo.GetBasket(ctx, 1, 1)
 	if errr == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1304,7 +1286,7 @@ func TestOrderRepo_GetBasket_GetAvatarError(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	_, errr := basketRepo.GetBasket(ctx, 1)
+	_, errr := basketRepo.GetBasket(ctx, 1, 1)
 	if errr == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1370,7 +1352,7 @@ func TestOrderRepo_GetBasket_RestInfoError(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	_, errr := basketRepo.GetBasket(ctx, 1)
+	_, errr := basketRepo.GetBasket(ctx, 1, 1)
 	if errr == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1448,7 +1430,7 @@ func TestOrderRepo_GetBasket_GetDishesErr(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	_, errr := basketRepo.GetBasket(ctx, 1)
+	_, errr := basketRepo.GetBasket(ctx, 1, 1)
 	if errr == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1789,7 +1771,7 @@ func TestBasketRepository_DeleteBasket(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	err = basketRepo.DeleteBasket(ctx, 1, 1)
+	err = basketRepo.DeleteBasket(ctx, 1)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1819,7 +1801,7 @@ func TestBasketRepository_DeleteBasket_ErrorDeleteLink(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	err = basketRepo.DeleteBasket(ctx, 1, 1)
+	err = basketRepo.DeleteBasket(ctx, 1)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return
@@ -1854,7 +1836,7 @@ func TestBasketRepository_DeleteBasket_ErrorDelete(t *testing.T) {
 	c := context.Background()
 	ctx := context.WithValue(c, "request_id", 1)
 
-	err = basketRepo.DeleteBasket(ctx, 1, 1)
+	err = basketRepo.DeleteBasket(ctx, 1)
 	if err == nil {
 		t.Errorf("unexpected err: %s", err)
 		return

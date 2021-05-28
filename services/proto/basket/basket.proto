@@ -20,6 +20,7 @@ message DishFromBasket {
     int32 Price = 3;
     int32 Number = 4;
     string Image = 5;
+    int32 Weight = 6;
 }
 
 message BasketInfo {

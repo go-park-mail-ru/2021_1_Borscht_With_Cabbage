@@ -30,6 +30,7 @@ type DishInOrder struct {
 	Price  int    `json:"price"`
 	Number int    `json:"num"`
 	Image  string `json:"image"`
+	Weight int    `json:"weight"`
 }
 
 type CreateOrder struct {

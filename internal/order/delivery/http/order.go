@@ -37,7 +37,7 @@ func (h Handler) AddBaskets(c echo.Context) error {
 	}
 
 	baskets := models.BasketsForUser{}
-	if err := c.Bind(&baskets); err != nil {
+	if err := c.Bind(&baskets.Baskets); err != nil {
 		sendErr := errors.BadRequestError("error with request data")
 		logger.DeliveryLevel().ErrorLog(ctx, sendErr)
 		return models.SendResponseWithError(c, sendErr)
@@ -49,7 +49,7 @@ func (h Handler) AddBaskets(c echo.Context) error {
 
 	result, err := h.BasketService.AddBaskets(ctx, baskets.Baskets)
 	if err != nil {
-		models.SendResponseWithError(c, err)
+		return models.SendResponseWithError(c, err)
 	}
 
 	if result == nil {

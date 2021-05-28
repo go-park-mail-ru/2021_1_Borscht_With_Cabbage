@@ -162,7 +162,7 @@ func (b basketRepository) GetBasket(ctx context.Context, uid, rid int) (*models.
 		dishes = append(dishes, *dish)
 	}
 	basketResponse.Foods = dishes
-	basketResponse.Summary = sum
+	basketResponse.Summary = sum + basketResponse.DeliveryCost
 
 	return &basketResponse, nil
 }
@@ -206,7 +206,7 @@ func (b basketRepository) GetBaskets(ctx context.Context, params models.GetBaske
 		basket.DeliveryTime = calcDistance.GetDeliveryTime(params.Latitude, params.Longitude, latitude, longitude, radius)
 
 		// getting dishes
-		dishesDB, errr := b.DB.Query("select d.did, d.name, d.price, bf.number, d.image from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basket.BID)
+		dishesDB, errr := b.DB.Query("select d.did, d.name, d.price, bf.number, d.image, d.weight from baskets_food bf join dishes d on d.did = bf.dish where bf.basket=$1", basket.BID)
 		if errr != nil {
 			logger.RepoLevel().InlineInfoLog(ctx, "Error with getting basket's dishes")
 			return models.BasketsForUser{}, errors.BadRequestError("Error with getting basket's dishes")
@@ -221,12 +221,14 @@ func (b basketRepository) GetBaskets(ctx context.Context, params models.GetBaske
 				&dish.Name,
 				&dish.Price,
 				&dish.Number,
-				&dish.Image)
+				&dish.Image,
+				&dish.Weight,
+			)
 			sum += dish.Price * dish.Number
 			dishes = append(dishes, *dish)
 		}
 		basket.Foods = dishes
-		basket.Summary = sum
+		basket.Summary = sum + basket.DeliveryCost
 
 		baskets.Baskets = append(baskets.Baskets, basket)
 	}
@@ -235,8 +237,15 @@ func (b basketRepository) GetBaskets(ctx context.Context, params models.GetBaske
 }
 
 func (b basketRepository) AddBasket(ctx context.Context, userID, restaurantID int) (basketID int, err error) {
+	err = b.DB.QueryRow("insert into baskets (restaurant) values ($1) returning bid", restaurantID).Scan(&basketID)
+	if err != nil {
+		insertError := errors.FailServerError(err.Error())
+		logger.RepoLevel().ErrorLog(ctx, insertError)
+		return 0, insertError
+	}
+
 	// вносим ее в табличку связи юзер-корзина
-	_, err = b.DB.Exec("insert into basket_users (userid, restaurantid) values ($1, $2)", userID, restaurantID)
+	_, err = b.DB.Exec("insert into basket_users (userid, restaurantid, basketid) values ($1, $2, $3)", userID, restaurantID, basketID)
 	if err != nil {
 		insertError := errors.FailServerError(err.Error())
 		logger.RepoLevel().ErrorLog(ctx, insertError)

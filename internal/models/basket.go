@@ -5,6 +5,7 @@ type DishInBasket struct {
 	Name   string `json:"name"`
 	Price  int    `json:"price"`
 	Number int    `json:"num"`
+	Weight int    `json:"weight"`
 	Image  string `json:"image"`
 }
 
