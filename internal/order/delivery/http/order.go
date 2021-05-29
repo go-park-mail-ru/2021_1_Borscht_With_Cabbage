@@ -127,6 +127,10 @@ func (h Handler) Create(c echo.Context) error {
 		return models.SendResponseWithError(c, sendErr)
 	}
 
+	coordinates := models.Coordinates{}
+	coordinates.Latitude, _ = strconv.ParseFloat(c.QueryParam("latitude"), 64)
+	coordinates.Longitude, _ = strconv.ParseFloat(c.QueryParam("longitude"), 64)
+
 	order := models.CreateOrder{}
 	if err := c.Bind(&order); err != nil {
 		sendErr := errors.AuthorizationError("error with request data")
@@ -142,7 +146,7 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	userStruct := user.(models.User)
-	err = h.OrderUcase.Create(ctx, userStruct.Uid, order)
+	err = h.OrderUcase.Create(ctx, userStruct.Uid, order, coordinates)
 	if err != nil {
 		return models.SendResponseWithError(c, err)
 	}

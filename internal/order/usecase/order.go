@@ -23,8 +23,8 @@ func NewOrderUsecase(repoOredr order.OrderRepo,
 	}
 }
 
-func (o orderUsecase) Create(ctx context.Context, uid int, orderParams models.CreateOrder) error {
-	return o.orderRepository.Create(ctx, uid, orderParams)
+func (o orderUsecase) Create(ctx context.Context, uid int, orderParams models.CreateOrder, coordinates models.Coordinates) error {
+	return o.orderRepository.Create(ctx, uid, orderParams, coordinates)
 }
 
 func (o orderUsecase) GetUserOrders(ctx context.Context, uid int) ([]models.Order, error) {

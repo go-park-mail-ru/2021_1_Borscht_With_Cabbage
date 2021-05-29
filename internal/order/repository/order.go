@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"github.com/borscht/backend/utils/calcDistance"
 	"time"
 
 	"github.com/borscht/backend/configProject"
@@ -23,7 +24,7 @@ func NewOrderRepo(db *sql.DB) order.OrderRepo {
 }
 
 // TODO транзакция
-func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.CreateOrder) error {
+func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.CreateOrder, coordinates models.Coordinates) error {
 	var basketID, restID int
 	var basketRestaurant string
 	// находим что за корзина и из какого ресторана привязана к юзеру
@@ -32,6 +33,16 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant name")
 		return errors.BadRequestError("Error with getting restaurant name")
 	}
+
+	var latitude, longitude float64
+	var radius int
+	err = o.DB.QueryRow("select latitude, longitude, radius from addresses where rid=$1", restID).Scan(&latitude, &longitude, &radius)
+	if err != nil {
+		logger.RepoLevel().InlineInfoLog(ctx, "Error with getting restaurant address")
+		return errors.BadRequestError("Error with getting restaurant address")
+	}
+	deliveryTime := calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, latitude, longitude, radius)
+	doneTime := time.Now().Add(time.Duration(deliveryTime) * time.Minute)
 
 	// и для изменения кол-ва заказов и общей суммы заказа
 	var deliveryCost, ordersSum, ordersCount int
@@ -69,7 +80,7 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 	var orderID int
 	err = o.DB.QueryRow("insert into orders (restaurant, userID, ordertime, address, deliverycost, sum, status, deliverytime)"+
 		"values ($1,$2,$3,$4,$5,$6,$7,$8) returning oid;", basketRestaurant, uid, time.Now(), orderParams.Address, deliveryCost, 0,
-		models.StatusOrderAdded, time.Now()).Scan(&orderID) // todo решить что с временем доставки
+		models.StatusOrderAdded, doneTime).Scan(&orderID) // todo решить что с временем доставки
 	if err != nil {
 		logger.RepoLevel().InlineInfoLog(ctx, "Error with inserting order in DB")
 		return errors.BadRequestError("Error with inserting order in DB")

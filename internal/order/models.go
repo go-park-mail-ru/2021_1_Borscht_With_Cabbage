@@ -22,7 +22,7 @@ type OrderHandler interface {
 }
 
 type OrderUsecase interface {
-	Create(ctx context.Context, uid int, orderParams models.CreateOrder) error
+	Create(ctx context.Context, uid int, orderParams models.CreateOrder, coordinates models.Coordinates) error
 	GetUserOrders(ctx context.Context, uid int) ([]models.Order, error)
 	GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error)
 	SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) (int, error)
@@ -30,7 +30,7 @@ type OrderUsecase interface {
 }
 
 type OrderRepo interface {
-	Create(ctx context.Context, uid int, orderParams models.CreateOrder) error
+	Create(ctx context.Context, uid int, orderParams models.CreateOrder, coordinates models.Coordinates) error
 	GetUserOrders(ctx context.Context, uid int) ([]models.Order, error)
 	GetRestaurantOrders(ctx context.Context, restaurantName string) ([]models.Order, error)
 	SetNewStatus(ctx context.Context, newStatus models.SetNewStatus) (int, error)

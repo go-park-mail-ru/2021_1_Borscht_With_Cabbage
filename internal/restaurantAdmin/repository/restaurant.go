@@ -202,7 +202,12 @@ func (a restaurantRepo) AddCategories(ctx context.Context, idRestaurant int, nam
 
 	// TODO: подумать как это можно сделать одним запросом
 	for _, values := range nameCategories {
-		a.DB.QueryRow(queri, values, idRestaurant)
+		_, err := a.DB.Exec(queri, values, idRestaurant)
+		if err != nil {
+			failError := errors.FailServerError(err.Error())
+			logger.RepoLevel().ErrorLog(ctx, failError)
+			return failError
+		}
 	}
 
 	return nil
