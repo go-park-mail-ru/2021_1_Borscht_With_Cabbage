@@ -96,7 +96,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 			restaurantLatitude, restaurantLongitude, radius)
 
 		if reviewsCount != 0 {
-			restaurant.Rating = math.Round(float64(ratingsSum) / float64(reviewsCount))
+			restaurant.Rating = math.Round(100*float64(ratingsSum)/float64(reviewsCount)) / 100
 		}
 
 		if ordersCount != 0 {

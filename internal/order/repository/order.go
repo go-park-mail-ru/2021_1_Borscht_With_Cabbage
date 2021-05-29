@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/borscht/backend/utils/calcDistance"
 	"time"
 
@@ -42,6 +43,8 @@ func (o orderRepo) Create(ctx context.Context, uid int, orderParams models.Creat
 		return errors.BadRequestError("Error with getting restaurant address")
 	}
 	deliveryTime := calcDistance.GetDeliveryTime(coordinates.Latitude, coordinates.Longitude, latitude, longitude, radius)
+	fmt.Println(time.Duration(deliveryTime))
+	fmt.Println(time.Duration(deliveryTime) * time.Minute)
 	doneTime := time.Now().Add(time.Duration(deliveryTime) * time.Minute)
 
 	// и для изменения кол-ва заказов и общей суммы заказа
