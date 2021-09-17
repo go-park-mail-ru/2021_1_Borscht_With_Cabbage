@@ -106,7 +106,7 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 
 		logger.RepoLevel().InlineDebugLog(ctx, restaurant)
 
-		if restaurant.Rating >= request.Rating && restaurant.AvgCheck <= float64(request.Receipt) {
+		if restaurant.Rating >= request.Rating && restaurant.AvgCheck <= float64(request.Receipt) && restaurant.DeliveryTime != 0 {
 			restaurants = append(restaurants, *restaurant)
 		}
 		logger.RepoLevel().InlineDebugLog(ctx, "stop scan")
