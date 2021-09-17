@@ -50,16 +50,17 @@ func (r *restaurantRepo) GetVendor(ctx context.Context, request models.Restauran
 	queryParametres = append(queryParametres, pq.Array(request.Categories), request.Receipt)
 
 	// если запрос с фильтрацией по адресу
-	if request.Address {
-		logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
-		query += ` and ST_DWithin(
-					    Geography(ST_SetSRID(ST_POINT(a.latitude, a.longitude), 4326)),
-						ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", request.LatitudeUser) + ` ` + fmt.Sprintf("%f", request.LongitudeUser) + `)'),
-						a.radius)`
-	}
+	//if request.Address {
+	//	logger.RepoLevel().InlineInfoLog(ctx, "vendors request with address")
+	//	query += ` and ST_DWithin(
+	//				    Geography(ST_SetSRID(ST_POINT(a.latitude, a.longitude), 4326)),
+	//					ST_GeomFromText('SRID=4326; POINT(` + fmt.Sprintf("%f", request.LatitudeUser) + ` ` + fmt.Sprintf("%f", request.LongitudeUser) + `)'),
+	//					a.radius)`
+	//}
 
-	query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
-	queryParametres = append(queryParametres, request.Offset, request.Limit)
+	//query += `ORDER BY r.rid OFFSET $3 LIMIT $4;`
+	query += `ORDER BY r.rid;`
+	//queryParametres = append(queryParametres, request.Offset, request.Limit)
 
 	restaurantsDB, err := r.DB.Query(query, queryParametres...)
 	if err != nil {
